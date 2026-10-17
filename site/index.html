@@ -15,7 +15,32 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 .leg{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;user-select:none}
 .leg.off{opacity:.35}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.panel{right:16px;top:16px;width:290px;max-height:calc(100% - 32px);overflow:auto;padding:14px;display:none}
+.panel{right:16px;top:16px;width:290px;transition:width .15s;max-height:calc(100% - 32px);overflow:auto;padding:14px;display:none}
+.panel.wide{width:min(680px,calc(100vw - 32px))}
+.ring{width:11px;height:11px;border-radius:50%;display:inline-block;border:1.5px solid #e8eaf6;margin-right:8px;box-sizing:border-box}
+.details{color:#aeb4d6;line-height:1.45;margin-bottom:12px}
+.details p{margin:0 0 8px}
+#art{margin-top:6px;border-top:1px solid rgba(255,255,255,.1);padding-top:12px}
+#art .state{color:#8890b5}#art .state a{color:#9db2ff;cursor:pointer;text-decoration:underline}
+.article{color:#c9cde8;line-height:1.6;font-size:14px;overflow-wrap:anywhere}
+.article h1{font-size:22px;margin:0 0 10px;color:#fff}
+.article h2{font-size:17px;margin:22px 0 8px;color:#fff;border-top:1px solid rgba(255,255,255,.08);padding-top:14px}
+.article h3{font-size:14px;margin:16px 0 6px;color:#fff}
+.article p{margin:0 0 10px;color:inherit}
+.article a{color:#9db2ff}
+.article img,.article iframe{max-width:100%;border-radius:6px}
+.article iframe{width:100%;aspect-ratio:16/9;height:auto;border:0}
+.article code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;background:rgba(255,255,255,.07);padding:1px 4px;border-radius:4px}
+.article pre{background:#070a14;border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:10px 12px;overflow:auto;margin:0 0 12px}
+.article pre code{background:none;padding:0;font-size:12px;line-height:1.5;color:#dfe3ff}
+.article table{border-collapse:collapse;width:100%;margin:0 0 12px;font-size:12.5px;display:block;overflow-x:auto}
+.article th,.article td{border:1px solid rgba(255,255,255,.14);padding:5px 8px;text-align:left;vertical-align:top}
+.article th{background:rgba(255,255,255,.06);color:#fff}
+.article blockquote{margin:0 0 10px;padding-left:12px;border-left:3px solid #3a4270;color:#aeb4d6}
+.article ul,.article ol{margin:0 0 10px;padding-left:20px;list-style:revert}
+.article li{padding:2px 0}
+.article-meta{font-size:12px;color:#8890b5}
+.article-sources ul{padding-left:18px}.article-sources li{font-size:12.5px}
 .meta{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8890b5}
 .panel h3{margin:4px 0 6px;font-size:18px}
 .panel p{margin:0 0 12px;color:#aeb4d6;line-height:1.45}
@@ -33,15 +58,16 @@ li.ev{color:#aeb4d6;padding-left:12px;text-indent:-12px}li.ev:before{content:"\2
 <div class="title">Database Internals<small id="sub"></small></div>
 <div class="box legend" id="legend"><h4>Subjects &middot; click to toggle</h4></div>
 <div class="box panel" id="panel"><span class="x" id="x">&times;</span>
-<div class="meta" id="pm"></div><h3 id="pt"></h3><p id="pd"></p>
+<div class="meta" id="pm"></div><h3 id="pt"></h3><p id="pd"></p><div class="details" id="pdt" style="display:none"></div>
 <div class="big"><span id="pn">0</span><small>prerequisites in total</small></div><div style="height:12px"></div>
-<h4>Builds directly on</h4><ul id="pb"></ul><h4>Unlocks next</h4><ul id="pu"></ul><h4>You understand it when you can</h4><ul id="pe"></ul></div>
+<h4>Builds directly on</h4><ul id="pb"></ul><h4>Unlocks next</h4><ul id="pu"></ul><h4>You understand it when you can</h4><ul id="pe"></ul>
+<div id="art" style="display:none"><h4>Read the full article</h4><div id="artbody"></div></div></div>
 <div class="box hint"><b>Drag</b> to spin &middot; <b>Scroll</b> to zoom &middot; <b>Click</b> a dot</div>
 <div class="err" id="err"></div>
 <script>
 fetch('graph.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}).then(init)
  .catch(e=>{const d=document.getElementById('err');d.style.display='flex';
-  d.innerHTML='Could not load graph.json ('+e.message+').<br>Serve this folder over HTTP, e.g. <code>python3 -m http.server -d docs</code>'});
+  d.innerHTML='Could not load graph.json ('+e.message+').<br>Open the built site over HTTP, e.g. <code>python3 scripts/build.py --serve</code>'});
 
 function init(G){
 const SUBJ=Object.fromEntries(G.subjects.map(s=>[s.name,s.color]));
@@ -89,6 +115,7 @@ function draw(t){
   ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,r*3,0,7);ctx.fill();
   ctx.fillStyle=n===sel?'#fff':c;ctx.beginPath();ctx.arc(p.x,p.y,r,0,7);ctx.fill();
   if(n===sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke()}
+  if(n.has_content){ctx.strokeStyle='#e8eaf6';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,r+4*p.s+2,0,7);ctx.stroke()}
   ctx.fillStyle='#d8dcf5';ctx.font=`${Math.max(10,12*p.s)}px -apple-system,sans-serif`;ctx.textAlign='center';
   ctx.fillText(n.name,p.x,p.y+r+13*Math.max(.8,p.s));ctx.globalAlpha=1});
  requestAnimationFrame(draw)}
@@ -102,10 +129,22 @@ cv.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.4,Math.min(3,z
 const P=id=>document.getElementById(id);
 function fill(el,items,cls,fn){const u=P(el);u.innerHTML='';
  if(!items.length){u.innerHTML='<li style="opacity:.5">none</li>';return}items.forEach(i=>u.appendChild(fn(i)))}
-function select(n){sel=n;if(!n){anc=new Set();P('panel').style.display='none';auto=true;return}
+const artCache={};let artTok=0;
+function showArticle(n){const box=P('art'),body=P('artbody'),tok=++artTok;
+ box.style.display=n.has_content?'block':'none';body.innerHTML='';if(!n.has_content)return;
+ if(artCache[n.id]!==undefined){body.innerHTML=artCache[n.id];return}
+ const state=(msg,retry)=>{body.innerHTML='';const d=document.createElement('div');d.className='state';d.textContent=msg;
+  if(retry){d.appendChild(document.createTextNode(' '));const a=document.createElement('a');a.textContent='Retry';a.onclick=()=>showArticle(n);d.appendChild(a)}body.appendChild(d)};
+ state('Loading article\u2026');
+ fetch('content/'+encodeURIComponent(n.id)+'.html').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()})
+  .then(h=>{artCache[n.id]=h;if(tok===artTok)body.innerHTML=h})
+  .catch(e=>{if(tok===artTok)state('Could not load the article ('+e.message+').',true)})}
+function select(n){sel=n;if(!n){anc=new Set();artTok++;P('panel').style.display='none';auto=true;return}
  auto=false;anc=ancestors(n);P('panel').style.display='block';
  P('pm').textContent=n.subject+' · '+n.domain+' · '+G.levels[n.level];
  P('pt').textContent=n.name;P('pd').textContent=n.description;P('pn').textContent=anc.size;
+ const dt=P('pdt');dt.style.display=n.details_html?'block':'none';dt.innerHTML=n.details_html||'';
+ P('panel').classList.toggle('wide',!!n.has_content);showArticle(n);
  const nodeLi=(m,reason)=>{const li=document.createElement('li');li.className='link';li.title=reason||'';
   li.innerHTML='<span class="dot" style="background:'+SUBJ[m.subject]+';margin-right:8px"></span>'+m.name;li.onclick=()=>select(m);return li};
  fill('pb',pre[n.id],'',l=>nodeLi(l.s,l.reason));fill('pu',nxt[n.id],'',l=>nodeLi(l.t,l.reason));
@@ -114,6 +153,8 @@ P('x').onclick=()=>select(null);
 names.forEach(k=>{const d=document.createElement('div');d.className='leg';
  d.innerHTML='<span class="dot" style="background:'+SUBJ[k]+'"></span>'+k+' <span style="margin-left:auto;opacity:.6;padding-left:14px">'+nodes.filter(n=>n.subject===k).length+'</span>';
  d.onclick=()=>{off.has(k)?off.delete(k):off.add(k);d.classList.toggle('off');if(sel&&!vis(sel))select(null)};P('legend').appendChild(d)});
+{const d=document.createElement('div');d.style.cssText='margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.1);color:#aeb4d6';
+ d.innerHTML='<span class="ring"></span>Ring = has a full article';P('legend').appendChild(d)}
 for(let i=0;i<250;i++)step();
 requestAnimationFrame(draw);
 }

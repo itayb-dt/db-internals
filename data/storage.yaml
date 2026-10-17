@@ -46,9 +46,17 @@ topics:
     name: TOAST
     domain: Memory & large values
     level: 2
-    description: Stores oversized values outside the main row, compressed, and fetches them on demand.
+    description: PostgreSQL stores values that make a row too wide (over about 2 kB) compressed and/or in a hidden side table, leaving only a pointer in the row.
+    details: |
+      Applies to variable-length types such as `text`, `jsonb` and `bytea`, up to 1 GB per value.
+      Each column has a storage strategy: `PLAIN`, `MAIN`, `EXTERNAL` or `EXTENDED`.
+      Selecting wide columns costs extra reads, and rewriting a large value leaves dead chunks for vacuum.
     evidence:
       - Explain why a row can be larger than a page
+      - Name the four storage strategies and say when you would pick EXTERNAL
+      - Find how much of a table's size is in its TOAST table
+      - Explain why a large jsonb update rewrites the whole document
+      - Choose between bytea, Large Objects and object storage for a 5 MB image
     prerequisites:
       - {id: heap, reason: Large values are moved out of the heap row}
       - {id: tuple, reason: The tuple keeps only a pointer to the large value}
