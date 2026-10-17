@@ -1,0 +1,76 @@
+subject: Indexing
+color: "#ff9e7a"
+topics:
+  - id: index
+    name: Index
+    domain: Index basics
+    level: 0
+    description: Auxiliary structure that maps key values to row locations so lookups avoid scanning the whole table.
+    evidence:
+      - Explain the trade-off of faster reads against slower writes and more storage
+    prerequisites:
+      - {id: heap, reason: An index points to rows in the table}
+
+  - id: index-scan
+    name: Index scan
+    domain: Index basics
+    level: 3
+    description: Walks an index to find matching entries, then fetches the rows from the table.
+    evidence:
+      - Explain when a sequential scan beats an index scan
+    prerequisites:
+      - {id: index, reason: Needs an index to walk}
+      - {id: btree, reason: Most index scans walk a B-Tree, strength: soft}
+
+  - id: btree
+    name: B-Tree
+    domain: Ordered indexes
+    level: 1
+    description: Balanced, sorted tree. The default index. Supports equality, ranges and ordering.
+    evidence:
+      - Explain why a B-Tree lookup touches only a few pages even for millions of rows
+    prerequisites:
+      - {id: index, reason: A B-Tree is a kind of index}
+      - {id: page, reason: Each tree node is one page}
+
+  - id: partial
+    name: Partial index
+    domain: Ordered indexes
+    level: 3
+    description: Index over only the rows that match a condition. Smaller and cheaper to maintain.
+    evidence:
+      - Give an example where indexing only active rows beats indexing all rows
+    prerequisites:
+      - {id: btree, reason: Usually built as a B-Tree}
+
+  - id: hash
+    name: Hash index
+    domain: Specialised indexes
+    level: 1
+    description: Hashes the key to a bucket. Equality lookups only.
+    evidence:
+      - Explain why a hash index cannot serve range queries
+    prerequisites:
+      - {id: index, reason: A hash index is a kind of index}
+
+  - id: gin
+    name: GIN
+    domain: Specialised indexes
+    level: 2
+    description: Inverted index. One row can appear under many keys, as with arrays, JSONB and full-text.
+    evidence:
+      - Explain why GIN fits "does this array contain X" queries
+    prerequisites:
+      - {id: index, reason: A GIN is a kind of index}
+      - {id: toast, reason: Large key lists rely on out-of-line storage, strength: soft}
+
+  - id: brin
+    name: BRIN
+    domain: Specialised indexes
+    level: 2
+    description: Stores min and max values per range of pages. Tiny, and effective when data is stored in order.
+    evidence:
+      - Explain why BRIN works well on an append-only timestamp column
+    prerequisites:
+      - {id: index, reason: A BRIN is a kind of index}
+      - {id: heap, reason: Works on physical block ranges of the table}
