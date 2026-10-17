@@ -1,0 +1,54 @@
+subject: Storage
+color: "#5b7cff"
+topics:
+  - id: page
+    name: Page
+    domain: Pages & rows
+    level: 0
+    description: Fixed-size block (for example 8 KB) that is the unit of disk I/O and caching.
+    evidence:
+      - Explain why databases read and write whole pages, not single rows
+      - Describe what a page contains (header, row pointers, row data)
+    prerequisites: []
+
+  - id: tuple
+    name: Tuple (row)
+    domain: Pages & rows
+    level: 1
+    description: One stored version of a row, living inside a page.
+    evidence:
+      - Explain that an UPDATE can create a new tuple instead of overwriting the old one
+    prerequisites:
+      - {id: page, reason: Tuples are stored inside pages}
+
+  - id: heap
+    name: Heap table
+    domain: Pages & rows
+    level: 1
+    description: Unordered collection of pages holding all tuples of a table.
+    evidence:
+      - Explain why a table without an index must be scanned page by page
+    prerequisites:
+      - {id: page, reason: A heap is a set of pages}
+      - {id: tuple, reason: A heap stores tuples}
+
+  - id: buffer
+    name: Buffer pool
+    domain: Memory & large values
+    level: 2
+    description: In-memory cache of pages shared by all connections.
+    evidence:
+      - Explain the difference between a cache hit and a disk read
+    prerequisites:
+      - {id: page, reason: The cache holds whole pages}
+
+  - id: toast
+    name: TOAST
+    domain: Memory & large values
+    level: 2
+    description: Stores oversized values outside the main row, compressed, and fetches them on demand.
+    evidence:
+      - Explain why a row can be larger than a page
+    prerequisites:
+      - {id: heap, reason: Large values are moved out of the heap row}
+      - {id: tuple, reason: The tuple keeps only a pointer to the large value}
