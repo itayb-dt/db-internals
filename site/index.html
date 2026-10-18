@@ -5,7 +5,7 @@
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:#0a0d1a;color:#e8eaf6;font-family:-apple-system,system-ui,Segoe UI,sans-serif;overflow:hidden}
-canvas{position:fixed;inset:0;width:100%;height:100%;cursor:grab}
+canvas{position:fixed;left:0;top:0;width:50%;height:100%;cursor:grab}
 canvas:active{cursor:grabbing}
 .box{position:fixed;background:rgba(15,19,36,.88);border:1px solid rgba(255,255,255,.1);border-radius:10px;font-size:12px}
 h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#8890b5;font-weight:600}
@@ -15,8 +15,17 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 .leg{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;user-select:none}
 .leg.off{opacity:.35}
 .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.panel{right:16px;top:16px;width:290px;transition:width .15s;max-height:calc(100% - 32px);overflow:auto;padding:14px;display:none}
-.panel.wide{width:min(680px,calc(100vw - 32px))}
+.pane{position:fixed;right:0;top:0;width:50%;height:100%;overflow:auto;background:#0f1324;border-left:1px solid rgba(255,255,255,.1);font-size:12px}
+.bar{position:sticky;top:0;z-index:2;background:#0f1324;border-bottom:1px solid rgba(255,255,255,.08);padding:10px 24px;display:none;font-size:13px}
+.bar a{color:#9db2ff;cursor:pointer}.bar a:hover{text-decoration:underline}
+.pad{padding:18px 24px 48px;max-width:860px}
+.chip{display:inline-flex;align-items:center;gap:7px;margin:0 8px 8px 0;padding:5px 10px;border:1px solid rgba(255,255,255,.14);border-radius:999px;cursor:pointer;color:#dfe3ff;font-size:13px}
+.chip:hover{background:rgba(255,255,255,.08)}
+.subj{margin:18px 0 4px;font-size:15px;color:#fff;display:flex;align-items:center;gap:8px}
+.subj small{color:#8890b5;font-weight:400}
+.trow{display:flex;gap:10px;padding:5px 0;cursor:pointer;font-size:13px;color:#c9cde8}.trow:hover b{text-decoration:underline}
+.trow b{color:#fff;font-weight:600;white-space:nowrap}.trow span{color:#8890b5}
+@media(max-width:900px){canvas{width:100%;height:45%}.pane{top:45%;width:100%;height:55%;border-left:0;border-top:1px solid rgba(255,255,255,.1)}.hint{display:none}.title{font-size:20px}}
 .ring{width:11px;height:11px;border-radius:50%;display:inline-block;border:1.5px solid #e8eaf6;margin-right:8px;box-sizing:border-box}
 .details{color:#aeb4d6;line-height:1.45;margin-bottom:12px}
 .details p{margin:0 0 8px}
@@ -50,18 +59,19 @@ ul{list-style:none;margin:0 0 12px;padding:0}
 li{padding:3px 0}
 li.link{cursor:pointer}li.link:hover{color:#fff;text-decoration:underline}
 li.ev{color:#aeb4d6;padding-left:12px;text-indent:-12px}li.ev:before{content:"\2022  "}
-.x{position:absolute;right:12px;top:8px;cursor:pointer;color:#8890b5;font-size:18px}
-.hint{right:16px;bottom:16px;padding:6px 10px;color:#8890b5}
+.hint{right:calc(50% + 16px);bottom:16px;padding:6px 10px;color:#8890b5}
 .err{position:fixed;inset:0;display:none;align-items:center;justify-content:center;text-align:center;color:#ff9e7a;padding:30px}
 </style></head><body>
 <canvas id="c"></canvas>
 <div class="title">Database Internals<small id="sub"></small></div>
 <div class="box legend" id="legend"><h4>Subjects &middot; click to toggle</h4></div>
-<div class="box panel" id="panel"><span class="x" id="x">&times;</span>
+<div class="pane" id="panel"><div class="bar" id="bar"><a id="homebtn">&larr; Home</a></div>
+<div class="pad" id="homeview"><div id="homebody"></div><div id="subjects"></div></div>
+<div class="pad" id="topicview" style="display:none">
 <div class="meta" id="pm"></div><h3 id="pt"></h3><p id="pd"></p><div class="details" id="pdt" style="display:none"></div>
 <div class="big"><span id="pn">0</span><small>prerequisites in total</small></div><div style="height:12px"></div>
 <h4>Builds directly on</h4><ul id="pb"></ul><h4>Unlocks next</h4><ul id="pu"></ul><h4>You understand it when you can</h4><ul id="pe"></ul>
-<div id="art" style="display:none"><h4>Read the full article</h4><div id="artbody"></div></div></div>
+<div id="art" style="display:none"><h4>Read the full article</h4><div id="artbody"></div></div></div></div>
 <div class="box hint"><b>Drag</b> to spin &middot; <b>Scroll</b> to zoom &middot; <b>Click</b> a dot</div>
 <div class="err" id="err"></div>
 <script>
@@ -142,29 +152,46 @@ function showArticle(n){const box=P('art'),body=P('artbody'),tok=++artTok;
   .then(h=>{artCache[n.id]=h;if(tok===artTok)body.innerHTML=h})
   .catch(e=>{if(tok===artTok)state('Could not load the article ('+e.message+').',true)})}
 function select(n){try{selectTopic(n)}catch(e){console.error('select failed',n&&n.id,e);
- P('panel').style.display='block';P('panel').classList.remove('wide');P('art').style.display='none';
+ showView(true);P('art').style.display='none';
  P('pt').textContent=n?n.name:'';P('pd').textContent='This topic could not be displayed ('+e.message+').'}}
-function selectTopic(n){sel=n;if(!n){anc=new Set();artTok++;P('panel').style.display='none';auto=true;setHash('');return}
+function selectTopic(n){sel=n;if(!n){anc=new Set();artTok++;showView(false);auto=true;setHash('');return}
  setHash(n.id);
- auto=false;anc=ancestors(n);P('panel').style.display='block';
+ auto=false;anc=ancestors(n);showView(true);
  P('pm').textContent=n.subject+' · '+n.domain+' · '+G.levels[n.level];
  P('pt').textContent=n.name;P('pd').textContent=n.description;P('pn').textContent=anc.size;
  const dt=P('pdt');dt.style.display=n.details_html?'block':'none';dt.innerHTML=n.details_html||'';
- P('panel').classList.toggle('wide',!!n.has_content);showArticle(n);
+ showArticle(n);
  const nodeLi=(m,reason)=>{const li=document.createElement('li');li.className='link';li.title=reason||'';
   li.innerHTML='<span class="dot" style="background:'+SUBJ[m.subject]+';margin-right:8px"></span>'+m.name;li.onclick=()=>select(m);return li};
  fill('pb',pre[n.id],'',l=>nodeLi(l.s,l.reason));fill('pu',nxt[n.id],'',l=>nodeLi(l.t,l.reason));
  fill('pe',n.evidence||[],'',t=>{const li=document.createElement('li');li.className='ev';li.textContent=t;return li})}
-P('x').onclick=()=>select(null);
+P('homebtn').onclick=()=>select(null);
+function showView(topic){P('homeview').style.display=topic?'none':'block';P('topicview').style.display=topic?'block':'none';P('bar').style.display=topic?'block':'none';P('panel').scrollTop=0}
 names.forEach(k=>{const d=document.createElement('div');d.className='leg';
  d.innerHTML='<span class="dot" style="background:'+SUBJ[k]+'"></span>'+k+' <span style="margin-left:auto;opacity:.6;padding-left:14px">'+nodes.filter(n=>n.subject===k).length+'</span>';
  d.onclick=()=>{off.has(k)?off.delete(k):off.add(k);d.classList.toggle('off');if(sel&&!vis(sel))select(null)};P('legend').appendChild(d)});
 {const d=document.createElement('div');d.style.cssText='margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.1);color:#aeb4d6';
  d.innerHTML='<span class="ring"></span>Ring = has a full article';P('legend').appendChild(d)}
 for(let i=0;i<250;i++)step();
+// home view: the editable page (content/_home.md) plus an automatic index of subjects and topics
+(function buildHome(){
+ const hb=P('homebody');
+ if(G.home)fetch('content/_home.html').then(r=>{if(!r.ok)throw new Error(r.status);return r.text()}).then(h=>{hb.innerHTML=h})
+  .catch(()=>{hb.innerHTML='<h1 style="font-size:24px">Database Internals</h1>'});
+ else hb.innerHTML='<h1 style="font-size:24px">Database Internals</h1>';
+ const box=P('subjects'),mk=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e};
+ const roots=nodes.filter(n=>!pre[n.id].length);
+ box.appendChild(Object.assign(mk('h4'),{textContent:'Starting points (no prerequisites)'}));
+ box.lastChild.style.marginTop='26px';
+ roots.forEach(n=>{const c=mk('span','chip');c.innerHTML='<span class="dot" style="background:'+SUBJ[n.subject]+'"></span>';c.appendChild(document.createTextNode(n.name));c.onclick=()=>select(n);box.appendChild(c)});
+ box.appendChild(Object.assign(mk('h4'),{textContent:'All topics by subject'}));box.lastChild.style.marginTop='18px';
+ names.forEach(k=>{const list=nodes.filter(n=>n.subject===k).sort((a,b)=>a.level-b.level||a.name.localeCompare(b.name));
+  const h=mk('div','subj');h.innerHTML='<span class="dot" style="background:'+SUBJ[k]+'"></span>';h.appendChild(document.createTextNode(k+' '));
+  const sm=mk('small');sm.textContent=list.length+(list.length===1?' topic':' topics');h.appendChild(sm);box.appendChild(h);
+  list.forEach(n=>{const r=mk('div','trow');const b=mk('b');b.textContent=n.name+(n.has_content?' \u25CB':'');const d=mk('span');d.textContent=n.description;r.append(b,d);r.onclick=()=>select(n);box.appendChild(r)})})})();
 window.dbmap={ids:nodes.map(n=>n.id),open:id=>select(byId[id]),close:()=>select(null)};
 // topic links inside articles and deep links: #topic=<id>
-const fromHash=()=>{const m=/^#topic=([a-z0-9-]+)$/.exec(location.hash);if(m&&byId[m[1]]&&sel!==byId[m[1]])select(byId[m[1]])};
+const fromHash=()=>{const m=/^#topic=([a-z0-9-]+)$/.exec(location.hash);if(m&&byId[m[1]]){if(sel!==byId[m[1]])select(byId[m[1]])}else if(sel)select(null)};
 P('panel').addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#topic="]');
  if(!a)return;e.preventDefault();const id=a.getAttribute('href').slice(7);if(byId[id])select(byId[id])});
 addEventListener('hashchange',fromHash);fromHash();

@@ -1,0 +1,56 @@
+subject: Query planning
+color: "#7ee0a1"
+topics:
+  - id: statistics
+    name: Statistics
+    domain: Planner inputs
+    level: 1
+    description: Summaries of what is in each table (row counts, value frequencies, histograms) that the planner uses to estimate how many rows a step will return.
+    details: |
+      Collected by `ANALYZE`, run by hand or by autovacuum, from a random sample of the table.
+      Visible in `pg_class` and `pg_stats`. Stale or missing statistics are a common cause of bad plans.
+    evidence:
+      - Explain why a bad row estimate can lead to a bad join choice
+      - Read null_frac, n_distinct and most_common_vals in pg_stats
+      - Say when ANALYZE runs automatically and how to check when it last ran
+      - Explain when extended statistics help
+    prerequisites:
+      - {id: heap, reason: Statistics describe the rows stored in the table}
+      - {id: tuple, reason: Row counts and dead rows come from tuples, strength: soft}
+
+  - id: execution-plan
+    name: Execution plan
+    domain: Plans
+    level: 2
+    description: The tree of steps the planner chooses to run a query, with the estimated cost and row count of each step. Plain EXPLAIN shows it without running the query.
+    details: |
+      A query goes through parse, rewrite, plan and execute. The planner builds candidate paths, estimates their cost from statistics, and keeps the cheapest.
+      Scans read tables, joins combine them, and the plan fixes the join order and join method.
+    evidence:
+      - Read a plan from the innermost node outwards
+      - Explain why the planner picked a sequential scan over an index
+      - Name the three join methods and when each wins
+      - Explain what cost=0.29..8.30 means and that it is not milliseconds
+    prerequisites:
+      - {id: statistics, reason: Estimates of rows and cost come from statistics}
+      - {id: index, reason: The planner chooses among table scans and index scans}
+      - {id: heap, reason: Scan nodes read heap pages}
+      - {id: index-scan, reason: Index scans are one of the access paths, strength: soft}
+
+  - id: actual-plan
+    name: Actual execution plan
+    domain: Plans
+    level: 3
+    description: The plan plus what really happened when the query ran (EXPLAIN ANALYZE) - actual rows, time per step, loops and buffer use - to compare against the estimates.
+    details: |
+      `EXPLAIN ANALYZE` executes the statement, so wrap data-changing statements in a transaction and roll back.
+      The key check is estimated rows against actual rows. Time per step is an average per loop, so multiply by `loops`.
+    evidence:
+      - Find the node where estimated rows and actual rows diverge most
+      - Compute the total time of a node that ran with loops greater than 1
+      - Run EXPLAIN ANALYZE on an UPDATE without keeping the change
+      - Say what BUFFERS adds and why it matters more than time on a warm cache
+    prerequisites:
+      - {id: execution-plan, reason: The actual plan is the same plan with measurements added}
+      - {id: statistics, reason: Estimate errors point back to statistics, strength: soft}
+      - {id: buffer, reason: Buffer hit and read counts describe the buffer pool, strength: soft}

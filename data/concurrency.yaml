@@ -1,0 +1,18 @@
+subject: Concurrency
+color: "#ffd166"
+topics:
+  - id: deadlock
+    name: Deadlock
+    domain: Locking
+    level: 2
+    description: Two or more transactions each hold a lock the other needs, so none can continue. PostgreSQL detects it and aborts one of them.
+    details: |
+      The aborted transaction gets error `40P01` and must be retried by the application.
+      The usual cause is two transactions locking the same rows in a different order.
+    evidence:
+      - Build a deadlock with two sessions and two rows
+      - Explain why PostgreSQL waits deadlock_timeout before it checks for a deadlock
+      - Find blocked sessions and their blockers with pg_blocking_pids
+      - Name two ways to prevent deadlocks and what the application must do when one still happens
+    prerequisites:
+      - {id: tuple, reason: Row-level locks protect the row versions a transaction changes}

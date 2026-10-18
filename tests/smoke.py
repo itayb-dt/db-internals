@@ -43,6 +43,27 @@ def main(url=None, screenshot=None):
         n_loaded = page.evaluate("window.dbmap.ids.length")
         if n_loaded != len(graph["topics"]):
             problems.append(f"viewer loaded {n_loaded} of {len(graph['topics'])} topics")
+        # the start page is shown first, with the editable home article and the topic index
+        if not page.locator("#homeview").is_visible():
+            problems.append("home view is not shown on load")
+        if graph.get("home"):
+            try:
+                page.wait_for_selector("#homebody .article", timeout=10000)
+            except Exception:
+                problems.append("home article did not load")
+        if page.locator("#subjects .trow").count() != len(graph["topics"]):
+            problems.append("home topic index does not list every topic")
+        for href in page.evaluate("[...document.querySelectorAll('#homebody a[href^=\"#topic=\"]')].map(a=>a.getAttribute('href'))"):
+            target = next((x for x in graph["topics"] if x["id"] == href[7:]), None)
+            if not target:
+                problems.append(f"home: link {href} names no topic")
+                continue
+            page.click(f"#homebody a[href='{href}']")
+            if page.inner_text("#pt").strip() != target["name"]:
+                problems.append(f"home: link {href} did not open '{target['name']}'")
+            page.click("#homebtn")
+            if not page.locator("#homeview").is_visible():
+                problems.append("Home button did not return to the start page")
         with_content = 0
         for t in graph["topics"]:
             page.evaluate("id => window.dbmap.open(id)", t["id"])
@@ -77,6 +98,9 @@ def main(url=None, screenshot=None):
             elif page.locator("#art").is_visible():
                 problems.append(f"{t['id']}: article section shown for a topic without content")
         if screenshot:
+            page.evaluate("window.dbmap.close()")
+            page.wait_for_timeout(500)
+            page.screenshot(path=screenshot.replace(".png", "-home.png"))
             page.evaluate("window.dbmap.open('toast')")
             page.wait_for_selector("#artbody .article")
             page.screenshot(path=screenshot)

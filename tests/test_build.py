@@ -163,6 +163,23 @@ class ContentTests(BuildTestCase):
         self.assertEqual(code, 1)
         self.assertIn("no topic with id 'zzz'", err)
 
+    def test_home_page_is_built_and_flagged(self):
+        s = self.site(content={"_home.md": "---\ntitle: Home\n---\nWelcome, see [A](topic:a)."})
+        self.assertEqual(s.run()[0], 0)
+        self.assertIn('href="#topic=a"', read(s.out("content", "_home.html")))
+        self.assertIn('"home": true', read(s.out("graph.json")))
+
+    def test_no_home_page_is_fine(self):
+        s = self.site()
+        self.assertEqual(s.run()[0], 0)
+        self.assertIn('"home": false', read(s.out("graph.json")))
+
+    def test_broken_home_is_skipped_when_lenient(self):
+        s = self.site(content={"_home.md": "[x](topic:nope)"})
+        self.assertEqual(s.run()[0], 1)
+        self.assertEqual(s.run(lenient=True)[0], 0)
+        self.assertIn('"home": false', read(s.out("graph.json")))
+
     def test_underscore_files_are_ignored(self):
         s = self.site(content={"_prompt.md": "notes"})
         self.assertEqual(s.run()[0], 0)
