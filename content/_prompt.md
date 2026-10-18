@@ -41,6 +41,16 @@ Every article must answer, for its topic:
 - End with a short practical checklist. The build adds the Sources list from the frontmatter.
 - Target 900-1400 words plus small code blocks.
 
+## Visuals
+
+Hard ideas need a picture. Add one when the text alone makes the reader work too hard.
+
+- Use a static **image** for structure: a tree, a page layout, a plan. Use a **live demo** for something that happens over time: a wait, a split, a retry.
+- Keep each article about one idea. If an article grows long, split it into sub topics and give each its own visual.
+- Images: PNG in `content/<topic-id>/`, small (aim for under 200 KB), with alt text. Author diagrams as SVG in `content/<topic-id>/src/` and render them with `python3 scripts/render_images.py`.
+- Demos: one plain HTML file, `content/<topic-id>/<name>.html`, embedded with `<iframe src="<topic-id>/<name>.html" ...>`. No libraries and no network requests. Loop by itself, run about 10 seconds or less, use simple motion, and show the state in words as it changes. Draw the scene as a function of time so the loop restarts cleanly. Respect `prefers-reduced-motion` with one still frame.
+- Show a visual only for what the article explains. Do not decorate.
+
 ## Accuracy
 
 - Verify every claim against the official documentation for the stated version. Put the pages in `sources`.

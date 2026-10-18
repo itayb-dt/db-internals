@@ -96,6 +96,33 @@ class SanitizerTests(BuildTestCase):
         self.assertNotIn("iframe", bad)
         self.assertTrue(errs)
 
+    def test_demo_iframe_is_sandboxed_without_same_origin(self):
+        s = self.site(content={"a/d.html": "<html></html>"})
+        errors = []
+        out = build.sanitize('<iframe src="a/d.html" sandbox="allow-same-origin"></iframe>',
+                             build.CONTENT_DIR, "a", errors, "t")
+        self.assertIn('src="content/a/d.html"', out)
+        self.assertIn('sandbox="allow-scripts"', out)
+        self.assertNotIn("same-origin", out)
+        self.assertEqual(errors, [])
+        self.assertTrue(s)
+
+    def test_demo_iframe_must_exist_and_stay_in_own_folder(self):
+        self.site(content={"b/other.html": "<html></html>", "a/x.js": "x"})
+        for src in ("a/missing.html", "b/other.html", "a/../index.html", "../data/t.yaml", "/etc/passwd",
+                    "a/x.js", "//evil.example/x", "demos/x.html"):
+            errors = []
+            out = build.sanitize(f'<iframe src="{src}"></iframe>', build.CONTENT_DIR, "a", errors, "t")
+            self.assertNotIn("<iframe", out, src)
+            self.assertTrue(errors, src)
+
+    def test_html_only_allowed_as_link_or_iframe_not_image(self):
+        self.site(content={"a/d.html": "<html></html>"})
+        errors = []
+        out = build.sanitize('<a href="a/d.html">open</a><img src="a/d.html">', build.CONTENT_DIR, "a", errors, "t")
+        self.assertIn('href="content/a/d.html"', out)
+        self.assertEqual(len(errors), 1)
+
     def test_style_and_unknown_tags_removed(self):
         out, _ = self.clean('<style>p{}</style><form action="x"><input></form><p style="color:red">t</p>')
         self.assertNotIn("<style", out)
@@ -225,6 +252,13 @@ class ContentTests(BuildTestCase):
     def test_both_md_and_html_is_error(self):
         s = self.site(content={"a.md": "x", "a.html": "y"})
         self.assertEqual(s.run()[0], 1)
+
+    def test_demo_is_copied_unchanged(self):
+        demo = "<html><script>var x=1</script></html>"
+        s = self.site(content={"a.md": '<iframe src="a/d.html" title="t" width="800" height="450"></iframe>', "a/d.html": demo})
+        self.assertEqual(s.run()[0], 0)
+        self.assertEqual(read(s.out("content", "a", "d.html")), demo)
+        self.assertIn('src="content/a/d.html"', read(s.out("content", "a.html")))
 
     def test_asset_copied_and_svg_not(self):
         s = self.site(content={"a.md": "![p](a/p.png)", "a/p.png": b"x", "a/evil.svg": "<svg/>"})

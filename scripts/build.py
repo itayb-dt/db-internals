@@ -50,6 +50,9 @@ EMBED_PREFIXES = (
     "https://www.youtube-nocookie.com/embed/",
     "https://player.vimeo.com/video/",
 )
+# Live demos are single HTML files next to the article's images: content/<topic-id>/<name>.html,
+# embedded as <iframe src="<topic-id>/<name>.html">.
+DEMO_RE = re.compile(r"^([a-z0-9][a-z0-9-]*)/([A-Za-z0-9][A-Za-z0-9._-]*\.html)$")
 FORCED_ATTRS = {
     "iframe": {
         "sandbox": "allow-scripts allow-same-origin allow-presentation",
@@ -78,7 +81,18 @@ def sanitize(raw_html, source_dir, topic_id, errors, where, known_ids=()):
 
     def attr_filter(tag, attr, value):
         if tag == "iframe" and attr == "src":
-            return value if value.startswith(EMBED_PREFIXES) else None
+            if value.startswith(EMBED_PREFIXES):
+                return value
+            m = DEMO_RE.match(value)
+            if m:
+                if m.group(1) != topic_id:
+                    errors.append(f"{where}: demo '{value}' must be in this topic's own folder content/{topic_id}/")
+                    return None
+                if not os.path.isfile(os.path.join(CONTENT_DIR, value)):
+                    errors.append(f"{where}: demo '{value}' does not exist (looked for content/{value})")
+                    return None
+                return "content/" + value
+            return None
         if attr == "href" and value.startswith("topic:"):
             target_id = value[len("topic:"):]
             if target_id not in known_ids:
@@ -102,7 +116,7 @@ def sanitize(raw_html, source_dir, topic_id, errors, where, known_ids=()):
         if not os.path.isfile(target):
             errors.append(f"{where}: {shown} does not exist (looked for {os.path.relpath(target, ROOT)})")
             return None
-        if os.path.splitext(target)[1].lower() not in ASSET_EXT:
+        if os.path.splitext(target)[1].lower() not in (ASSET_EXT | {".html"} if tag == "a" else ASSET_EXT):
             errors.append(f"{where}: {shown} has a file type that is not allowed "
                           f"(allowed: {', '.join(sorted(ASSET_EXT))})")
             return None
@@ -118,12 +132,18 @@ def sanitize(raw_html, source_dir, topic_id, errors, where, known_ids=()):
         set_tag_attribute_values=FORCED_ATTRS,
         attribute_filter=attr_filter,
     )
+    # Demos are our own scripts: run them in a sandbox without access to the surrounding page.
+    cleaned = re.sub(
+        r"<iframe\b[^>]*>",
+        lambda m: re.sub(r'sandbox="[^"]*"', 'sandbox="allow-scripts"', m.group(0))
+        if 'src="content/' in m.group(0) else m.group(0),
+        cleaned)
     # An iframe whose src was rejected is an empty shell; drop it and say so.
     def drop_empty_iframe(m):
         if re.search(r"\ssrc=", m.group(0)):
             return m.group(0)
-        errors.append(f"{where}: <iframe> removed; only YouTube and Vimeo embeds are allowed "
-                      f"({', '.join(EMBED_PREFIXES)})")
+        errors.append(f"{where}: <iframe> removed; only YouTube/Vimeo embeds "
+                      f"({', '.join(EMBED_PREFIXES)}) and <topic-id>/<name>.html demos are allowed")
         return ""
     return re.sub(r"<iframe\b[^>]*>\s*</iframe>", drop_empty_iframe, cleaned)
 
@@ -316,7 +336,7 @@ def build_content(topics, problems):
         if os.path.isdir(asset_dir):
             for dp, _, fns in os.walk(asset_dir):
                 for fn in sorted(fns):
-                    if os.path.splitext(fn)[1].lower() in ASSET_EXT:
+                    if os.path.splitext(fn)[1].lower() in ASSET_EXT | {".html"}:  # .html = live demos
                         assets.append(os.path.join(dp, fn))
     return rendered, assets
 

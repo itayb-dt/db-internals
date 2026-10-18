@@ -50,7 +50,7 @@ Hash Join  (cost=35.20..1240.55 rows=4200 width=36)
 
 Read it from the innermost, most indented node outwards. Each node shows the estimated cost (`startup..total`), the estimated number of rows, and the average row width in bytes.
 
-**Cost is not time.** It is measured in arbitrary units based on the planner's cost settings. By convention, one sequential page read costs 1.0 and the other costs are relative to that. Startup cost is the work before the first row can be returned (for example, a sort must finish before it returns anything). Total cost assumes the node runs to completion. For a plain sequential scan the cost is roughly pages read plus a small CPU charge per row.
+**Cost is not time.** It is a relative number in arbitrary units, built from page reads and a small CPU charge per row. Startup cost is the work before the first row can come out, and total cost is the work to produce them all. Use costs to compare plans, not to predict seconds. The details, with a worked example, are in [Cost Based Optimization](topic:cost-based-optimization).
 
 ## Scan nodes: how rows are read
 
@@ -72,6 +72,16 @@ The choice follows from the statistics. With an estimated 1 matching row out of 
 ## Join order
 
 With three or more tables, the order matters a lot, because it decides how many rows flow through each step. The planner explores orders and picks the cheapest. Exhaustive search gets expensive as tables are added, so settings limit it: `join_collapse_limit` and `from_collapse_limit` control how many items are reordered, and above `geqo_threshold` (12 FROM items by default) the planner switches to a genetic algorithm that does not guarantee the best plan. Setting `join_collapse_limit` to 1 keeps the join order you wrote.
+
+## What an estimated plan cannot tell you
+
+A plain `EXPLAIN` is a prediction made before anything runs. It cannot know:
+
+- **How many rows will really be read.** Row counts are estimates from [statistics](topic:statistics), and they can be far off. A node that says `rows=1` may return a million rows. Every cost number downstream is built on these guesses.
+- **How long anything takes.** There is no timing in an estimated plan, only cost units. Two plans with similar costs can differ a lot in real time.
+- **What is in memory and what is on disk.** The planner does not look at the buffer cache. It uses fixed assumptions: a cost for sequential and random page reads, and a setting (`effective_cache_size`) for how much cache it may assume. Which pages come from shared buffers and which from disk is known only after the query runs.
+
+To see real rows, time and buffer reads, use the [actual plan](topic:actual-plan).
 
 ## EXPLAIN options and output format
 

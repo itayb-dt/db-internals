@@ -49,6 +49,10 @@ DETAIL:  Process 101 waits for ShareLock on transaction 5001; blocked by process
 HINT:  See server log for query details.
 ```
 
+<iframe src="deadlock/demo.html" title="Animation: two sessions each lock a row, then wait for the other; PostgreSQL detects the deadlock and aborts one" width="800" height="450"></iframe>
+
+*The animation repeats about every 10 seconds.*
+
 Note the difference from plain blocking. If A waits for B and B is just slow, A waits indefinitely, and there is no error. A deadlock is the special case where the wait can never end.
 
 ## Why it is a problem

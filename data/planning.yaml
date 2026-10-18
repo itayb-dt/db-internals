@@ -54,3 +54,20 @@ topics:
       - {id: execution-plan, reason: The actual plan is the same plan with measurements added}
       - {id: statistics, reason: Estimate errors point back to statistics, strength: soft}
       - {id: buffer, reason: Buffer hit and read counts describe the buffer pool, strength: soft}
+
+  - id: cost-based-optimization
+    name: Cost Based Optimization
+    domain: Plans
+    level: 3
+    description: How the planner turns estimated row counts and page reads into a number for each candidate plan and picks the lowest. The numbers are relative, not time.
+    details: |
+      Costs come from a model: page fetches plus per-row CPU work, weighted by settings such as `seq_page_cost` and `random_page_cost`.
+      The model assumes how much is cached and trusts the row estimates, so a wrong estimate or a wrong assumption gives a wrong plan.
+    evidence:
+      - Compute the cost of a sequential scan from pages, rows and the cost settings
+      - Explain why the same plan has different costs on two servers with different settings
+      - Say what startup cost and total cost mean for a Sort and for a Limit
+      - Explain why lowering random_page_cost can switch a query to an index scan
+    prerequisites:
+      - {id: execution-plan, reason: Costs are the numbers shown on each plan node}
+      - {id: statistics, reason: Row estimates feed the cost model}

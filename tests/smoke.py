@@ -5,7 +5,7 @@ Opens every topic, and the article of every topic that has one, and fails on any
 console error, page error, failed request or empty article.
 Needs: pip install playwright && playwright install chromium
 """
-import functools, http.server, json, os, sys, threading
+import functools, glob, http.server, json, os, sys, threading
 from urllib.request import urlopen
 
 from playwright.sync_api import sync_playwright
@@ -26,6 +26,7 @@ def serve():
 
 def main(url=None, screenshot=None):
     srv = None
+    url_is_local = url is None
     if url is None:
         srv, url = serve()
     url = url if url.endswith("/") else url + "/"
@@ -36,7 +37,7 @@ def main(url=None, screenshot=None):
         page = browser.new_page(viewport={"width": 1400, "height": 900})
         page.on("console", lambda m: m.type == "error" and problems.append(f"console error: {m.text}"))
         page.on("pageerror", lambda e: problems.append(f"page error: {e}"))
-        page.on("requestfailed", lambda r: problems.append(f"request failed: {r.url}"))
+        page.on("requestfailed", lambda r: "ERR_ABORTED" in (r.failure or "") or problems.append(f"request failed: {r.url}"))  # aborted = we moved on while it loaded
         page.on("response", lambda r: r.status >= 400 and problems.append(f"HTTP {r.status}: {r.url}"))
         page.goto(url)
         page.wait_for_function("window.dbmap && window.dbmap.ids.length > 0", timeout=15000)
@@ -97,6 +98,19 @@ def main(url=None, screenshot=None):
                         problems.append(f"{t['id']}: {bad} image(s) did not render")
             elif page.locator("#art").is_visible():
                 problems.append(f"{t['id']}: article section shown for a topic without content")
+        # every live demo must load and run for a moment without errors
+        demos = sorted(os.path.relpath(f, os.path.join(ROOT, "_site"))
+                       for f in glob.glob(os.path.join(ROOT, "_site", "content", "*", "*.html")))
+        if url_is_local:
+            for d in demos:
+                dp = browser.new_page(viewport={"width": 800, "height": 450})
+                dp.on("console", lambda m, d=d: m.type == "error" and problems.append(f"demo {d}: console error: {m.text}"))
+                dp.on("pageerror", lambda e, d=d: problems.append(f"demo {d}: page error: {e}"))
+                dp.goto(url + d)
+                dp.wait_for_timeout(1500)
+                if not dp.locator("svg, canvas").count():
+                    problems.append(f"demo {d}: nothing drawn")
+                dp.close()
         if screenshot:
             page.evaluate("window.dbmap.close()")
             page.wait_for_timeout(500)

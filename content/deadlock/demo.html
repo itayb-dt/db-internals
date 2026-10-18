@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deadlock demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif;fill:#e8eaf6}
+.m{fill:#8890b5}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="Two sessions each lock one row and then wait for the row the other holds. PostgreSQL detects the deadlock after one second and aborts one session.">
+ <title>Deadlock: two sessions wait for each other</title>
+ <!-- sessions -->
+ <rect id="boxA" x="65" y="165" width="140" height="120" rx="10" fill="#161b33" stroke="#5b7cff" stroke-width="3"/>
+ <text x="135" y="195" text-anchor="middle" font-size="17" font-weight="700" fill="#5b7cff" style="fill:#5b7cff">Session A</text>
+ <text id="stA" x="135" y="235" text-anchor="middle" font-size="13"></text>
+ <text id="stA2" x="135" y="256" text-anchor="middle" font-size="13" class="m"></text>
+ <rect id="boxB" x="595" y="165" width="140" height="120" rx="10" fill="#161b33" stroke="#ff9e7a" stroke-width="3"/>
+ <text x="665" y="195" text-anchor="middle" font-size="17" font-weight="700" style="fill:#ff9e7a">Session B</text>
+ <text id="stB" x="665" y="235" text-anchor="middle" font-size="13"></text>
+ <text id="stB2" x="665" y="256" text-anchor="middle" font-size="13" class="m"></text>
+ <!-- rows -->
+ <rect id="r1" x="335" y="82" width="130" height="62" rx="8" fill="#161b33" stroke="#3a4270" stroke-width="3"/>
+ <text x="400" y="107" text-anchor="middle" font-size="15" font-weight="700">Row 1</text>
+ <text id="r1t" x="400" y="128" text-anchor="middle" font-size="12" class="m">free</text>
+ <rect id="r2" x="335" y="306" width="130" height="62" rx="8" fill="#161b33" stroke="#3a4270" stroke-width="3"/>
+ <text x="400" y="331" text-anchor="middle" font-size="15" font-weight="700">Row 2</text>
+ <text id="r2t" x="400" y="352" text-anchor="middle" font-size="12" class="m">free</text>
+ <!-- lock lines: held (solid) and requested (dashed) -->
+ <line id="hA1" stroke="#5b7cff" stroke-width="4" stroke-linecap="round"/>
+ <line id="hB2" stroke="#ff9e7a" stroke-width="4" stroke-linecap="round"/>
+ <line id="hA2" stroke="#5b7cff" stroke-width="4" stroke-linecap="round"/>
+ <line id="qA2" stroke="#5b7cff" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round"/>
+ <line id="qB1" stroke="#ff9e7a" stroke-width="3" stroke-dasharray="7 6" stroke-linecap="round"/>
+ <!-- wait-for cycle -->
+ <g id="cyc" opacity="0">
+  <line x1="212" y1="205" x2="585" y2="205" stroke="#ff5d6c" stroke-width="3"/>
+  <path d="M585 205l-12-6v12z" fill="#ff5d6c"/>
+  <line x1="588" y1="228" x2="215" y2="228" stroke="#ff5d6c" stroke-width="3"/>
+  <path d="M215 228l12-6v12z" fill="#ff5d6c"/>
+  <text x="400" y="198" text-anchor="middle" font-size="12" style="fill:#ff5d6c">A waits for B</text>
+  <text x="400" y="246" text-anchor="middle" font-size="12" style="fill:#ff5d6c">B waits for A</text>
+ </g>
+ <!-- deadlock_timeout bar -->
+ <g id="tm" opacity="0">
+  <text x="400" y="266" text-anchor="middle" font-size="12" class="m">deadlock_timeout (default 1 s)</text>
+  <rect x="320" y="274" width="160" height="8" rx="4" fill="#2a3158"/>
+  <rect id="tmf" x="320" y="274" width="0" height="8" rx="4" fill="#ffd166"/>
+ </g>
+ <!-- caption -->
+ <text id="cap" x="400" y="412" text-anchor="middle" font-size="18" font-weight="600"></text>
+ <rect id="bar" x="0" y="446" width="0" height="4" fill="#5b7cff"/>
+</svg>
+<script>
+(function(){
+var LOOP=10, $=function(id){return document.getElementById(id)};
+var A='#5b7cff',B='#ff9e7a',RED='#ff5d6c',GREEN='#7ee0a1',FREE='#3a4270';
+var clamp=function(x){return Math.max(0,Math.min(1,x))};
+var ease=function(x){x=clamp(x);return x<.5?2*x*x:1-Math.pow(-2*x+2,2)/2};
+var prog=function(t,a,b){return ease((t-a)/(b-a))};
+// a line that grows from (x1,y1) towards (x2,y2)
+function grow(id,x1,y1,x2,y2,p){var l=$(id);
+ l.setAttribute('x1',x1);l.setAttribute('y1',y1);
+ l.setAttribute('x2',x1+(x2-x1)*p);l.setAttribute('y2',y1+(y2-y1)*p);
+ l.style.display=p>0.001?'':'none'}
+function set(id,txt,fill){var e=$(id);e.textContent=txt;e.style.fill=fill||''}
+function render(t){
+ // --- time line (seconds) ---
+ // 1.0 A locks row 1 | 2.2 B locks row 2 | 3.4 A wants row 2 | 4.6 B wants row 1
+ // 5.6-7.0 cycle + timeout | 7.0 B aborted | 8.0 A gets row 2 | 9.0 A commits
+ var a1=prog(t,1.0,1.6), b2=prog(t,2.2,2.8), qa=prog(t,3.4,4.0), qb=prog(t,4.6,5.2);
+ var abort=t>=7.0, aGot=t>=8.0, commit=t>=9.0;
+ grow('hA1',205,200,335,125,commit?0:a1);
+ grow('hB2',595,250,465,325,abort?0:b2);
+ grow('qA2',205,250,335,335,(aGot||t<3.4)?0:qa);
+ grow('hA2',205,250,335,335,(aGot&&!commit)?prog(t,8.0,8.5):0);
+ grow('qB1',595,200,465,125,(abort||t<4.6)?0:qb);
+ // rows
+ var r1o=(t>=1.0&&!commit)?A:null, r2o=(t>=2.2&&!abort)?B:(aGot&&!commit?A:null);
+ $('r1').setAttribute('stroke',r1o||FREE);$('r2').setAttribute('stroke',r2o||FREE);
+ set('r1t',r1o?'locked by A':'free',r1o);
+ set('r2t',r2o===B?'locked by B':r2o===A?'locked by A':'free',r2o);
+ // sessions
+ var waitA=t>=3.4&&!aGot, waitB=t>=4.6&&!abort;
+ var pulse=.5+.5*Math.sin(t*7);
+ $('boxA').setAttribute('stroke-width',waitA?3+2*pulse:3);
+ $('boxB').setAttribute('stroke-width',waitB?3+2*pulse:3);
+ set('stA',commit?'COMMIT ✓':aGot?'UPDATE row 2 ✓':waitA?'UPDATE row 2…':t>=1.0?'UPDATE row 1 ✓':'BEGIN',commit?GREEN:waitA?'#ffd166':'');
+ set('stA2',waitA?'waiting for B':'');
+ set('stB',abort?'ERROR 40P01':waitB?'UPDATE row 1…':t>=2.2?'UPDATE row 2 ✓':'BEGIN',abort?RED:waitB?'#ffd166':'');
+ set('stB2',abort?(t>=9.0?'will retry':'rolled back'):waitB?'waiting for A':'');
+ $('boxB').style.stroke=abort?RED:'';
+ if(abort)$('boxB').setAttribute('stroke',RED);else $('boxB').setAttribute('stroke',B);
+ // cycle + timer
+ var cyc=t>=5.6&&t<7.0?clamp((t-5.6)/.3):0;
+ $('cyc').setAttribute('opacity',cyc*(.65+.35*pulse));
+ $('tm').setAttribute('opacity',cyc);
+ $('tmf').setAttribute('width',160*clamp((t-5.6)/1.4));
+ // caption
+ var c=t<1.0?'Two sessions, two rows. Both transactions begin.'
+  :t<2.2?'A updates row 1 and locks it.'
+  :t<3.4?'B updates row 2 and locks it.'
+  :t<4.6?'A now needs row 2. B holds it, so A waits.'
+  :t<5.6?'B now needs row 1. A holds it, so B waits.'
+  :t<7.0?'Each waits for the other. PostgreSQL waits 1 s, then checks.'
+  :t<8.0?'Deadlock detected. B is aborted and rolled back.'
+  :t<9.0?'A gets row 2 and finishes.'
+  :'A commits. B must retry its transaction.';
+ var cap=$('cap');cap.textContent=c;cap.style.fill=(t>=7.0&&t<8.0)?RED:'';
+ $('bar').setAttribute('width',800*t/LOOP);
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){render(5.9);return}
+var t0=performance.now();
+(function frame(now){render(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>
