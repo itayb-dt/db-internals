@@ -71,9 +71,9 @@ fetch('graph.json').then(r=>{if(!r.ok)throw new Error(r.status);return r.json()}
 
 function init(G){
 const SUBJ=Object.fromEntries(G.subjects.map(s=>[s.name,s.color]));
-const nodes=G.topics.map(t=>({...t,x:(Math.random()-.5)*200,y:180-t.level*100,z:(Math.random()-.5)*200,vx:0,vy:0,vz:0}));
+const nodes=G.topics.filter(t=>t&&t.id&&G.levels[t.level]!==undefined).map(t=>({...t,x:(Math.random()-.5)*200,y:180-t.level*100,z:(Math.random()-.5)*200,vx:0,vy:0,vz:0}));
 const byId=Object.fromEntries(nodes.map(n=>[n.id,n]));
-const links=G.edges.map(e=>({s:byId[e.prerequisite],t:byId[e.topic],soft:e.strength==='soft',reason:e.reason,p:Math.random()}));
+const links=G.edges.filter(e=>byId[e.prerequisite]&&byId[e.topic]).map(e=>({s:byId[e.prerequisite],t:byId[e.topic],soft:e.strength==='soft',reason:e.reason,p:Math.random()}));
 const pre={},nxt={};nodes.forEach(n=>{pre[n.id]=[];nxt[n.id]=[]});
 links.forEach(l=>{pre[l.t.id].push(l);nxt[l.s.id].push(l)});
 document.getElementById('sub').textContent=nodes.length+' concepts and '+links.length+' prerequisite links';
@@ -99,7 +99,9 @@ function proj(n){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=M
  let x=n.x*cy-n.z*sy,z=n.x*sy+n.z*cy,y=n.y*cp-z*sp;z=n.y*sp+z*cp;
  const f=520/(520+z+300),s=f*zoom*Math.min(W,H)/520;return{x:W/2+x*s,y:H/2+y*s,s,z}}
 const vis=n=>!off.has(n.subject);
-function draw(t){
+let drawErrs=0;
+function draw(t){try{drawFrame(t)}catch(e){if(drawErrs++<3)console.error('draw failed',e)}requestAnimationFrame(draw)}
+function drawFrame(t){
  step();if(auto&&!drag)yaw+=.0025;
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#0a0d1a';ctx.fillRect(0,0,W,H);
  nodes.forEach(n=>n.p=proj(n));
@@ -117,8 +119,7 @@ function draw(t){
   if(n===sel){ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke()}
   if(n.has_content){ctx.strokeStyle='#e8eaf6';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(p.x,p.y,r+4*p.s+2,0,7);ctx.stroke()}
   ctx.fillStyle='#d8dcf5';ctx.font=`${Math.max(10,12*p.s)}px -apple-system,sans-serif`;ctx.textAlign='center';
-  ctx.fillText(n.name,p.x,p.y+r+13*Math.max(.8,p.s));ctx.globalAlpha=1});
- requestAnimationFrame(draw)}
+  ctx.fillText(n.name,p.x,p.y+r+13*Math.max(.8,p.s));ctx.globalAlpha=1})}
 cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,moved:false};cv.setPointerCapture(e.pointerId)});
 cv.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
  if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;yaw+=dx*.008;pitch=Math.max(-1.4,Math.min(1.4,pitch+dy*.006));drag.x=e.clientX;drag.y=e.clientY});
@@ -129,6 +130,7 @@ cv.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.4,Math.min(3,z
 const P=id=>document.getElementById(id);
 function fill(el,items,cls,fn){const u=P(el);u.innerHTML='';
  if(!items.length){u.innerHTML='<li style="opacity:.5">none</li>';return}items.forEach(i=>u.appendChild(fn(i)))}
+function setHash(id){const h=id?'#topic='+id:'';if(location.hash!==h)history.replaceState(null,'',location.pathname+location.search+h)}
 const artCache={};let artTok=0;
 function showArticle(n){const box=P('art'),body=P('artbody'),tok=++artTok;
  box.style.display=n.has_content?'block':'none';body.innerHTML='';if(!n.has_content)return;
@@ -139,7 +141,11 @@ function showArticle(n){const box=P('art'),body=P('artbody'),tok=++artTok;
  fetch('content/'+encodeURIComponent(n.id)+'.html').then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.text()})
   .then(h=>{artCache[n.id]=h;if(tok===artTok)body.innerHTML=h})
   .catch(e=>{if(tok===artTok)state('Could not load the article ('+e.message+').',true)})}
-function select(n){sel=n;if(!n){anc=new Set();artTok++;P('panel').style.display='none';auto=true;return}
+function select(n){try{selectTopic(n)}catch(e){console.error('select failed',n&&n.id,e);
+ P('panel').style.display='block';P('panel').classList.remove('wide');P('art').style.display='none';
+ P('pt').textContent=n?n.name:'';P('pd').textContent='This topic could not be displayed ('+e.message+').'}}
+function selectTopic(n){sel=n;if(!n){anc=new Set();artTok++;P('panel').style.display='none';auto=true;setHash('');return}
+ setHash(n.id);
  auto=false;anc=ancestors(n);P('panel').style.display='block';
  P('pm').textContent=n.subject+' · '+n.domain+' · '+G.levels[n.level];
  P('pt').textContent=n.name;P('pd').textContent=n.description;P('pn').textContent=anc.size;
@@ -148,7 +154,7 @@ function select(n){sel=n;if(!n){anc=new Set();artTok++;P('panel').style.display=
  const nodeLi=(m,reason)=>{const li=document.createElement('li');li.className='link';li.title=reason||'';
   li.innerHTML='<span class="dot" style="background:'+SUBJ[m.subject]+';margin-right:8px"></span>'+m.name;li.onclick=()=>select(m);return li};
  fill('pb',pre[n.id],'',l=>nodeLi(l.s,l.reason));fill('pu',nxt[n.id],'',l=>nodeLi(l.t,l.reason));
- fill('pe',n.evidence,'',t=>{const li=document.createElement('li');li.className='ev';li.textContent=t;return li})}
+ fill('pe',n.evidence||[],'',t=>{const li=document.createElement('li');li.className='ev';li.textContent=t;return li})}
 P('x').onclick=()=>select(null);
 names.forEach(k=>{const d=document.createElement('div');d.className='leg';
  d.innerHTML='<span class="dot" style="background:'+SUBJ[k]+'"></span>'+k+' <span style="margin-left:auto;opacity:.6;padding-left:14px">'+nodes.filter(n=>n.subject===k).length+'</span>';
@@ -156,6 +162,12 @@ names.forEach(k=>{const d=document.createElement('div');d.className='leg';
 {const d=document.createElement('div');d.style.cssText='margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.1);color:#aeb4d6';
  d.innerHTML='<span class="ring"></span>Ring = has a full article';P('legend').appendChild(d)}
 for(let i=0;i<250;i++)step();
+window.dbmap={ids:nodes.map(n=>n.id),open:id=>select(byId[id]),close:()=>select(null)};
+// topic links inside articles and deep links: #topic=<id>
+const fromHash=()=>{const m=/^#topic=([a-z0-9-]+)$/.exec(location.hash);if(m&&byId[m[1]]&&sel!==byId[m[1]])select(byId[m[1]])};
+P('panel').addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#topic="]');
+ if(!a)return;e.preventDefault();const id=a.getAttribute('href').slice(7);if(byId[id])select(byId[id])});
+addEventListener('hashchange',fromHash);fromHash();
 requestAnimationFrame(draw);
 }
 </script></body></html>

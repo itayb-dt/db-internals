@@ -14,13 +14,13 @@ This article is about the **PostgreSQL 17** BRIN index (Block Range INdex). Othe
 
 ## The problem: a B-tree is too big for some tables
 
-Take an `events` table with billions of rows, append-only, with a `created_at` column. Queries ask for "the last hour" or "yesterday". A B-tree on `created_at` would work, but it needs an entry per row. On a table this size, the index itself is huge, and every insert has to maintain it.
+Compared with a [B-tree](topic:btree), BRIN trades precision for size. Take an `events` table with billions of rows, append-only, with a `created_at` column. Queries ask for "the last hour" or "yesterday". A B-tree on `created_at` would work, but it needs an entry per row. On a table this size, the index itself is huge, and every insert has to maintain it.
 
 But look at the data. New rows arrive in time order, so rows with similar timestamps sit next to each other in the table. Most of the table clearly does not match "yesterday", and we only need to know which parts to skip.
 
 ## How BRIN works
 
-BRIN stores a small summary for each **block range**, a group of pages next to each other in the table. For a column with a sort order, the summary is the minimum and maximum value in the range. The default range is 128 pages (`pages_per_range`).
+BRIN stores a small summary for each **block range**, a group of pages next to each other in the [heap table](topic:heap). For a column with a sort order, the summary is the minimum and maximum value in the range. The default range is 128 pages (`pages_per_range`).
 
 To answer `WHERE created_at >= '2026-10-17'`, the database reads the summaries and skips every range whose maximum is below that date. It then scans the pages in the remaining ranges. The index is lossy: it returns whole ranges, and the executor rechecks each row and discards the ones that do not match.
 

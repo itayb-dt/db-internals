@@ -14,11 +14,11 @@ This article is about the **PostgreSQL 17** GIN index (Generalized Inverted Inde
 
 ## The problem a B-tree cannot solve
 
-A B-tree indexes one value per row. But some columns hold many values in one cell: an array of tags, a `jsonb` document, a text document with many words. A question such as "which rows have the tag `urgent`?" asks about something inside the value. A B-tree on the whole column cannot answer it, so the query scans the table.
+A [B-tree](topic:btree) indexes one value per row. But some columns hold many values in one cell: an array of tags, a `jsonb` document, a text document with many words. A question such as "which rows have the tag `urgent`?" asks about something inside the value. A B-tree on the whole column cannot answer it, so the query scans the table.
 
 ## How GIN works
 
-GIN is an **inverted index**. Instead of "row, then values", it stores "value, then rows". For each key extracted from the data (a tag, a word, a JSON key or value) it keeps a **posting list**, which is the list of rows that contain it. The same row appears under many keys. Each key is stored once, so the index is compact when keys repeat a lot. Inside, the keys are kept in a B-tree. If a posting list grows large, it becomes its own tree (a posting tree).
+GIN is an [index](topic:index) of the **inverted** kind. Instead of "row, then values", it stores "value, then rows". For each key extracted from the data (a tag, a word, a JSON key or value) it keeps a **posting list**, which is the list of rows that contain it. The same row appears under many keys. Each key is stored once, so the index is compact when keys repeat a lot. Inside, the keys are kept in a B-tree. If a posting list grows large, it becomes its own tree (a posting tree).
 
 A search looks up the key and reads the list of rows. Searching for two keys combines two lists.
 
@@ -55,7 +55,7 @@ The pending list has two costs. Searches must also read the pending list, so a l
 
 ## Why it matters for performance
 
-**What it costs.** Slow updates, and slow builds. The build time is very sensitive to `maintenance_work_mem`. The index can also be large for high-cardinality data such as full documents. Large value lists in the table are TOASTed, which adds detoasting cost when the heap rows are checked.
+**What it costs.** Slow updates, and slow builds. The build time is very sensitive to `maintenance_work_mem`. The index can also be large for high-cardinality data such as full documents. Large value lists in the table are stored out of line by [TOAST](topic:toast), which adds detoasting cost when the heap rows are checked.
 
 **When it shows up.** On tables with frequent inserts or updates of the indexed column, and when autovacuum falls behind and the pending list grows.
 

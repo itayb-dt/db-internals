@@ -20,7 +20,7 @@ Imagine an `orders` table with 100 million rows. A customer opens "my order 8841
 SELECT * FROM orders WHERE order_id = 8841234;
 ```
 
-Without an index, the database has no way to know where that row is. It reads the table page by page and checks every row. That is a sequential scan. If the rows average 100 bytes, the table is on the order of 10 GB (an illustrative figure), and you read all of it to return one row.
+Without an index, the database has no way to know where that row is. It reads the [heap table](topic:heap) page by page and checks every row. That is a sequential scan. If the rows average 100 bytes, the table is on the order of 10 GB (an illustrative figure), and you read all of it to return one row.
 
 Now the same for `WHERE customer_id = 42` on a busy shop. The customer has 30 orders. You still read 100 million rows to find 30.
 
@@ -50,10 +50,10 @@ Rule of thumb: index the columns you filter, join and sort on, in your most freq
 
 | Type | Good for | Covered in this map |
 |---|---|---|
-| B-tree | Equality, ranges, sorting on ordered data | B-Tree |
-| Hash | Equality only | Hash index |
-| GIN | Values with many parts: arrays, `jsonb`, full-text | GIN |
-| BRIN | Huge tables whose values follow the physical row order | BRIN |
+| B-tree | Equality, ranges, sorting on ordered data | [B-Tree](topic:btree) |
+| Hash | Equality only | [Hash index](topic:hash) |
+| GIN | Values with many parts: arrays, `jsonb`, full-text | [GIN](topic:gin) |
+| BRIN | Huge tables whose values follow the physical row order | [BRIN](topic:brin) |
 | GiST, SP-GiST | Geometry, nearest-neighbour, trees and tries | Not covered yet |
 
 Each has its own cost profile. A B-tree is the safe default. The others earn their place when the data or the query does not fit a B-tree.

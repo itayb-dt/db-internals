@@ -53,4 +53,5 @@ Every article must answer, for its topic:
 
 - `content/<topic-id>.md` must match a topic `id` in `data/*.yaml`.
 - Images go in `content/<topic-id>/` and are referenced as `<topic-id>/file.png`. Add alt text.
+- Link to other topics by id, for example `[B-Tree](topic:btree)`, the first time you mention them. Do not link by name or URL.
 - Raw HTML is sanitised. Scripts, event handlers and iframes (except YouTube and Vimeo) are removed.

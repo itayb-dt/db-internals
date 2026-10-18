@@ -25,7 +25,7 @@ This article is about **PostgreSQL**, and the details were checked against the P
 
 ## What TOAST is and when it kicks in
 
-PostgreSQL pages are 8 kB by default, and a row cannot span pages. A single value, such as a 1 MB JSON document, therefore cannot sit inside the row. TOAST (The Oversized-Attribute Storage Technique) is the mechanism that solves this, transparently to your queries.
+PostgreSQL [pages](topic:page) are 8 kB by default, and a row ([tuple](topic:tuple)) cannot span pages. A single value, such as a 1 MB JSON document, therefore cannot sit inside the row. TOAST (The Oversized-Attribute Storage Technique) is the mechanism that solves this, transparently to your queries.
 
 It only starts when a row is wider than about 2 kB (the `TOAST_TUPLE_THRESHOLD`). Once it does, PostgreSQL compresses and/or moves column values out of the row until the row is below the target length (`toast_tuple_target`, also about 2 kB by default, 2040 bytes with 8 kB pages) or nothing more can be gained. You can change the target per table, between 128 bytes and the page size minus the header, and it only affects newly written rows:
 
@@ -57,7 +57,7 @@ Again, only values written afterwards are affected.
 
 ## What goes through TOAST
 
-Only types with a variable-length representation: `text`, `varchar`, `bytea`, `json`, `jsonb`, `xml`, arrays and similar. Fixed-width types such as `integer`, `bigint`, `timestamp` or `uuid` never use it.
+Only types with a variable-length representation (the [GIN](topic:gin) index builds on this for large key lists): `text`, `varchar`, `bytea`, `json`, `jsonb`, `xml`, arrays and similar. Fixed-width types such as `integer`, `bigint`, `timestamp` or `uuid` never use it.
 
 JSON deserves a warning. A `jsonb` document is one value. If it is large, it is compressed and stored as a single opaque blob. Reading one key means fetching and decompressing the whole document, and changing one key writes a new copy of the whole document. The documentation makes the same point about TOASTed fields in general: most operations read or write the value as a unit.
 

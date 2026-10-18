@@ -5,6 +5,7 @@ Usage:
   python3 scripts/build.py                 build into _site/
   python3 scripts/build.py --serve         build, then serve _site/ on http://localhost:8000
   python3 scripts/build.py --serve --port 9000
+  python3 scripts/build.py --lenient       skip broken articles instead of failing (used for deploys)
 """
 import argparse, datetime, functools, glob, html, http.server, json, os, re, shutil, sys
 from urllib.parse import urlsplit
@@ -42,7 +43,7 @@ ALLOWED_ATTRS = {
     "td": {"align"},
     "th": {"align"},
 }
-URL_SCHEMES = {"http", "https", "mailto"}
+URL_SCHEMES = {"http", "https", "mailto", "topic"}
 EMBED_PREFIXES = (
     "https://www.youtube.com/embed/",
     "https://www.youtube-nocookie.com/embed/",
@@ -65,16 +66,28 @@ def is_external(url):
     return bool(parts.scheme) or url.startswith("//") or url.startswith("#")
 
 
-def sanitize(raw_html, source_dir, topic_id, errors, where):
+def sanitize(raw_html, source_dir, topic_id, errors, where, known_ids=()):
     """Sanitize HTML, rewrite relative URLs to site paths, and validate them.
 
     source_dir is the directory the article file lives in (relative URLs resolve against it).
+    Links of the form topic:<id> must name a topic in known_ids; they become #topic=<id>,
+    which the viewer turns into navigation to that topic.
     """
     allowed_root = os.path.join(CONTENT_DIR, topic_id)
 
     def attr_filter(tag, attr, value):
         if tag == "iframe" and attr == "src":
             return value if value.startswith(EMBED_PREFIXES) else None
+        if attr == "href" and value.startswith("topic:"):
+            target_id = value[len("topic:"):]
+            if target_id not in known_ids:
+                errors.append(f"{where}: link '{value}' names an unknown topic id "
+                              f"(ids are listed in data/*.yaml)")
+                return None
+            return "#topic=" + target_id
+        if attr == "src" and value.startswith("topic:"):
+            errors.append(f"{where}: 'topic:' links work only for links, not images ('{value}')")
+            return None
         if attr not in ("src", "href") or is_external(value):
             return value
         path = urlsplit(value).path
@@ -160,7 +173,7 @@ def article_footer(meta, where, errors):
     return "".join(parts)
 
 
-def load_topics(errors):
+def load_topics(errors, raw_details):
     subjects, topics, edges = [], {}, []
     for path in sorted(glob.glob(os.path.join(DATA_DIR, "*.yaml"))):
         fname = os.path.basename(path)
@@ -196,9 +209,7 @@ def load_topics(errors):
                     "has_content": False,
                 }
                 if t.get("details"):
-                    topics[t["id"]]["details_html"] = sanitize(
-                        render_markdown(t["details"]), os.path.join(CONTENT_DIR, t["id"]), t["id"], errors,
-                        f"{where}: details")
+                    raw_details[t["id"]] = (where, t["details"])
                 for p in t.get("prerequisites") or []:
                     edges.append({"topic": t["id"], "prerequisite": p["id"],
                                   "strength": p.get("strength", "hard"), "reason": p.get("reason", "")})
@@ -230,9 +241,24 @@ def check_graph(topics, edges, errors):
         visit(n, [])
 
 
-def build_content(topics, errors):
-    """Render content/<id>.md|html into {id: html fragment}; mark topics; copy assets."""
-    rendered, assets = {}, []
+def build_details(topics, raw_details, problems):
+    for tid, (where, md) in raw_details.items():
+        local = []
+        details = sanitize(render_markdown(md), os.path.join(CONTENT_DIR, tid), tid, local,
+                           f"{where}: details", topics)
+        if local:
+            problems.extend(local)
+        elif tid in topics:
+            topics[tid]["details_html"] = details
+
+
+def build_content(topics, problems):
+    """Render content/<id>.md|html into {id: html fragment}; mark topics; copy assets.
+
+    Problems are per article: the caller decides whether they are fatal or skip the article.
+    """
+    errors = problems
+    rendered, assets, skipped = {}, [], set()
     if not os.path.isdir(CONTENT_DIR):
         return rendered, assets
     files = {}
@@ -259,15 +285,24 @@ def build_content(topics, errors):
 
     for tid, name in files.items():
         where = f"content/{name}"
-        text = open(os.path.join(CONTENT_DIR, name), encoding="utf-8").read()
-        meta, body = split_frontmatter(text, where, errors)
-        body_html = render_markdown(body) if name.endswith(".md") else body
-        clean = sanitize(body_html, CONTENT_DIR, tid, errors, where)
-        title = html.escape(str(meta.get("title") or topics[tid]["name"]))
-        if isinstance(meta.get("updated"), (datetime.date, datetime.datetime)):
-            meta["updated"] = meta["updated"].isoformat()[:10]
-        rendered[tid] = (f'<article class="article"><h1>{title}</h1>{clean}'
-                         f'{article_footer(meta, where, errors)}</article>')
+        local = []
+        try:
+            text = open(os.path.join(CONTENT_DIR, name), encoding="utf-8").read()
+            meta, body = split_frontmatter(text, where, local)
+            body_html = render_markdown(body) if name.endswith(".md") else body
+            clean = sanitize(body_html, CONTENT_DIR, tid, local, where, topics)
+            title = html.escape(str(meta.get("title") or topics[tid]["name"]))
+            if isinstance(meta.get("updated"), (datetime.date, datetime.datetime)):
+                meta["updated"] = meta["updated"].isoformat()[:10]
+            frag = (f'<article class="article"><h1>{title}</h1>{clean}'
+                    f'{article_footer(meta, where, local)}</article>')
+        except Exception as e:  # one broken article must not take the rest down
+            local.append(f"{where}: could not be processed ({type(e).__name__}: {e})")
+        if local:
+            problems.extend(local)
+            skipped.add(tid)
+            continue
+        rendered[tid] = frag
         topics[tid]["has_content"] = True
         asset_dir = os.path.join(CONTENT_DIR, tid)
         if os.path.isdir(asset_dir):
@@ -294,15 +329,29 @@ def write_site(graph, rendered, assets):
         shutil.copyfile(src, dst)
 
 
-def build():
-    errors = []
-    subjects, topics, edges = load_topics(errors)
+def report(title, items):
+    text = "\n".join("  - " + i for i in dict.fromkeys(items))
+    print(f"{title}\n{text}", file=sys.stderr)
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a", encoding="utf-8") as f:
+            f.write(f"### {title}\n" + "\n".join("- " + i for i in dict.fromkeys(items)) + "\n")
+
+
+def build(lenient=False):
+    errors, problems, raw_details = [], [], {}
+    subjects, topics, edges = load_topics(errors, raw_details)
     check_graph(topics, edges, errors)
-    rendered, assets = build_content(topics, errors)
+    build_details(topics, raw_details, problems)
+    rendered, assets = build_content(topics, problems)
+    if not lenient:
+        errors.extend(problems)
     if errors:
-        print(f"Build failed with {len(errors)} problem(s):\n", file=sys.stderr)
-        print("\n".join("  - " + e for e in dict.fromkeys(errors)), file=sys.stderr)
+        report(f"Build failed with {len(set(errors))} problem(s):", errors)
         sys.exit(1)
+    if problems:
+        report(f"WARNING: {len(set(problems))} content problem(s); the affected articles were skipped "
+               f"and the rest of the site was built:", problems)
     graph = {"levels": LEVELS, "subjects": subjects, "topics": list(topics.values()), "edges": edges}
     write_site(graph, rendered, assets)
     print(f"OK: {len(topics)} topics, {len(edges)} links, {len(subjects)} subjects, "
@@ -325,7 +374,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--serve", action="store_true", help="serve _site/ on localhost after building")
     ap.add_argument("--port", type=int, default=8000)
+    ap.add_argument("--lenient", action="store_true",
+                    help="skip articles with problems (warn) instead of failing; data/graph errors still fail")
     args = ap.parse_args()
-    build()
+    build(lenient=args.lenient)
     if args.serve:
         serve(args.port)

@@ -14,7 +14,7 @@ This article is about the **PostgreSQL 17** B-tree index. B-trees are also the d
 
 ## What a B-tree is
 
-A B-tree is a balanced, sorted tree. Every node is one page. The bottom level, the leaf pages, holds the key values in sorted order, each with a pointer to the table row. Upper levels hold keys with links down to the pages below, so a search starts at the root and follows one link per level until it reaches a leaf.
+An [index](topic:index) of this kind is a balanced, sorted tree. Every node is one [page](topic:page). The bottom level, the leaf pages, holds the key values in sorted order, each with a pointer to the table row (a [tuple](topic:tuple) in the [heap](topic:heap)). Upper levels hold keys with links down to the pages below, so a search starts at the root and follows one link per level until it reaches a leaf.
 
 The tree is balanced, so every lookup walks the same number of levels. Each page holds many entries, so the tree stays shallow. Even for a very large table, that is a few levels, which means a few page reads per lookup. That is why finding one order among 100 million rows takes milliseconds.
 
