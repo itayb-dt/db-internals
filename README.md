@@ -109,7 +109,7 @@ Text, `code`, tables and images.
 Rules:
 
 - Use Markdown (tables and fenced code are supported) or a raw `.html` file. Both go through the same sanitiser: scripts, event handlers and styles are removed, and iframes are allowed only for YouTube and Vimeo embeds.
-- Put images in `content/<topic-id>/` and reference them relative to `content/`, for example `toast/chunks.png`. Allowed files: png, jpg, gif, webp, avif, pdf, txt, sql, csv. SVG is not allowed.
+- Put images in `content/<topic-id>/` and reference them relative to `content/`, for example `toast/chunks.png`. Diagrams can be authored as SVG in `content/<topic-id>/src/` and rendered to PNG with `python3 scripts/render_images.py` (needs Playwright). Commit both. The PNG is published, the SVG source is not. Allowed files: png, jpg, gif, webp, avif, pdf, txt, sql, csv. SVG is not allowed.
 - Link to another topic with `[B-Tree](topic:btree)`, using the topic id. The build fails on an unknown id. In the viewer a click opens that topic, and the address bar gets a shareable link such as `#topic=btree`. The same links work in `details`.
 - A file that matches no topic id is an error. Topics without an article are only listed in the build output.
 - `content/_home.md` is the start page shown on the right when nobody has selected a topic. It supports the same frontmatter and `topic:` links. Below it the viewer lists the starting points and every topic by subject automatically.

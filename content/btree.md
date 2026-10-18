@@ -20,6 +20,25 @@ The tree is balanced, so every lookup walks the same number of levels. Each page
 
 Because the leaves are sorted, a B-tree also finds a range (`BETWEEN`) by locating the start and reading along the leaf pages, and it can return rows in sorted order.
 
+[![The same 15 keys stored in a binary search tree (four levels, one key per node) and in a B-tree (a root page and three leaf pages with many keys each)](btree/btree-vs-bst-structure.png)](btree/btree-vs-bst-structure.png)
+
+*Click the image to open it full size.*
+
+## How it differs from a binary search tree
+
+You may know the binary search tree from programming. It is the same idea, with one key per node and two children. A B-tree changes two things, and both matter for a database.
+
+- **Many keys per node.** A B-tree node is a whole [page](topic:page), so it holds many keys and has many children. Reading one page brings many keys into memory at once. A binary tree node holds one key, and on disk each node could be on a different page, so every step may cost a separate read.
+- **Always balanced.** A plain binary tree gets deep when keys arrive in sorted order, such as an ever-increasing id: it turns into a chain and a lookup may walk all n nodes. A B-tree grows differently. A full page splits in two and the parent gains a key, so every path from the root to a leaf has the same length.
+
+The result is a much shallower tree. For a million keys, a balanced binary tree needs about 20 steps. A B-tree whose pages hold a few hundred keys needs about 3 levels. The exact fan-out depends on the key size, so treat these numbers as an illustration.
+
+[![Left: steps to find one key among a million, about 20 for a binary tree and about 3 pages for a B-tree. Right: sorted inserts turn a binary tree into a chain, while a B-tree splits pages and stays balanced](btree/btree-vs-bst-lookups.png)](btree/btree-vs-bst-lookups.png)
+
+*Click the image to open it full size.*
+
+The leaf pages of a B-tree are also linked to the next leaf, which is what makes range scans cheap. A binary tree has no such sideways links.
+
 ## What it can answer
 
 PostgreSQL considers a B-tree for these operators: `<`, `<=`, `=`, `>=`, `>`. Constructs built from them also work: `BETWEEN`, `IN`, `IS NULL` and `IS NOT NULL`. It can serve `LIKE 'foo%'` (a constant pattern anchored at the start), but not `LIKE '%foo'`. If the database does not use the C locale, such a pattern index needs a special operator class (for example `text_pattern_ops`).
