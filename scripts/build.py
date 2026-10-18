@@ -237,6 +237,8 @@ def build_content(topics, errors):
         return rendered, assets
     files = {}
     for name in sorted(os.listdir(CONTENT_DIR)):
+        if name.startswith(("_", ".")):  # _prompt.md and other helper files are not articles
+            continue
         full = os.path.join(CONTENT_DIR, name)
         stem, ext = os.path.splitext(name)
         if os.path.isdir(full):
