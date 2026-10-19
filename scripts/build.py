@@ -232,6 +232,10 @@ def load_topics(errors, raw_details):
                 if t.get("details"):
                     raw_details[t["id"]] = (where, t["details"])
                 for p in t.get("prerequisites") or []:
+                    extra = [k for k in p if k not in ("id", "reason", "strength")]
+                    if extra:
+                        errors.append(f"{where}: prerequisite '{p.get('id')}' has unexpected key(s) {sorted(map(str, extra))}. "
+                                      f"A comma or colon inside 'reason' must be quoted.")
                     edges.append({"topic": t["id"], "prerequisite": p["id"],
                                   "strength": p.get("strength", "hard"), "reason": p.get("reason", "")})
     return subjects, topics, edges
@@ -260,6 +264,53 @@ def check_graph(topics, edges, errors):
 
     for n in topics:
         visit(n, [])
+
+
+def load_tracks(topics, errors):
+    """data/tracks/*.yaml: an ordered learning track of 3-10 topics, each with a one-line reason."""
+    tracks, seen = [], set()
+    for path in sorted(glob.glob(os.path.join(DATA_DIR, "tracks", "*.yaml"))):
+        fname = "tracks/" + os.path.basename(path)
+        tid = os.path.splitext(os.path.basename(path))[0]
+        try:
+            doc = yaml.safe_load(open(path, encoding="utf-8")) or {}
+        except yaml.YAMLError as e:
+            errors.append(f"{fname}: invalid YAML: {e}")
+            continue
+        for k in ("name", "title", "steps"):
+            if not doc.get(k):
+                errors.append(f"{fname}: missing '{k}'")
+        steps = doc.get("steps") or []
+        if not isinstance(steps, list):
+            errors.append(f"{fname}: 'steps' must be a list")
+            continue
+        if not 3 <= len(steps) <= 10:
+            errors.append(f"{fname}: a track needs 3-10 steps, found {len(steps)}")
+        ok = []
+        for i, st in enumerate(steps, 1):
+            extra = sorted(str(k) for k in st) if isinstance(st, dict) else []
+            extra = [k for k in extra if k not in ("topic", "why")]
+            if extra:
+                errors.append(f"{fname}: step {i} has unexpected key(s) {extra}. "
+                              f"If the 'why' text contains a comma or colon, write the step in block style or quote the text.")
+            t = st.get("topic") if isinstance(st, dict) else None
+            if t not in topics:
+                errors.append(f"{fname}: step {i} names unknown topic '{t}'")
+            elif t in [s["topic"] for s in ok]:
+                errors.append(f"{fname}: topic '{t}' appears twice")
+            elif not st.get("why"):
+                errors.append(f"{fname}: step {i} ('{t}') needs a 'why' line")
+            else:
+                ok.append({"topic": t, "why": st["why"]})
+        if tid in seen:
+            errors.append(f"{fname}: duplicate track id")
+        seen.add(tid)
+        tracks.append({"id": tid, "order": doc.get("order", 100), "name": doc.get("name", tid),
+                       "title": doc.get("title", ""), "steps": ok})
+    tracks.sort(key=lambda t: (t["order"], t["name"]))
+    for t in tracks:
+        del t["order"]
+    return tracks
 
 
 def build_details(topics, raw_details, problems):
@@ -371,6 +422,7 @@ def build(lenient=False):
     subjects, topics, edges = load_topics(errors, raw_details)
     check_graph(topics, edges, errors)
     build_details(topics, raw_details, problems)
+    tracks = load_tracks(topics, errors)
     rendered, assets = build_content(topics, problems)
     if not lenient:
         errors.extend(problems)
@@ -381,7 +433,7 @@ def build(lenient=False):
         report(f"WARNING: {len(set(problems))} content problem(s); the affected articles were skipped "
                f"and the rest of the site was built:", problems)
     graph = {"levels": LEVELS, "subjects": subjects, "topics": list(topics.values()), "edges": edges,
-             "home": HOME_ID in rendered}
+             "home": HOME_ID in rendered, "tracks": tracks}
     write_site(graph, rendered, assets)
     print(f"OK: {len(topics)} topics, {len(edges)} links, {len(subjects)} subjects, "
           f"{len(rendered) - (HOME_ID in rendered)} articles{' + home page' if HOME_ID in rendered else ''} -> _site/")

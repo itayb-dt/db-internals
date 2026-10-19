@@ -128,6 +128,23 @@ Opening `site/index.html` directly from disk won't work, because browsers block 
 
 The browser smoke test needs `pip install -r requirements-dev.txt` and `playwright install chromium`, then `python3 tests/smoke.py`.
 
+## Learning tracks
+
+A learning track is an ordered path of 3 to 10 topics, from basic to advanced. It is shown on the home page, where a click expands its steps, and inside each topic as "step 3 of 9" with Previous and Next links. Add one as a file in `data/tracks/<name>.yaml`:
+
+```yaml
+order: 1                       # position on the home page
+name: My table is huge
+title: How big tables are stored, grow, get cleaned up and get split
+steps:
+  - topic: page                # a topic id from data/*.yaml
+    why: The unit of disk I/O and caching.
+```
+
+Each step needs a `topic` and a one-line `why`. The build fails on an unknown topic, a duplicate, or a wrong number of steps. Steps whose topic has no article yet are labelled "coming soon".
+
+Write the steps in block style as above. In the one-line `{...}` style a comma ends the value, so the rest of the sentence would be lost. The build reports this as an unexpected key.
+
 ## Checking the SQL in the articles
 
 `python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables from `tests/sql_setup/<article>.sql`. The deadlock example is also run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.

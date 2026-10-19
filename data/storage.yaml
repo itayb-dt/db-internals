@@ -60,3 +60,54 @@ topics:
     prerequisites:
       - {id: heap, reason: Large values are moved out of the heap row}
       - {id: tuple, reason: The tuple keeps only a pointer to the large value}
+
+  - id: dead-rows
+    name: Dead rows
+    domain: Row versions
+    level: 2
+    description: Old row versions left behind by UPDATE and DELETE. They keep taking space and slow scans until vacuum reclaims them.
+    details: |
+      PostgreSQL does not overwrite a row when it changes. It writes a new version and leaves the old one for transactions that may still need it.
+      The count of dead rows is the first signal of table bloat.
+    evidence:
+      - Explain why a DELETE does not make a table smaller
+      - Find the dead rows of a table with n_dead_tup
+      - Explain why a long-running transaction can keep dead rows from being removed
+    prerequisites:
+      - {id: tuple, reason: A dead row is an old tuple version nobody can see anymore}
+      - {id: heap, reason: Dead rows sit in the heap pages of the table, strength: soft}
+
+  - id: table-size
+    name: Monitoring table size
+    domain: Space
+    level: 4
+    description: Measuring where a table's space goes - heap, TOAST and indexes - how much of it is dead space, and how it changes over time.
+    details: |
+      `pg_relation_size` counts only the table's own pages. `pg_table_size` adds TOAST, and `pg_total_relation_size` adds indexes.
+      A table that keeps growing while its row count does not is the usual sign of bloat.
+    evidence:
+      - Report the heap, TOAST and index size of one table
+      - Find the ten tables that grew the most in a week
+      - Explain why pg_relation_size is much smaller than pg_total_relation_size for a table with large values
+    prerequisites:
+      - {id: heap, reason: The heap is the part of the table you are measuring}
+      - {id: toast, reason: Large values add a hidden table to the size, strength: soft}
+      - {id: dead-rows, reason: Dead rows are a common reason a table is larger than its data, strength: soft}
+      - {id: index, reason: Indexes can be as large as the table, strength: soft}
+
+  - id: vacuum
+    name: Vacuum
+    domain: Space
+    level: 3
+    description: Finds dead rows and makes their space reusable. Autovacuum runs it in the background when enough rows have changed.
+    details: |
+      A plain `VACUUM` frees space for reuse inside the table but usually does not return it to the operating system.
+      On big, busy tables the default autovacuum thresholds can be too lazy, and the settings can be tuned per table.
+    evidence:
+      - Say when autovacuum starts on a table (threshold plus scale factor times the row count)
+      - Explain why VACUUM usually does not shrink the file on disk
+      - Find tables where autovacuum is behind
+    prerequisites:
+      - {id: dead-rows, reason: Vacuum exists to reclaim dead rows}
+      - {id: heap, reason: Vacuum works through the pages of the table, strength: soft}
+

@@ -18,6 +18,7 @@ topics:
     prerequisites:
       - {id: heap, reason: Each partition is an ordinary heap table}
       - {id: index, reason: Indexes are created per partition, strength: soft}
+      - {id: vacuum, reason: Dropping a partition avoids the vacuum work of a bulk delete, strength: soft}
       - {id: execution-plan, reason: Partition pruning shows up in the plan, strength: soft}
 
   - id: partition-metrics

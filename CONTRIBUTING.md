@@ -26,6 +26,10 @@ Do not commit `_site/` or generated JSON.
 - Images go in `content/<topic-id>/` with alt text. A live demo is one HTML file in the same folder, embedded with an iframe (see README). Demos are code: they are copied as written, so review them carefully.
 - Link to other topics by id: `[GIN](topic:gin)`. An unknown id fails the build.
 
+## Learning tracks
+
+A track is a file in `data/tracks/` (see the README). Keep it to one goal, 3 to 10 steps, ordered from basic to advanced, and give every step a one-line reason. Prefer topics that already have an article, and add the missing articles in the order of the track.
+
 ## Topic rules
 
 - One teachable idea per topic.

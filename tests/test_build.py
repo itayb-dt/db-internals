@@ -14,6 +14,16 @@ topics:
     level: 1
     description: Second
     prerequisites: [{id: a, reason: needs a}]
+  - {id: c, name: C, domain: D, level: 2, description: Third}
+"""
+
+
+TRACK3 = """name: Basics
+title: From a to c
+steps:
+  - {topic: a, why: first}
+  - {topic: b, why: second}
+  - {topic: c, why: third}
 """
 
 
@@ -31,13 +41,15 @@ def read(path):
 class Site:
     """A throwaway repo layout; build.py's path constants are pointed at it."""
 
-    def __init__(self, topics=TOPICS, content=None):
+    def __init__(self, topics=TOPICS, content=None, tracks=None):
         self.root = tempfile.mkdtemp()
         os.makedirs(os.path.join(self.root, "data"))
         os.makedirs(os.path.join(self.root, "content"))
         os.makedirs(os.path.join(self.root, "site"))
         write(os.path.join(self.root, "site", "index.html"), "<html></html>")
         write(os.path.join(self.root, "data", "t.yaml"), topics)
+        for name, text in (tracks or {}).items():
+            write(os.path.join(self.root, "data", "tracks", name + ".yaml"), text)
         for name, text in (content or {}).items():
             write(os.path.join(self.root, "content", name), text)
         self.saved = (build.ROOT, build.DATA_DIR, build.CONTENT_DIR, build.SITE_SRC, build.OUT)
@@ -181,6 +193,58 @@ class DataTests(BuildTestCase):
         code, err = s.run()
         self.assertEqual(code, 1)
         self.assertIn("missing 'domain'", err)
+
+
+class TrackTests(BuildTestCase):
+    def test_valid_track_is_in_graph(self):
+        s = self.site(tracks={"basics": TRACK3})
+        self.assertEqual(s.run()[0], 0)
+        import json
+        tracks = json.loads(read(s.out("graph.json")))["tracks"]
+        self.assertEqual([t["name"] for t in tracks], ["Basics"])
+        self.assertEqual([x["topic"] for x in tracks[0]["steps"]], ["a", "b", "c"])
+
+    def test_no_tracks_is_fine(self):
+        s = self.site()
+        self.assertEqual(s.run()[0], 0)
+        self.assertIn('"tracks": []', read(s.out("graph.json")))
+
+    def test_track_errors(self):
+        cases = {
+            "unknown topic": (TRACK3.replace("topic: c", "topic: zzz"), "unknown topic 'zzz'"),
+            "too short": ("name: X\ntitle: T\nsteps:\n  - {topic: a, why: w}\n  - {topic: b, why: w}\n", "needs 3-10 steps"),
+            "missing why": (TRACK3.replace(", why: third", ""), "needs a 'why'"),
+            "duplicate": (TRACK3.replace("topic: c", "topic: a"), "appears twice"),
+            "no name": (TRACK3.replace("name: Basics\n", ""), "missing 'name'"),
+        }
+        for label, (text, expected) in cases.items():
+            s = self.site(tracks={"t": text})
+            code, err = s.run(lenient=True)  # track errors are graph errors: fatal even when lenient
+            self.assertEqual(code, 1, label)
+            self.assertIn(expected, err, label)
+
+    def test_comma_in_flow_style_why_is_an_error_not_silent_truncation(self):
+        text = TRACK3.replace("{topic: c, why: third}", "{topic: c, why: third, and more}")
+        s = self.site(tracks={"t": text})
+        code, err = s.run()
+        self.assertEqual(code, 1)
+        self.assertIn("unexpected key(s)", err)
+
+    def test_comma_in_flow_style_prerequisite_reason_is_an_error(self):
+        bad = TOPICS.replace("{id: c, name: C, domain: D, level: 2, description: Third}",
+                             "{id: c, name: C, domain: D, level: 2, description: Third, prerequisites: "
+                             "[{id: a, reason: needs a, and also more}]}")
+        s = self.site(topics=bad)
+        code, err = s.run()
+        self.assertEqual(code, 1)
+        self.assertIn("unexpected key(s)", err)
+
+    def test_too_many_steps(self):
+        steps = "".join("  - {topic: a, why: w}\n" for _ in range(11))
+        s = self.site(tracks={"t": "name: X\ntitle: T\nsteps:\n" + steps})
+        code, err = s.run()
+        self.assertEqual(code, 1)
+        self.assertIn("needs 3-10 steps", err)
 
 
 class ContentTests(BuildTestCase):

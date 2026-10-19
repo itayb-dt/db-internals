@@ -28,7 +28,13 @@ Storage and Indexing were the first two subjects. Query planning, Concurrency an
   - **Deadlock:** two sessions lock a row each, wait for each other, and PostgreSQL aborts one.
   - **Table partitioning:** deleting rows from one big table against dropping a partition.
 - Demos are single HTML files in `content/<topic-id>/`, embedded with an iframe. They run in a sandbox, and the build and the browser test check them.
-- Dynatrace logo and a link to the Databases app in the top left corner.
+- Dynatrace icon in the top left corner, linking to the Databases app, with the title "Database Internals" next to it at the same height. The header has a dark background so the moving dots and labels do not cover it. The concept and link counts moved into the legend.
+
+### Learning tracks
+- New **Learning tracks** section on the home page. A track has a name and a short title, expands to its steps, and labels each step "article" or "coming soon". Inside a topic, a bar shows "step 5 of 9" with Previous and Next links.
+- First track, **My table is huge** (9 steps): Page, Tuple (row), Heap table, TOAST, Dead rows, Monitoring table size, Vacuum, Table partitioning, Partition metrics.
+- Three new topics under Storage, so far descriptions only, articles to follow: **Dead rows**, **Monitoring table size**, **Vacuum**.
+- Tracks are files in `data/tracks/`. The build checks that every step names a real topic, that a track has 3 to 10 steps, and that each step has a reason. It also rejects a stray key, which catches a comma inside inline YAML that would otherwise cut a sentence short. This check also applies to topic prerequisites.
 
 ### Viewer
 - Split layout: the 3D map on the left, a reading pane on the right.

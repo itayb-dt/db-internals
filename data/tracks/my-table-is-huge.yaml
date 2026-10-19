@@ -1,0 +1,22 @@
+order: 1
+name: My table is huge
+title: How big tables are stored, grow, get cleaned up and get split
+steps:
+  - topic: page
+    why: The unit of disk I/O and caching. Everything else sits on pages.
+  - topic: tuple
+    why: A row is a version stored in a page. UPDATE and DELETE create versions instead of overwriting.
+  - topic: heap
+    why: The unordered set of pages that holds the rows of a table.
+  - topic: toast
+    why: Large values leave the row, so the visible size of a table hides its real size.
+  - topic: dead-rows
+    why: Old row versions nothing can see anymore, which still take space.
+  - topic: table-size
+    why: How to see where the space goes (heap, TOAST and indexes) and how much of it is waste.
+  - topic: vacuum
+    why: How dead space is found and reused, and why big tables need tuning.
+  - topic: partitioning
+    why: When one table is still too big, split it, and retire data by dropping a partition.
+  - topic: partition-metrics
+    why: Observe each partition, and add them up for the logical table.

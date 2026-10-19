@@ -65,6 +65,38 @@ def main(url=None, screenshot=None):
             page.click("#homebtn")
             if not page.locator("#homeview").is_visible():
                 problems.append("Home button did not return to the start page")
+        # learning tracks: each expands, every step opens its topic, prev/next walk the track
+        tracks = graph.get("tracks", [])
+        if page.locator("#tracks .track").count() != len(tracks):
+            problems.append("home page does not list every learning track")
+        for ti, tr in enumerate(tracks):
+            card = page.locator("#tracks .track").nth(ti)
+            card.locator("summary").click()
+            steps = card.locator(".tstep")
+            if steps.count() != len(tr["steps"]):
+                problems.append(f"track '{tr['name']}': {steps.count()} steps shown, {len(tr['steps'])} expected")
+                continue
+            for si, st in enumerate(tr["steps"]):
+                topic = next(x for x in graph["topics"] if x["id"] == st["topic"])
+                page.locator("#tracks .track").nth(ti).locator(".tstep").nth(si).click()
+                if page.inner_text("#pt").strip() != topic["name"]:
+                    problems.append(f"track '{tr['name']}': step {si + 1} did not open '{topic['name']}'")
+                    break
+                bar = page.inner_text("#trackbar")
+                if f"step {si + 1} of {len(tr['steps'])}" not in bar or tr["name"] not in bar:
+                    problems.append(f"track '{tr['name']}': step {si + 1} shows no track bar")
+                if si < len(tr["steps"]) - 1:
+                    page.click("#trackbar a[data-dir=next]")
+                    nxt = next(x for x in graph["topics"] if x["id"] == tr["steps"][si + 1]["topic"])
+                    if page.inner_text("#pt").strip() != nxt["name"]:
+                        problems.append(f"track '{tr['name']}': Next after step {si + 1} did not open '{nxt['name']}'")
+                if si > 0:
+                    page.evaluate("id => window.dbmap.open(id)", st["topic"])
+                    page.click("#trackbar a[data-dir=prev]")
+                    prv = next(x for x in graph["topics"] if x["id"] == tr["steps"][si - 1]["topic"])
+                    if page.inner_text("#pt").strip() != prv["name"]:
+                        problems.append(f"track '{tr['name']}': Prev at step {si + 1} did not open '{prv['name']}'")
+                page.click("#homebtn")
         with_content = 0
         for t in graph["topics"]:
             page.evaluate("id => window.dbmap.open(id)", t["id"])
