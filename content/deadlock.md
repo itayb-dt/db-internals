@@ -14,7 +14,7 @@ sources:
 
 This article is about **PostgreSQL 17**. Every database with locks can deadlock. SQL Server picks a "deadlock victim" and rolls it back with error 1205, Oracle raises ORA-00060, and MySQL/InnoDB returns error 1213. PostgreSQL's behaviour and tools are described below.
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The deadlock example was run with two real sessions, and the ordered-locking version was run to confirm it does not deadlock.
 
 ## What a deadlock is
 
@@ -23,6 +23,7 @@ A deadlock is a circle of waiting. Transaction A holds a lock that B wants, and 
 You do not need explicit `LOCK` commands for this. Ordinary row updates are enough. Take two accounts and two sessions that move money in opposite directions:
 
 ```sql
+-- not run as one script: two sessions, checked by scripts/verify_sql.py
 -- step 1, session 1
 BEGIN;
 UPDATE accounts SET balance = balance - 10 WHERE id = 1;   -- locks row 1
@@ -40,13 +41,14 @@ UPDATE accounts SET balance = balance + 10 WHERE id = 1;   -- waits for session 
 
 PostgreSQL does not let this wait forever. It checks for a cycle and **aborts one of the transactions**, so the others can complete. Which one is aborted is hard to predict and you must not rely on it. The aborted session gets an error with SQLSTATE `40P01` (`deadlock_detected`) and its transaction is rolled back.
 
-Illustrative error text:
+Error text from a real run on PostgreSQL 16.2 (process and transaction numbers differ each time):
 
 ```
 ERROR:  deadlock detected
-DETAIL:  Process 101 waits for ShareLock on transaction 5001; blocked by process 102.
-         Process 102 waits for ShareLock on transaction 5000; blocked by process 101.
+DETAIL:  Process 54714 waits for ShareLock on transaction 848; blocked by process 54715.
+Process 54715 waits for ShareLock on transaction 849; blocked by process 54714.
 HINT:  See server log for query details.
+CONTEXT:  while updating tuple (0,1) in relation "accounts"
 ```
 
 <iframe src="deadlock/demo.html" title="Animation: two sessions each lock a row, then wait for the other; PostgreSQL detects the deadlock and aborts one" width="800" height="450"></iframe>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Partitions demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif;fill:#e8eaf6}
+.m{fill:#8890b5}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="Left: deleting January's rows from one big table means visiting every row and leaving dead rows behind. Right: with monthly partitions, dropping January's partition removes it at once.">
+ <title>Deleting old data: one big table against partitions</title>
+ <text x="200" y="40" text-anchor="middle" font-size="17" font-weight="700">One big table</text>
+ <text x="200" y="60" text-anchor="middle" font-size="12" class="m">DELETE FROM events WHERE month = Jan</text>
+ <text x="590" y="40" text-anchor="middle" font-size="17" font-weight="700">Partitioned by month</text>
+ <text x="590" y="60" text-anchor="middle" font-size="12" class="m">DROP TABLE events_2026_01</text>
+ <line x1="400" y1="30" x2="400" y2="385" stroke="#2a3158" stroke-width="1" stroke-dasharray="4 6"/>
+ <g id="left"></g>
+ <g id="right"></g>
+ <!-- work bars -->
+ <text x="56" y="330" font-size="12" class="m">work</text>
+ <rect x="96" y="322" width="248" height="8" rx="4" fill="#2a3158"/><rect id="bl" x="96" y="322" width="0" height="8" rx="4" fill="#ff9e7a"/>
+ <text x="417" y="330" font-size="12" class="m">work</text>
+ <rect x="457" y="322" width="248" height="8" rx="4" fill="#2a3158"/><rect id="br" x="457" y="322" width="0" height="8" rx="4" fill="#7ee0a1"/>
+ <text id="stl" x="200" y="358" text-anchor="middle" font-size="14"></text>
+ <text id="stl2" x="200" y="378" text-anchor="middle" font-size="12" class="m"></text>
+ <text id="str" x="590" y="358" text-anchor="middle" font-size="14"></text>
+ <text id="str2" x="590" y="378" text-anchor="middle" font-size="12" class="m"></text>
+ <text id="cap" x="400" y="418" text-anchor="middle" font-size="18" font-weight="600"></text>
+ <text x="790" y="440" text-anchor="end" font-size="10" class="m">illustration, not to scale</text>
+ <rect id="bar" x="0" y="446" width="0" height="4" fill="#c78bff"/>
+</svg>
+<script>
+(function(){
+var LOOP=10,NS='http://www.w3.org/2000/svg',$=function(id){return document.getElementById(id)};
+var COL=['#5b7cff','#7ee0a1','#ffd166','#ff9e7a'],MON=['Jan','Feb','Mar','Apr'],RED='#ff5d6c',GREEN='#7ee0a1',DEAD='#3a4270';
+var clamp=function(x){return Math.max(0,Math.min(1,x))};
+function el(tag,attrs,parent){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e}
+// 48 rows, 12 per month, mixed through the table in a fixed (seeded) order
+var months=[],i,seed=7;for(i=0;i<48;i++)months.push(i%4);
+for(i=47;i>0;i--){seed=(seed*1103515245+12345)&0x7fffffff;var j=seed%(i+1),t=months[i];months[i]=months[j];months[j]=t}
+// left grid: 8 columns x 6 rows
+var lc=[],L=$('left');
+for(i=0;i<48;i++)lc.push(el('rect',{x:56+(i%8)*36,y:85+Math.floor(i/8)*36,width:30,height:30,rx:4,fill:COL[months[i]]},L));
+var head=el('rect',{x:0,y:0,width:36,height:36,rx:6,fill:'none',stroke:'#fff','stroke-width':3,opacity:0},L);
+// right: four partitions, 3 x 4 cells each
+var R=$('right'),parts=[];
+for(var p=0;p<4;p++){
+ var g=el('g',{},R),bx=417+p*88;
+ el('rect',{x:bx,y:85,width:76,height:112,rx:8,fill:'#161b33',stroke:COL[p],'stroke-width':2},g);
+ var box=g.firstChild;
+ for(i=0;i<12;i++)el('rect',{x:bx+8+(i%3)*20,y:93+Math.floor(i/3)*20,width:16,height:16,rx:3,fill:COL[p]},g);
+ var lab=el('text',{x:bx+38,y:215,'text-anchor':'middle','font-size':12,'font-weight':700},g);lab.textContent=MON[p];lab.style.fill=COL[p];
+ parts.push({g:g,box:box})}
+function render(t){
+ // left: a head visits row 0..47 between 1.0 s and 6.5 s; January rows die when visited
+ var visited=Math.max(0,Math.min(48,Math.floor((t-1.0)/5.5*48))),dead=0;
+ for(var i=0;i<48;i++){
+  var isDead=months[i]===0&&i<visited;if(isDead)dead++;
+  lc[i].setAttribute('fill',isDead?DEAD:COL[months[i]]);
+  lc[i].setAttribute('opacity',isDead?.9:1)}
+ var hi=visited<48&&t>=1.0?visited:-1;
+ if(hi>=0){head.setAttribute('x',56+(hi%8)*36-3);head.setAttribute('y',85+Math.floor(hi/8)*36-3);head.setAttribute('opacity',1)}else head.setAttribute('opacity',0);
+ $('bl').setAttribute('width',248*clamp((t-1.0)/5.5));
+ set('stl',t<1?'':visited<48?'visiting rows… '+visited+' / 48':dead+' rows marked dead',visited>=48?'#ff9e7a':'');
+ set('stl2',visited>=48?'space comes back only after VACUUM':'');
+ // right: January partition is dropped between 1.8 s and 2.6 s
+ var d=clamp((t-1.8)/.8),sel=clamp((t-1.0)/.4);
+ var jan=parts[0];
+ jan.box.setAttribute('stroke',t>=1.0&&t<2.6?RED:COL[0]);
+ jan.box.setAttribute('stroke-width',2+(t>=1.0&&t<2.6?2:0));
+ jan.g.setAttribute('transform','translate(0,'+(-26*d)+')');
+ jan.g.setAttribute('opacity',1-d);
+ $('br').setAttribute('width',248*clamp((t-1.0)/1.6));
+ set('str',t<1.8?'':t<2.6?'DROP TABLE events_2026_01':'1 table removed',t>=2.6?GREEN:'');
+ set('str2',t>=2.6?'no rows visited, no dead rows':'');
+ var c=t<1?'Keep 3 months of data. January has to go.'
+  :t<2.6?"Left: DELETE visits rows. Right: DROP removes January's table."
+  :t<6.5?'Right is done. Left is still visiting rows.'
+  :t<8.5?'Left is done, but the rows are only marked dead.'
+  :'Partitions: one quick step and no cleanup.';
+ $('cap').textContent=c;
+ $('bar').setAttribute('width',800*t/LOOP);
+}
+function set(id,txt,fill){var e=$(id);e.textContent=txt;e.style.fill=fill||''}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){render(7.5);return}
+var t0=performance.now();
+(function frame(now){render(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

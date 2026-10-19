@@ -55,7 +55,7 @@ Hard ideas need a picture. Add one when the text alone makes the reader work too
 
 - Verify every claim against the official documentation for the stated version. Put the pages in `sources`.
 - Do not invent numbers, parameter names or catalog columns.
-- Run every SQL snippet if an instance is available. If not, say clearly that the snippets are untested.
+- Run every SQL snippet with `python3 scripts/verify_sql.py`. Add sample tables in `tests/sql_setup/<article>.sql`. Mark any block that cannot run with `-- not run: <reason>`, and start the article with a "How this was checked" line that says what was run and on which version.
 - Mark rules of thumb as rules of thumb.
 - Say what you are not sure about.
 

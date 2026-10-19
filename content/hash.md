@@ -12,7 +12,7 @@ sources:
 
 This article is about the **PostgreSQL 17** hash index. Yes, PostgreSQL supports hash indexes. Engines differ here: MySQL's InnoDB builds an adaptive hash index internally and does not let you create one, while the MEMORY engine does offer hash indexes. Oracle and SQL Server use hash structures for clusters and in-memory tables, not as a general `CREATE INDEX` type.
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The `pgstathashindex` function mentioned in the text comes from the `pgstattuple` extension and was not run.
 
 ## What a hash index is
 

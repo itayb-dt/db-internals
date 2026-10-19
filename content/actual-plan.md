@@ -9,7 +9,7 @@ sources:
 
 This article is about **PostgreSQL 17**. In SQL Server the same idea is the "actual execution plan", and in Oracle it is the plan with runtime statistics. In PostgreSQL you get it with `EXPLAIN ANALYZE`.
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. Sample plan output is illustrative.
 
 ## Estimated versus actual
 

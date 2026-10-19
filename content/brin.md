@@ -10,7 +10,7 @@ sources:
 
 This article is about the **PostgreSQL 17** BRIN index (Block Range INdex). Other engines have similar ideas under other names: zone maps or min/max indexes in column stores and warehouses (Snowflake, ClickHouse, Oracle Exadata storage indexes).
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2.
 
 ## The problem: a B-tree is too big for some tables
 

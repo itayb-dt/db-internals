@@ -128,6 +128,12 @@ Opening `site/index.html` directly from disk won't work, because browsers block 
 
 The browser smoke test needs `pip install -r requirements-dev.txt` and `playwright install chromium`, then `python3 tests/smoke.py`.
 
+## Checking the SQL in the articles
+
+`python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables from `tests/sql_setup/<article>.sql`. The deadlock example is also run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.
+
+If a block cannot run, because it needs a contrib extension, two sessions or a shell, start it with `-- not run: <reason>` and say so in the article's "How this was checked" line.
+
 ## Checks and deployment
 
 - **Pull requests:** unit tests, a strict build and a browser smoke test (every topic and article is opened). Any problem fails the check.

@@ -20,7 +20,7 @@ Do not commit `_site/` or generated JSON.
 
 - Verify technical claims against the official documentation for a stated version, and list the pages in `sources`.
 - Do not invent numbers, parameter names or catalog columns.
-- Run the SQL you include. If you could not, say so in the article.
+- Run the SQL you include with `python3 scripts/verify_sql.py` (see README). If a block cannot run, mark it `-- not run: <reason>` and say so in the article.
 - Mark rules of thumb as rules of thumb.
 - Explain in your own words. Do not copy documentation text.
 - Images go in `content/<topic-id>/` with alt text. A live demo is one HTML file in the same folder, embedded with an iframe (see README). Demos are code: they are copied as written, so review them carefully.

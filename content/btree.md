@@ -10,7 +10,7 @@ sources:
 
 This article is about the **PostgreSQL 17** B-tree index. B-trees are also the default or main index type in MySQL/InnoDB, SQL Server and Oracle. They differ in details, for example InnoDB stores the whole table as a B-tree on the primary key.
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The `pgstatindex` function mentioned in the text comes from the `pgstattuple` extension and was not run.
 
 ## What a B-tree is
 

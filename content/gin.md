@@ -10,7 +10,7 @@ sources:
 
 This article is about the **PostgreSQL 17** GIN index (Generalized Inverted Index). Other engines have similar inverted indexes for full-text search (for example MySQL FULLTEXT, SQL Server full-text indexes), but PostgreSQL's GIN is a general building block used for arrays, `jsonb` and text search.
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2, except the `pgstatginindex` call, which needs the `pgstattuple` extension (marked `-- not run`).
 
 ## The problem a B-tree cannot solve
 
@@ -64,8 +64,10 @@ The pending list has two costs. Searches must also read the pending list, so a l
 ```sql
 SELECT pg_size_pretty(pg_relation_size('tickets_tags_gin')) AS index_size,
        pg_size_pretty(pg_relation_size('tickets')) AS table_size;
+```
 
--- needs the pgstattuple extension
+```sql
+-- not run: needs the pgstattuple extension
 SELECT * FROM pgstatginindex('tickets_tags_gin');
 ```
 

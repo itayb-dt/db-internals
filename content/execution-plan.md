@@ -12,7 +12,7 @@ sources:
 
 This article is about **PostgreSQL 17**. All relational databases have an optimizer and a plan: SQL Server has the estimated and actual execution plan, Oracle has `EXPLAIN PLAN`, MySQL has `EXPLAIN`. The node names differ, the idea is the same. SQL does not say *how* to get the rows. The plan is the "how".
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. Sample plan output is illustrative.
 
 ## The path of a query
 
@@ -121,8 +121,8 @@ Illustrative shape of the result (shortened):
 **How to measure.** `EXPLAIN` shows the plan without running the query, so it is safe for any statement:
 
 ```sql
-EXPLAIN SELECT ... ;                 -- estimated plan only
-EXPLAIN (VERBOSE, SETTINGS) SELECT ... ;
+EXPLAIN SELECT * FROM customers WHERE id = 42;                      -- estimated plan only
+EXPLAIN (VERBOSE, SETTINGS) SELECT * FROM customers WHERE id = 42;
 ```
 
 It shows estimates only. To see what actually happened, use the [actual plan](topic:actual-plan).

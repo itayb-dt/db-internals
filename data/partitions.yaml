@@ -1,0 +1,38 @@
+subject: Partitions
+color: "#c78bff"
+topics:
+  - id: partitioning
+    name: Table partitioning
+    domain: Table design
+    level: 1
+    description: Splitting one logical table into smaller physical tables (partitions) by a key such as date, so old data can be dropped and queries can skip partitions they don't need.
+    details: |
+      In PostgreSQL the parent table holds no rows. Each partition is an ordinary table with its own files, indexes and statistics.
+      Dropping a partition is a metadata operation, while deleting the same rows writes WAL, leaves dead rows and needs vacuum.
+    evidence:
+      - Name a table that should be partitioned and the key you would use
+      - Explain why DROP of a partition beats DELETE of the same rows
+      - Show how PostgreSQL stores a partitioned table (parent, partitions, indexes)
+      - Read a plan and confirm that partitions were pruned
+      - Say why a primary key on a partitioned table must include the partition key
+    prerequisites:
+      - {id: heap, reason: Each partition is an ordinary heap table}
+      - {id: index, reason: Indexes are created per partition, strength: soft}
+      - {id: execution-plan, reason: Partition pruning shows up in the plan, strength: soft}
+
+  - id: partition-metrics
+    name: Partition metrics
+    domain: Operations
+    level: 4
+    description: Size, scans, dead rows, vacuum and cache hits are tracked per partition. The parent table shows no activity of its own, so the logical table's totals must be summed by hand.
+    details: |
+      Use `pg_partition_tree` to list the partitions and join it to the statistics views.
+      Autovacuum does not analyze the parent, so run `ANALYZE` on it yourself.
+    evidence:
+      - List the partitions of a table with their sizes
+      - Sum scans, rows and dead rows across partitions into one logical-table view
+      - Spot a hot partition and a partition that vacuum has not reached
+      - Explain why pg_total_relation_size on the parent returns 0
+    prerequisites:
+      - {id: partitioning, reason: Metrics are collected per partition}
+      - {id: statistics, reason: The parent needs a manual ANALYZE for planner statistics, strength: soft}

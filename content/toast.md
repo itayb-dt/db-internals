@@ -21,7 +21,7 @@ sources:
 
 This article is about **PostgreSQL**, and the details were checked against the PostgreSQL 17 documentation. Other engines solve the same problem differently. MySQL/InnoDB keeps long values on separate overflow pages, SQL Server moves them to row-overflow or LOB pages, and Oracle stores LOBs in a separate LOB segment. The names and thresholds differ, but the idea is the same: a page is small, so big values live somewhere else.
 
-> **Draft status:** the SQL in this article has been written against the documentation but **not yet run**. Treat every snippet as untested until this note is removed.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2, except the lz4 setting, the `lo` extension example with `vacuumlo`, and the `pg_stat_statements` query, which need things that test server did not have. They are marked `-- not run`.
 
 ## What TOAST is and when it kicks in
 
@@ -49,8 +49,12 @@ Change a strategy with `ALTER TABLE ... ALTER COLUMN ... SET STORAGE`. This chan
 For compression, PostgreSQL offers `pglz` (the default) and `lz4` (only if the server was built with it). The server-wide default is `default_toast_compression`, and you can override it per column:
 
 ```sql
-ALTER TABLE documents ALTER COLUMN body SET COMPRESSION lz4;
 ALTER TABLE documents ALTER COLUMN pdf SET STORAGE EXTERNAL;
+```
+
+```sql
+-- not run: needs a server built with lz4 support
+ALTER TABLE documents ALTER COLUMN body SET COMPRESSION lz4;
 ```
 
 Again, only values written afterwards are affected.
@@ -81,6 +85,7 @@ The documentation says TOAST makes this facility partially obsolete, but two adv
 The main pitfall is cleanup. A large object is independent of the row that references it, so deleting the row leaves the object behind:
 
 ```sql
+-- not run: needs the lo contrib extension
 -- Orphan protection with the lo module (contrib)
 CREATE EXTENSION lo;
 CREATE TABLE image (title text, raster lo);
@@ -194,6 +199,7 @@ A low percentage means large values are mostly read from outside shared buffers 
 **7. Slow queries that read large columns.** This needs the `pg_stat_statements` extension to be loaded.
 
 ```sql
+-- not run: needs the pg_stat_statements extension
 SELECT left(query, 80) AS query, calls, mean_exec_time, shared_blks_read, wal_bytes
 FROM pg_stat_statements
 ORDER BY shared_blks_read DESC
