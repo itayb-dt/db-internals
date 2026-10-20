@@ -1,5 +1,7 @@
 subject: Partitions
 color: "#c78bff"
+order: 4
+description: "Splitting one large table into smaller physical ones, for fast clean-up and queries that skip data."
 topics:
   - id: partitioning
     name: Table partitioning

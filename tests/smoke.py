@@ -52,8 +52,14 @@ def main(url=None, screenshot=None):
                 page.wait_for_selector("#homebody .article", timeout=10000)
             except Exception:
                 problems.append("home article did not load")
-        if page.locator("#subjects .trow").count() != len(graph["topics"]):
-            problems.append("home topic index does not list every topic")
+        cards = page.locator("#subjects .scard")
+        if cards.count() != len(graph["subjects"]):
+            problems.append(f"home lists {cards.count()} subjects, expected {len(graph['subjects'])}")
+        for k in range(cards.count()):
+            if not cards.nth(k).locator("p").inner_text().strip():
+                problems.append(f"subject card {k + 1} has no description")
+        if not page.locator("#tabAbout").is_visible() or page.locator("#tabTracks").is_visible():
+            problems.append("home should open on the Database Internals tab")
         for href in page.evaluate("[...document.querySelectorAll('#homebody a[href^=\"#topic=\"]')].map(a=>a.getAttribute('href'))"):
             target = next((x for x in graph["topics"] if x["id"] == href[7:]), None)
             if not target:
@@ -67,6 +73,10 @@ def main(url=None, screenshot=None):
                 problems.append("Home button did not return to the start page")
         # learning tracks: each expands, every step opens its topic, prev/next walk the track
         tracks = graph.get("tracks", [])
+        if tracks:
+            page.click("#tabTracksBtn")
+            if not page.locator("#tabTracks").is_visible():
+                problems.append("Learning tracks tab did not open")
         if page.locator("#tracks .track").count() != len(tracks):
             problems.append("home page does not list every learning track")
         for ti, tr in enumerate(tracks):
@@ -97,6 +107,8 @@ def main(url=None, screenshot=None):
                     if page.inner_text("#pt").strip() != prv["name"]:
                         problems.append(f"track '{tr['name']}': Prev at step {si + 1} did not open '{prv['name']}'")
                 page.click("#homebtn")
+        if tracks:
+            page.click("#tabs .tab[data-tab=about]")
         with_content = 0
         for t in graph["topics"]:
             page.evaluate("id => window.dbmap.open(id)", t["id"])

@@ -62,9 +62,13 @@ A new subject file starts with:
 ```yaml
 subject: Transactions
 color: "#c78bff"
+order: 6                       # position in the legend and on the home page (optional)
+description: "One sentence about the subject, shown on the home page."   # required
 topics:
   - ...
 ```
+
+Put the `description` in quotes. A colon inside an unquoted value breaks the YAML, and the build reports it.
 
 ### Fields
 
@@ -113,7 +117,7 @@ Rules:
 - Link to another topic with `[B-Tree](topic:btree)`, using the topic id. The build fails on an unknown id. In the viewer a click opens that topic, and the address bar gets a shareable link such as `#topic=btree`. The same links work in `details`.
 - A file that matches no topic id is an error. Topics without an article are only listed in the build output.
 - Live demos are single, dependency-free HTML files next to the topic's images: `content/<topic-id>/<name>.html`. Embed one in the article with `<iframe src="<topic-id>/<name>.html" title="..." width="800" height="450"></iframe>`. A demo can only be embedded by its own topic's article. It runs in a sandbox (scripts allowed, no access to the page) and is copied as written, so review it like code. The build fails if the file is missing, and the browser test opens every demo and fails on console errors. Keep demos short, looping, and independent of any CDN.
-- `content/_home.md` is the start page shown on the right when nobody has selected a topic. It supports the same frontmatter and `topic:` links. Below it the viewer lists the starting points and every topic by subject automatically.
+- `content/_home.md` is the start page shown on the right when nobody has selected a topic. It supports the same frontmatter and `topic:` links. Below its first part the viewer lists the subjects, each with the `description` from its data file, and your "About the project" heading comes after them. The home pane has two tabs: the intro and the learning tracks.
 - Other files and folders starting with `_` are ignored. Read `content/_prompt.md` before writing an article.
 
 ## Run locally
@@ -147,7 +151,7 @@ Write the steps in block style as above. In the one-line `{...}` style a comma e
 
 ## Checking the SQL in the articles
 
-`python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables from `tests/sql_setup/<article>.sql`. The deadlock example is also run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.
+`python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables from `tests/sql_setup/<article>.sql`. The examples that need two sessions (deadlock, MVCC visibility, vacuum held back by an old snapshot) are run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.
 
 If a block cannot run, because it needs a contrib extension, two sessions or a shell, start it with `-- not run: <reason>` and say so in the article's "How this was checked" line.
 

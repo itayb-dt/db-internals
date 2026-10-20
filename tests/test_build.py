@@ -6,6 +6,7 @@ import build  # noqa: E402
 
 TOPICS = """subject: Test
 color: "#123456"
+description: A test subject
 topics:
   - {id: a, name: A, domain: D, level: 0, description: First}
   - id: b
@@ -188,8 +189,21 @@ class DataTests(BuildTestCase):
         self.assertIn("duplicate id", err)
         self.assertIn("unknown prerequisite 'zzz'", err)
 
+    def test_subject_needs_a_description(self):
+        s = self.site(topics=TOPICS.replace("description: A test subject\n", ""))
+        code, err = s.run()
+        self.assertEqual(code, 1)
+        self.assertIn("missing top-level 'description'", err)
+
+    def test_subjects_are_ordered_by_the_order_key(self):
+        import json
+        s = self.site(topics=TOPICS.replace("subject: Test", "order: 2\nsubject: Zed"))
+        write(os.path.join(s.root, "data", "u.yaml"), TOPICS.replace("subject: Test", "order: 1\nsubject: Beta").replace("id: a", "id: a2").replace("id: b", "id: b2").replace("id: c", "id: c2").replace("{id: a2, reason", "{id: a2, reason"))
+        self.assertEqual(s.run()[0], 0)
+        self.assertEqual([x["name"] for x in json.loads(read(s.out("graph.json")))["subjects"]], ["Beta", "Zed"])
+
     def test_missing_field_fails(self):
-        s = self.site(topics='subject: T\ncolor: "#fff"\ntopics:\n  - {id: a, name: A}\n')
+        s = self.site(topics='subject: T\ncolor: "#fff"\ndescription: d\ntopics:\n  - {id: a, name: A}\n')
         code, err = s.run()
         self.assertEqual(code, 1)
         self.assertIn("missing 'domain'", err)

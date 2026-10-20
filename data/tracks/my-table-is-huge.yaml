@@ -6,6 +6,8 @@ steps:
     why: The unit of disk I/O and caching. Everything else sits on pages.
   - topic: tuple
     why: A row is a version stored in a page. UPDATE and DELETE create versions instead of overwriting.
+  - topic: mvcc
+    why: How PostgreSQL lets readers and writers work at the same time by keeping several versions of a row.
   - topic: heap
     why: The unordered set of pages that holds the rows of a table.
   - topic: toast

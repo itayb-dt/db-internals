@@ -1,5 +1,7 @@
 subject: Query planning
 color: "#7ee0a1"
+order: 3
+description: "How the database decides how to run a query, and how to read and check its plan."
 topics:
   - id: statistics
     name: Statistics

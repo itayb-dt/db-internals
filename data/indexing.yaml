@@ -1,5 +1,7 @@
 subject: Indexing
 color: "#ff9e7a"
+order: 2
+description: "Structures that find rows without scanning the whole table, and how to choose between the types."
 topics:
   - id: index
     name: Index

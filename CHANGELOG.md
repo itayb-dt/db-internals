@@ -2,6 +2,14 @@
 
 Notable changes to the Database Internals map. Newest first. Topic names are the ones shown on the map.
 
+## 2026-10-20
+
+### Articles
+- **MVCC** (new topic in Concurrency): why readers and writers do not block each other, what `xmin`, `xmax` and `ctid` show after an `UPDATE`, how snapshots decide what a statement sees, Read Committed against Repeatable Read, and what MVCC costs. A two-session example is checked by `scripts/verify_sql.py`.
+- **Dead rows:** what they are, real cases (sessions, orders, queues, big deletes), a measured example (a 9 MB table that became 36 MB after three updates of every row, and stayed 36 MB after a plain `VACUUM`), how to see them, what holds cleanup back (old transactions, replication slots, prepared transactions, shown with real `VACUUM VERBOSE` output), heap-only updates and fillfactor, and what to change.
+- The "My table is huge" track now has 10 steps: MVCC was added after Tuple (row).
+- Deadlock and Dead rows now list MVCC as a prerequisite.
+
 ## 2026-10-19
 
 ### SQL verified, draft status removed
@@ -37,6 +45,7 @@ Storage and Indexing were the first two subjects. Query planning, Concurrency an
 - Tracks are files in `data/tracks/`. The build checks that every step names a real topic, that a track has 3 to 10 steps, and that each step has a reason. It also rejects a stray key, which catches a comma inside inline YAML that would otherwise cut a sentence short. This check also applies to topic prerequisites.
 
 ### Viewer
+- The home pane has two tabs, **Database Internals** and **Learning tracks**. The first has the intro text and a card for each subject with a one-sentence description (a new required `description` in each subject file, plus an optional `order`). The list of every topic and the starting-point chips are gone.
 - Split layout: the 3D map on the left, a reading pane on the right.
 - Home page on the right by default (`content/_home.md`), with starting points and every topic by subject.
 - Full articles open in the pane, with a ring on the dot of topics that have one.

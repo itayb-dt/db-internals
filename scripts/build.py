@@ -199,16 +199,18 @@ def load_topics(errors, raw_details):
     for path in sorted(glob.glob(os.path.join(DATA_DIR, "*.yaml"))):
         fname = os.path.basename(path)
         try:
-            doc = yaml.safe_load(open(path, encoding="utf-8"))
+            with open(path, encoding="utf-8") as fh:
+                doc = yaml.safe_load(fh)
         except yaml.YAMLError as e:
             errors.append(f"{fname}: invalid YAML: {e}")
             continue
-        for k in ("subject", "color", "topics"):
+        for k in ("subject", "color", "description", "topics"):
             if not isinstance(doc, dict) or k not in doc:
                 errors.append(f"{fname}: missing top-level '{k}'")
                 break
         else:
-            subjects.append({"name": doc["subject"], "color": doc["color"]})
+            subjects.append({"name": doc["subject"], "color": doc["color"], "description": doc["description"],
+                             "order": doc.get("order", 100)})
             for t in doc["topics"]:
                 where = f"{fname}:{t.get('id', '?')}"
                 missing = [k for k in REQUIRED if k not in t]
@@ -238,6 +240,9 @@ def load_topics(errors, raw_details):
                                       f"A comma or colon inside 'reason' must be quoted.")
                     edges.append({"topic": t["id"], "prerequisite": p["id"],
                                   "strength": p.get("strength", "hard"), "reason": p.get("reason", "")})
+    subjects.sort(key=lambda x: (x["order"], x["name"]))
+    for x in subjects:
+        del x["order"]
     return subjects, topics, edges
 
 

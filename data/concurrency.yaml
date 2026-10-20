@@ -1,6 +1,24 @@
 subject: Concurrency
 color: "#ffd166"
+order: 5
+description: "What happens when many sessions touch the same data at once: locks, waiting and deadlocks."
 topics:
+  - id: mvcc
+    name: MVCC
+    domain: Isolation
+    level: 1
+    description: "Multiversion concurrency control. PostgreSQL keeps several versions of a row, and each statement or transaction sees a consistent snapshot, so readers and writers do not block each other."
+    details: |
+      An `UPDATE` writes a new row version and leaves the old one in place for transactions that may still need it.
+      Every version records the transaction that created it (`xmin`) and the one that deleted it (`xmax`).
+    evidence:
+      - Show xmin, xmax and ctid change after an UPDATE
+      - Explain why a SELECT does not wait for an UPDATE on the same row
+      - Say what a Read Committed statement and a Repeatable Read transaction can each see
+      - Explain why MVCC creates dead rows that need vacuum
+    prerequisites:
+      - {id: tuple, reason: A tuple is one row version and MVCC is about keeping several}
+
   - id: deadlock
     name: Deadlock
     domain: Locking
@@ -16,3 +34,4 @@ topics:
       - Name two ways to prevent deadlocks and what the application must do when one still happens
     prerequisites:
       - {id: tuple, reason: Row-level locks protect the row versions a transaction changes}
+      - {id: mvcc, reason: MVCC lets readers and writers pass each other so deadlocks involve writers only, strength: soft}
