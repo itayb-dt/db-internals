@@ -28,6 +28,7 @@ LIMIT 20;
 ```
 
 How to read it:
+
 - **High `dead_pct` and an old `last_autovacuum`:** vacuum is not reaching the table, or is slower than the changes.
 - **High `dead_pct` and a recent `last_autovacuum`:** vacuum ran but could not remove the rows. Something is [holding the cleanup back](topic:dead-rows), see section 5.
 - **`autovacuum_count` stuck at 0 on a busy table:** autovacuum never starts there. Check the next section.
@@ -103,6 +104,7 @@ automatic vacuum of table "exp2.public.hot": index scans: 1
 ```
 
 What to look for:
+
 - **`tuples: N removed`:** how much it cleaned.
 - **`M are dead but not yet removable`:** if M is large, an old snapshot is holding rows back.
 - **`removable cutoff` and its age:** a large "XIDs old" value means the oldest open transaction is far behind.
@@ -152,6 +154,7 @@ An autovacuum started to prevent wraparound runs even if autovacuum is otherwise
 **When it shows up.** After a change in workload, a bulk update or delete, a long transaction, or growth of a table past the point where the default 20% threshold is too lazy.
 
 **When to worry** (rules of thumb, not documented limits):
+
 - A dead-row share of 20% or more on a large table.
 - `last_autovacuum` older than your normal interval while the dead rows grow.
 - A vacuum that runs for hours.
@@ -159,6 +162,7 @@ An autovacuum started to prevent wraparound runs even if autovacuum is otherwise
 - A transaction age above about half of `autovacuum_freeze_max_age`.
 
 **What you can change.**
+
 - Lower `autovacuum_vacuum_scale_factor` on the busy big tables.
 - Raise the cost limit if vacuum is throttled too hard, and the worker count if many tables wait.
 - Fix the transactions, slots and prepared transactions that hold things back.

@@ -314,6 +314,14 @@ class ContentTests(BuildTestCase):
         self.assertEqual(code, 1)
         self.assertIn("unknown topic id", err)
 
+    def test_list_right_after_a_text_line_is_an_error(self):
+        s = self.site(content={"a.md": "**Title.**\n- one\n- two\n"})
+        code, err = s.run()
+        self.assertEqual(code, 1)
+        self.assertIn("blank line before the list", err)
+        ok = self.site(content={"a.md": "**Title.**\n\n- one\n- two\n\n```\ntext\n- not a list\n```\n"})
+        self.assertEqual(ok.run()[0], 0)
+
     def test_bad_frontmatter_and_sources(self):
         s = self.site(content={"a.md": "---\nsources: [ftp://x]\n---\ntext"})
         code, err = s.run()

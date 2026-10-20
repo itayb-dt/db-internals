@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Instance levels demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif;fill:#e8eaf6}
+.m{fill:#8890b5}.b{font-weight:700}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="The view moves down through three levels. The instance level shows processes, the buffer pool, the WAL and the logs, shared by everything. The next level shows the databases inside the instance. The last level shows one table with its heap, indexes and TOAST, stored as files in a tablespace.">
+ <title>Zooming from the instance to the databases to the tables</title>
+ <!-- breadcrumb -->
+ <rect x="20" y="14" width="760" height="30" rx="8" fill="#161b33" stroke="#2a3158"/>
+ <text id="crumb" x="36" y="34" font-size="14" class="b"></text>
+ <!-- LEVEL 1: instance -->
+ <g id="L1">
+  <rect x="40" y="62" width="720" height="62" rx="10" fill="#161b33" stroke="#4dd0e1" stroke-width="2"/>
+  <text x="54" y="82" font-size="12" class="m">Processes</text>
+  <rect x="54" y="90" width="200" height="26" rx="6" fill="#1b2140" stroke="#4dd0e1"/><text x="154" y="108" text-anchor="middle" font-size="13" class="b">postmaster</text>
+  <rect x="264" y="90" width="220" height="26" rx="6" fill="#1b2140" stroke="#4dd0e1"/><text x="374" y="108" text-anchor="middle" font-size="13" class="b">backend per connection</text>
+  <rect x="494" y="90" width="252" height="26" rx="6" fill="#1b2140" stroke="#4dd0e1"/><text x="620" y="108" text-anchor="middle" font-size="13" class="b">background workers</text>
+  <rect x="40" y="134" width="720" height="62" rx="10" fill="#161b33" stroke="#4dd0e1" stroke-width="2"/>
+  <text x="54" y="154" font-size="12" class="m">Shared memory</text>
+  <rect id="bp" x="54" y="162" width="440" height="26" rx="6" fill="#1b2140" stroke="#7ee0a1" stroke-width="2"/><text x="274" y="180" text-anchor="middle" font-size="13" class="b">Buffer pool: cached pages</text>
+  <rect x="504" y="162" width="242" height="26" rx="6" fill="#1b2140" stroke="#7ee0a1"/><text x="625" y="180" text-anchor="middle" font-size="13" class="b">WAL buffers</text>
+  <rect x="40" y="206" width="720" height="62" rx="10" fill="#161b33" stroke="#4dd0e1" stroke-width="2"/>
+  <text x="54" y="226" font-size="12" class="m">Shared on disk</text>
+  <rect id="wl" x="54" y="234" width="220" height="26" rx="6" fill="#1b2140" stroke="#ffd166" stroke-width="2"/><text x="164" y="252" text-anchor="middle" font-size="13" class="b">WAL</text>
+  <rect id="lg" x="284" y="234" width="220" height="26" rx="6" fill="#1b2140" stroke="#ffd166" stroke-width="2"/><text x="394" y="252" text-anchor="middle" font-size="13" class="b">Server logs</text>
+  <rect x="514" y="234" width="232" height="26" rx="6" fill="#1b2140" stroke="#ffd166"/><text x="630" y="252" text-anchor="middle" font-size="13" class="b">Roles, tablespaces, config</text>
+  <rect id="dbbox" x="40" y="280" width="720" height="62" rx="10" fill="#161b33" stroke="#c78bff" stroke-width="2"/>
+  <text x="400" y="318" text-anchor="middle" font-size="16" class="b" style="fill:#c78bff">Databases</text>
+ </g>
+ <!-- LEVEL 2: databases -->
+ <g id="L2" opacity="0">
+  <rect x="40" y="62" width="720" height="40" rx="10" fill="#161b33" stroke="#4dd0e1" stroke-opacity=".5"/>
+  <text x="400" y="87" text-anchor="middle" font-size="13" class="m">shared by all databases: roles, tablespaces, WAL, buffer pool, logs</text>
+  <rect id="dbA" x="40" y="124" width="224" height="170" rx="12" fill="#161b33" stroke="#c78bff" stroke-width="3"/><text x="152" y="160" text-anchor="middle" font-size="20" class="b" style="fill:#c78bff">app</text><text x="152" y="188" text-anchor="middle" font-size="13" class="m">schemas and tables</text>
+  <rect x="288" y="124" width="224" height="170" rx="12" fill="#161b33" stroke="#c78bff" stroke-width="2"/><text x="400" y="160" text-anchor="middle" font-size="20" class="b" style="fill:#c78bff">reports</text><text x="400" y="188" text-anchor="middle" font-size="13" class="m">schemas and tables</text>
+  <rect x="536" y="124" width="224" height="170" rx="12" fill="#161b33" stroke="#c78bff" stroke-width="2"/><text x="648" y="160" text-anchor="middle" font-size="20" class="b" style="fill:#c78bff">postgres</text><text x="648" y="188" text-anchor="middle" font-size="13" class="m">schemas and tables</text>
+  <text x="400" y="322" text-anchor="middle" font-size="13" class="m">a connection works in one database, and cannot query another</text>
+ </g>
+ <!-- LEVEL 3: tables -->
+ <g id="L3" opacity="0">
+  <rect x="40" y="62" width="720" height="232" rx="12" fill="#161b33" stroke="#5b7cff" stroke-width="2"/>
+  <text x="58" y="88" font-size="16" class="b">table: orders  (in database app)</text>
+  <rect x="58" y="104" width="216" height="130" rx="10" fill="#1b2140" stroke="#5b7cff" stroke-width="2"/><text x="166" y="148" text-anchor="middle" font-size="18" class="b">Heap</text><text x="166" y="172" text-anchor="middle" font-size="13" class="m">the rows (data)</text><text x="166" y="216" text-anchor="middle" font-size="12" class="m">base/16384/16401</text>
+  <rect x="292" y="104" width="216" height="130" rx="10" fill="#1b2140" stroke="#ff9e7a" stroke-width="2"/><text x="400" y="148" text-anchor="middle" font-size="18" class="b">Indexes</text><text x="400" y="172" text-anchor="middle" font-size="13" class="m">find rows fast</text><text x="400" y="216" text-anchor="middle" font-size="12" class="m">base/16384/16406</text>
+  <rect x="526" y="104" width="216" height="130" rx="10" fill="#1b2140" stroke="#5b7cff" stroke-width="2"/><text x="634" y="148" text-anchor="middle" font-size="18" class="b">TOAST</text><text x="634" y="172" text-anchor="middle" font-size="13" class="m">large values</text><text x="634" y="216" text-anchor="middle" font-size="12" class="m">base/16384/16404</text>
+  <rect x="40" y="308" width="720" height="40" rx="10" fill="#161b33" stroke="#5a6390" stroke-width="2"/>
+  <text x="400" y="333" text-anchor="middle" font-size="13" class="b">each one is a file in the data directory, or in a tablespace you choose</text>
+ </g>
+ <text id="cap" x="400" y="398" text-anchor="middle" font-size="18" font-weight="600"></text>
+ <rect id="bar" x="0" y="446" width="0" height="4" fill="#c78bff"/>
+</svg>
+<script>
+(function(){
+var LOOP=10,$=function(id){return document.getElementById(id)};
+var clamp=function(x){return Math.max(0,Math.min(1,x))},ease=function(x){x=clamp(x);return x*x*(3-2*x)};
+function put(id,op,k){var g=$(id);g.setAttribute('opacity',op);g.setAttribute('transform','translate(400 190) scale('+k+') translate(-400 -190)')}
+// show scene: fades in while scaling from "far" (small) to 1, fades out while scaling to "close" (large)
+function scene(id,t,a,b,c,d){ // in from a to b, hold to c, out from c to d
+ var inp=ease((t-a)/(b-a)),out=ease((t-c)/(d-c));var op=inp*(1-out);
+ var k=t<c?0.82+0.18*inp:1+0.35*out;put(id,op,k)}
+function pulse(id,on,color){var e=$(id);e.setAttribute('stroke-width',on?4:2);if(color)e.setAttribute('stroke',on?color:e.getAttribute('data-c'))}
+['bp','wl','lg','dbbox','dbA'].forEach(function(i){var e=$(i);e.setAttribute('data-c',e.getAttribute('stroke'))});
+function render(t){
+ // level 1 is shown at the start and again at the end (zoom out); level 2 and 3 in between
+ var op1,k1;
+ if(t<3.4){op1=1;k1=t<0.3?0.9+0.1*ease(t/0.3):1}
+ else if(t<4.2){var o=ease((t-3.4)/0.8);op1=1-o;k1=1+0.35*o}
+ else if(t<9.4){op1=0;k1=1}
+ else{var z=ease((t-9.4)/0.6);op1=z;k1=1.35-0.35*z}
+ put('L1',op1,k1);
+ scene('L2',t,3.6,4.4,6.3,7.1);
+ scene('L3',t,6.9,7.7,9.4,9.9);
+ // highlights
+ pulse('bp',t>=0.7&&t<1.4,'#e8fff0');pulse('wl',t>=1.4&&t<2.1,'#fff3c4');pulse('lg',t>=2.1&&t<2.8,'#fff3c4');pulse('dbbox',t>=2.8&&t<3.4,'#e6c8ff');
+ pulse('dbA',t>=5.3&&t<6.3,'#e6c8ff');
+ // breadcrumb and caption
+ var crumb,cap;
+ if(t<3.8){crumb='Instance';cap='Instance level: processes, memory, WAL and logs are shared by every database.'}
+ else if(t<6.9){crumb='Instance  ›  Databases';cap='Databases: separate data inside one instance. A connection uses one.'}
+ else if(t<9.5){crumb='Instance  ›  Databases  ›  app  ›  table orders';cap='Tables: the heap, the indexes and TOAST are files on disk.'}
+ else{crumb='Instance';cap='Back at the top: everything above is shared.'}
+ $('crumb').textContent=crumb;$('cap').textContent=cap;$('bar').setAttribute('width',800*t/LOOP)}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){render(1.5);return}
+var t0=performance.now();
+(function frame(now){render(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

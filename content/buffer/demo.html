@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buffer pool demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif;fill:#e8eaf6}
+.m{fill:#8890b5}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="A page already in the buffer pool is a hit. A page that is not there is a miss: a page nobody needs is evicted and the whole page is read from disk. An update changes one row, but the whole page is marked dirty in memory and a log record is written. Later a checkpoint writes the whole page back to disk.">
+ <title>The buffer pool: hit, miss, dirty page, write back</title>
+ <text x="40" y="38" font-size="15" font-weight="700">Disk: the table's pages</text>
+ <text x="340" y="38" font-size="15" font-weight="700">Buffer pool (shared memory)</text>
+ <text x="620" y="38" font-size="15" font-weight="700">WAL (the log)</text>
+ <g id="disk"></g>
+ <g id="pool"></g>
+ <rect x="620" y="56" width="150" height="280" rx="8" fill="#161b33" stroke="#3a4270" stroke-width="2"/>
+ <g id="wal"></g>
+ <g id="fly"></g>
+ <text id="qry" x="400" y="364" text-anchor="middle" font-size="13" class="m"></text>
+ <text id="cnt" x="340" y="392" font-size="13"></text>
+ <text id="cap" x="400" y="424" text-anchor="middle" font-size="18" font-weight="600"></text>
+ <rect id="bar" x="0" y="446" width="0" height="4" fill="#c78bff"/>
+</svg>
+<script>
+(function(){
+var LOOP=10,NS='http://www.w3.org/2000/svg',$=function(id){return document.getElementById(id)};
+var PG='#161b33',EDGE='#3a4270',BLUE='#5b7cff',GREEN='#7ee0a1',RED='#ff5d6c',ORANGE='#ff9e7a';
+var clamp=function(x){return Math.max(0,Math.min(1,x))},ease=function(x){x=clamp(x);return x*x*(3-2*x)},seg=function(t,a,b){return ease((t-a)/(b-a))};
+function el(tag,attrs,parent){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e}
+function txt(parent,x,y,s,size,anchor,cls){var e=el('text',{x:x,y:y,'font-size':size,'text-anchor':anchor||'middle'},parent);if(cls)e.setAttribute('class',cls);e.textContent=s;return e}
+// a page is a box with four row bars, so it is clear a page holds many rows
+function pageBox(parent,x,y,w,h){var g=el('g',{},parent),r=el('rect',{x:x,y:y,width:w,height:h,rx:6,fill:PG,stroke:EDGE,'stroke-width':2},g),bars=[];
+ for(var i=0;i<4;i++)bars.push(el('rect',{x:x+10+i*(w-20)/4,y:y+h-14,width:(w-20)/4-4,height:6,rx:2,fill:'#3a4270'},g));return{g:g,r:r,bars:bars}}
+// disk: 8 pages, 2 columns x 4 rows
+var D=$('disk'),disk=[],i;
+for(i=0;i<8;i++){var b=pageBox(D,40+(i%2)*110,62+Math.floor(i/2)*70,96,56);txt(b.g,40+(i%2)*110+48,62+Math.floor(i/2)*70+22,'page '+(i+1),12,'middle');disk.push(b)}
+// pool: 4 slots
+var P=$('pool'),slots=[],labels=[],SLOT_X=330,SLOT_W=200;
+for(i=0;i<4;i++){var s=pageBox(P,SLOT_X,62+i*70,SLOT_W,56);var l=txt(s.g,SLOT_X+SLOT_W/2,62+i*70+22,'',12,'middle');slots.push(s);labels.push(l);
+ var tag=txt(s.g,SLOT_X+SLOT_W-8,62+i*70+14,'',10,'end');slots[i].tag=tag}
+var pool=[2,5,7,3]; // pages held at the start
+var W=$('wal'),walLine=txt(W,695,90,'',11,'middle'),walBox=el('rect',{x:632,y:76,width:126,height:30,rx:5,fill:'#1d2a5a',stroke:BLUE,'stroke-width':2,opacity:0},W),walTxt=txt(W,695,95,'UPDATE page 6',11,'middle');walTxt.setAttribute('opacity',0);
+var fly=el('rect',{x:0,y:0,width:96,height:56,rx:6,fill:'#1d2a5a',stroke:BLUE,'stroke-width':3,opacity:0},$('fly'));
+var flyT=txt($('fly'),0,0,'',12,'middle');flyT.setAttribute('opacity',0);
+function pos(i){return{x:330,y:62+i*70}}
+function diskPos(p){return{x:40+((p-1)%2)*110,y:62+Math.floor((p-1)/2)*70}}
+function render(t){
+ // ---- state ----
+ var slotPage=[2,5,7,3],dirty=[false,false,false,false],mark=[null,null,null,null],hits=0,misses=0,query='';
+ // scene 1: hit on page 5 (1.0-2.6)
+ if(t>=1.0){query='SELECT ... WHERE id = 5    (a row on page 5)';}
+ if(t>=1.8){hits=1}
+ // scene 2: miss on page 6 (2.8-5.6); victim slot 0 (page 2)
+ if(t>=2.8)query='SELECT ... WHERE id = 60    (a row on page 6)';
+ var loaded=t>=5.0; if(loaded)slotPage[0]=6;
+ if(t>=4.0&&t<5.0)slotPage[0]=0; // evicted, empty while the page travels
+ if(t>=3.2)misses=1;
+ // scene 3: update (5.8-7.4)
+ if(t>=5.8)query='UPDATE ... SET v = v + 1 WHERE id = 60    (one row, page 6)';
+ if(t>=6.6&&t<8.8)dirty[0]=true;
+ // scene 4: write back (7.6-9.2)
+ if(t>=9.2)query='';
+ // ---- draw slots ----
+ for(i=0;i<4;i++){var pg=slotPage[i];labels[i].textContent=pg?'page '+pg:'(free)';
+  var col=EDGE,fill=PG;
+  if(dirty[i]){col=ORANGE;fill='#3b2a2a';slots[i].tag.textContent='dirty'}else slots[i].tag.textContent='';
+  slots[i].tag.style.fill=ORANGE;
+  slots[i].r.setAttribute('stroke',col);slots[i].r.setAttribute('fill',fill);
+  slots[i].bars.forEach(function(b){b.setAttribute('fill','#3a4270')})}
+ // hit highlight on slot 1 (page 5)
+ if(t>=1.4&&t<2.8){var h=ease((t-1.4)/0.4);slots[1].r.setAttribute('stroke',GREEN);slots[1].r.setAttribute('stroke-width',2+2*h);slots[1].tag.textContent='HIT';slots[1].tag.style.fill=GREEN}
+ else slots[1].r.setAttribute('stroke-width',2);
+ // miss: victim highlight, then arrow
+ if(t>=3.4&&t<4.0){slots[0].r.setAttribute('stroke',RED);slots[0].tag.textContent='evict';slots[0].tag.style.fill=RED}
+ if(t>=3.2&&t<4.0){slots[0].labels}
+ // row bar highlighted in the page that is updated
+ if(t>=5.8&&t<7.6)slots[0].bars[1].setAttribute('fill',ORANGE);
+ // disk page 6 flash on write back
+ for(i=0;i<8;i++){disk[i].r.setAttribute('stroke',EDGE);disk[i].r.setAttribute('stroke-width',2);disk[i].bars.forEach(function(b){b.setAttribute('fill','#3a4270')})}
+ if(t>=3.4&&t<5.0){disk[5].r.setAttribute('stroke',BLUE)}
+ if(t>=8.8&&t<9.6){disk[5].r.setAttribute('stroke',GREEN);disk[5].r.setAttribute('stroke-width',4);disk[5].bars[1].setAttribute('fill',ORANGE)}
+ if(t>=9.0)slots[0].r.setAttribute('stroke',GREEN);
+ // ---- flying page copy ----
+ var f=null;
+ if(t>=4.0&&t<5.0){var a=diskPos(6),b=pos(0),e=ease((t-4.0)/1.0);f={x:a.x+(b.x-a.x)*e,y:a.y+(b.y-a.y)*e,w:96+(SLOT_W-96)*e,l:'page 6 (whole page)'}}
+ if(t>=7.8&&t<8.8){var a2=pos(0),b2=diskPos(6),e2=ease((t-7.8)/1.0);f={x:a2.x+(b2.x-a2.x)*e2,y:a2.y+(b2.y-a2.y)*e2,w:SLOT_W+(96-SLOT_W)*e2,l:'whole page'}}
+ if(f){fly.setAttribute('x',f.x);fly.setAttribute('y',f.y);fly.setAttribute('width',f.w);fly.setAttribute('opacity',.95);flyT.setAttribute('x',f.x+f.w/2);flyT.setAttribute('y',f.y+22);flyT.textContent=f.l;flyT.setAttribute('opacity',1)}
+ else{fly.setAttribute('opacity',0);flyT.setAttribute('opacity',0)}
+ // ---- WAL ----
+ var wal=t>=6.3;walBox.setAttribute('opacity',wal?1:0);walTxt.setAttribute('opacity',wal?1:0);
+ // ---- text ----
+ $('qry').textContent=query;
+ $('cnt').textContent='hits: '+hits+'     misses: '+misses;
+ var c=t<1.0?'The pool keeps copies of table pages in memory.'
+  :t<2.8?'Page 5 is in the pool: a hit. No disk access.'
+  :t<3.4?'Page 6 is not in the pool: a miss.'
+  :t<4.0?'The pool is full, so a page nobody needs is evicted.'
+  :t<5.6?'The whole page is read from disk. A row never comes alone.'
+  :t<6.3?'Now an UPDATE changes one row on page 6.'
+  :t<7.6?'The log gets a record first. The change is made in memory.'
+  :t<8.8?'The whole page is dirty. A checkpoint writes it back later.'
+  :'The whole page is written back. Memory and disk match.';
+ $('cap').textContent=c;$('bar').setAttribute('width',800*t/LOOP)}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){render(7.2);return}
+var t0=performance.now();
+(function frame(now){render(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

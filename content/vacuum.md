@@ -108,6 +108,7 @@ SHOW autovacuum_freeze_max_age;
 **What happens without it.** Dead rows pile up, tables and indexes bloat, scans read more pages, index-only scans stop working because the visibility map is out of date, and in the worst case the database hits wraparound protection.
 
 **When it falls behind.**
+
 - **Held back:** a long transaction, an old replication slot or a prepared transaction keeps the dead rows alive (see [Dead rows](topic:dead-rows)).
 - **Too lazy for big tables:** the 20% threshold above.
 - **Too slow:** the shared cost limit on a very large table, or too few workers for many busy tables.
@@ -117,6 +118,7 @@ SHOW autovacuum_freeze_max_age;
 **When to worry** (rules of thumb, not documented limits): a table whose `last_autovacuum` is old while its dead rows keep growing, vacuum runs that take hours, or a transaction age moving toward `autovacuum_freeze_max_age`.
 
 **What you can change.**
+
 - Lower the scale factor and threshold on the biggest, busiest tables.
 - Raise `autovacuum_vacuum_cost_limit` if vacuum is throttled too hard, and `autovacuum_max_workers` (needs a restart) if many tables wait.
 - Keep transactions short so vacuum can remove what it finds.

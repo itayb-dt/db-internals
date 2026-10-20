@@ -1,173 +1,44 @@
-# Database Internals Map
+# Database Internals
 
-An open, interactive 3D map of how databases work. Every dot is a concept, every link says what you need to understand first, and why.
+An interactive map of how databases work, built around PostgreSQL. Explore the concepts, see how they connect, and follow a learning track to build your understanding step by step.
 
-**Live site:** `https://<your-user>.github.io/<your-repo>/`
+**Live site:** https://itayb-dt.github.io/db-internals/
 
-Click any dot to see its description, everything it builds on, what it unlocks, and how you know you understand it. Drag to spin, scroll to zoom, click a subject in the legend to hide or show it.
+## What this project is
 
-## How it works
+Databases are full of ideas that are hard to see from the outside: why a table grows when you delete rows, why a query that was fast yesterday is slow today, why a lock wait turns into a deadlock. Understanding these things is what separates guessing from solving a problem.
 
-The content is plain YAML and Markdown. A Python script validates it and builds a static site into `_site/`. There is no backend. GitHub Actions builds, tests and deploys on every push to `main`, so committing is the only step.
+This project explains those ideas in plain language, with real examples, SQL you can run, measurements from a real PostgreSQL, and short animations. It is written for people who work with databases but are not expected to be database internals experts.
 
-```
-data/*.yaml      ->                      -> _site/graph.json
-content/*.md     ->  scripts/build.py    -> _site/content/<id>.html (sanitised) + images
-site/index.html  ->                      -> _site/index.html (the viewer)
-```
+## Topics: everything is connected
 
-In the viewer, dot colour is the subject and height is the level, from concept at the bottom to operational detail at the top. Dashed links are soft prerequisites. A ring on a dot means the topic has a full article.
+The unit of the map is the **topic**. A topic is one idea, such as a page, an index, MVCC, vacuum or a deadlock. It has a short explanation, and many topics have a full article that answers four questions: what it is, why it matters for performance, how to measure it, and what to change.
 
-## Repository layout
+Topics are not separate pages. Each one shows what you need to understand first and what it unlocks next, and every one of those links has a reason. A topic like *dead rows* builds on *MVCC*, which builds on how a row is stored. Open any dot on the map and you can follow the links up to the basics or forward to the practical consequences. Colors group the topics into subjects: storage, indexing, query planning, partitions, concurrency and architecture.
 
-```
-data/                one YAML file per subject; the source of truth for topics
-content/             long-form articles, one per topic (see "Add a content article")
-  _prompt.md         guidelines for writing articles (ignored by the build)
-  <topic-id>.md      article for a topic; <topic-id>/ holds its images
-site/                the viewer (static, no dependencies)
-scripts/build.py     validates everything and writes _site/
-tests/               unit tests and a browser smoke test
-.github/workflows/   build, test and deploy to GitHub Pages
-_site/               build output; git-ignored, never commit it
-```
+## Learning tracks: a path to a clear target
 
-## Add or edit a topic
+A map is great for exploring, but sometimes you have a goal. A **learning track** is an ordered path through the topics, from basic to advanced, built around one target. Each step says why it is there.
 
-1. Open the YAML file for the subject, or create a new file in `data/`.
-2. Add a topic:
+For example, *My table is huge* starts with how PostgreSQL stores data and ends with partitioning and how to watch it. *Anatomy of PostgreSQL* walks through the parts of a server and how they fit together. Follow a track and each topic builds on the one before it. You can step through a track with Previous and Next, and dive into any related topic along the way.
 
-   ```yaml
-   - id: gin                       # unique, lowercase, never changes
-     name: GIN
-     domain: Specialised indexes   # group inside the subject
-     level: 2                      # 0-4, see below
-     description: Inverted index. One row can appear under many keys.
-     evidence:                     # how you know someone understands it
-       - Explain why GIN fits "array contains" queries
-     prerequisites:
-       - {id: index, reason: A GIN is a kind of index}
-       - {id: toast, reason: Large key lists use out-of-line storage, strength: soft}
-   ```
+## Why we built it
 
-3. Open a pull request (or commit to `main`). The checks run automatically. To try it locally first:
+1. **Help our Solution Architects explain deep database internals to customers.** The content is relevant to the Dynatrace Database app, and most Solution Architects are not expected to master it. This gives them the depth in a form they can learn from and share.
+2. **Help our customers.** When a customer understands why something happens, and why a suggested fix should work, they can solve problems faster and with more confidence.
+3. **Show Dynatrace as an innovative company** that goes the extra mile to help customers understand the technology underneath their problems.
 
-   ```
-   pip install -r requirements.txt
-   python3 scripts/build.py --serve
-   ```
+## How it is built
 
-A new subject file starts with:
+Everything is plain files in this repository: topics, articles, tracks and the animations. Anyone can suggest a fix or a new article with a pull request. The claims in the articles come from the official documentation, and the SQL in them is run against a real PostgreSQL. Anything that could not be run is clearly marked.
 
-```yaml
-subject: Transactions
-color: "#c78bff"
-order: 6                       # position in the legend and on the home page (optional)
-description: "One sentence about the subject, shown on the home page."   # required
-topics:
-  - ...
-```
+- To contribute, read [CONTRIBUTING.md](CONTRIBUTING.md).
+- To work on the project or run it locally, read [DEVELOPING.md](DEVELOPING.md).
+- To see what changed recently, read [CHANGELOG.md](CHANGELOG.md).
 
-Put the `description` in quotes. A colon inside an unquoted value breaks the YAML, and the build reports it.
+## Where it stands
 
-### Fields
-
-| Field | Required | Meaning |
-|---|---|---|
-| `id` | yes | Stable unique identifier. Links refer to it, so don't rename it. |
-| `name` | yes | Label shown on the dot. |
-| `domain` | yes | Group within the subject, shown in the panel. |
-| `level` | yes | 0 Concept, 1 Core structure, 2 Mechanism, 3 Implementation, 4 Operational. Sets the height. |
-| `description` | yes | One or two plain sentences. |
-| `details` | no | A few lines of Markdown shown under the description. |
-| `evidence` | no | Observable statements that show understanding. |
-| `prerequisites` | no | List of `{id, reason, strength}`. `strength` is `hard` (default) or `soft`. |
-
-The build fails on missing fields, duplicate ids, unknown prerequisites and cycles.
-
-### Writing good topics
-
-- One teachable idea per topic. If the description needs "and", split it.
-- Write prerequisites for understanding, not for chronology. Ask "could someone follow this without knowing that?"
-- Give every prerequisite a `reason`. It makes the link reviewable.
-- Write `evidence` as something you could check, such as "explain why X", not "know about X".
-
-## Add a content article
-
-Create `content/<topic-id>.md`. If the file name matches a topic `id`, the topic is linked to it automatically. No YAML change is needed.
-
-```markdown
----
-title: "TOAST: how PostgreSQL stores large values"   # optional, defaults to the topic name
-updated: 2026-10-17                                   # optional
-sources:                                              # optional, http(s) URLs, listed at the end
-  - https://www.postgresql.org/docs/17/storage-toast.html
-reviewed_by: Jane Doe                                 # optional
----
-
-Text, `code`, tables and images.
-
-![Chunking](toast/chunks.png)
-```
-
-Rules:
-
-- Use Markdown (tables and fenced code are supported) or a raw `.html` file. Both go through the same sanitiser: scripts, event handlers and styles are removed, and iframes are allowed only for YouTube and Vimeo embeds.
-- Put images in `content/<topic-id>/` and reference them relative to `content/`, for example `toast/chunks.png`. Diagrams can be authored as SVG in `content/<topic-id>/src/` and rendered to PNG with `python3 scripts/render_images.py` (needs Playwright). Commit both. The PNG is published, the SVG source is not. Allowed files: png, jpg, gif, webp, avif, pdf, txt, sql, csv. SVG is not allowed.
-- Link to another topic with `[B-Tree](topic:btree)`, using the topic id. The build fails on an unknown id. In the viewer a click opens that topic, and the address bar gets a shareable link such as `#topic=btree`. The same links work in `details`.
-- A file that matches no topic id is an error. Topics without an article are only listed in the build output.
-- Live demos are single, dependency-free HTML files next to the topic's images: `content/<topic-id>/<name>.html`. Embed one in the article with `<iframe src="<topic-id>/<name>.html" title="..." width="800" height="450"></iframe>`. A demo can only be embedded by its own topic's article. It runs in a sandbox (scripts allowed, no access to the page) and is copied as written, so review it like code. The build fails if the file is missing, and the browser test opens every demo and fails on console errors. Keep demos short, looping, and independent of any CDN.
-- `content/_home.md` is the start page shown on the right when nobody has selected a topic. It supports the same frontmatter and `topic:` links. Below its first part the viewer lists the subjects, each with the `description` from its data file, and your "About the project" heading comes after them. The home pane has two tabs: the intro and the learning tracks.
-- Other files and folders starting with `_` are ignored. Read `content/_prompt.md` before writing an article.
-
-## Run locally
-
-```
-pip install -r requirements.txt
-python3 scripts/build.py --serve      # builds, then serves http://localhost:8000
-python3 -m unittest discover -s tests # unit tests
-```
-
-Opening `site/index.html` directly from disk won't work, because browsers block loading `graph.json` from a local file.
-
-The browser smoke test needs `pip install -r requirements-dev.txt` and `playwright install chromium`, then `python3 tests/smoke.py`.
-
-## Learning tracks
-
-A learning track is an ordered path of 3 to 10 topics, from basic to advanced. It is shown on the home page, where a click expands its steps, and inside each topic as "step 3 of 9" with Previous and Next links. Add one as a file in `data/tracks/<name>.yaml`:
-
-```yaml
-order: 1                       # position on the home page
-name: My table is huge
-title: How big tables are stored, grow, get cleaned up and get split
-steps:
-  - topic: page                # a topic id from data/*.yaml
-    why: The unit of disk I/O and caching.
-```
-
-Each step needs a `topic` and a one-line `why`. The build fails on an unknown topic, a duplicate, or a wrong number of steps. Steps whose topic has no article yet are labelled "coming soon".
-
-Write the steps in block style as above. In the one-line `{...}` style a comma ends the value, so the rest of the sentence would be lost. The build reports this as an unexpected key.
-
-## Checking the SQL in the articles
-
-`python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables from `tests/sql_setup/<article>.sql`. The examples that need two sessions (deadlock, MVCC visibility, vacuum held back by an old snapshot) are run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.
-
-If a block cannot run, because it needs a contrib extension, two sessions or a shell, start it with `-- not run: <reason>` and say so in the article's "How this was checked" line.
-
-## Checks and deployment
-
-- **Pull requests:** unit tests, a strict build and a browser smoke test (every topic and article is opened). Any problem fails the check.
-- **Push to `main`:** the same checks, then deploy to GitHub Pages, then a browser check of the live site. On `main`, an article with a problem is skipped with a warning (see the run summary) so one bad article does not block the others. Data errors, such as cycles or unknown prerequisites, still stop the deploy.
-- **Rollback:** revert the commit on `main`. The site redeploys.
-
-## Publish on GitHub Pages
-
-Settings, then Pages, then Source: **GitHub Actions**. The workflow does the rest.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+This is an early, experimental project.
 
 ## License
 

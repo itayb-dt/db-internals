@@ -10,7 +10,7 @@ topics:
     description: "One running PostgreSQL server: a main process, one backend process per connection, background workers, shared memory and a data directory that holds every database. The documentation calls it a database cluster."
     details: |
       "Cluster" here means one server instance and its data directory, not a group of servers.
-      SQL Server calls the same thing an instance, and MySQL calls it a server.
+      Memory, the WAL, the logs, roles and tablespaces are shared by every database in it.
     evidence:
       - Name the processes of a running instance and what each one does
       - Explain what a database cluster is, and why the word is misleading

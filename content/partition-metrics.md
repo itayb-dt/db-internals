@@ -123,6 +123,7 @@ LIMIT 10;
 **When it shows up.** When a single hot partition takes most of the load, when a new partition has no statistics yet, and when a retention job falls behind and old partitions stay.
 
 **When to worry.** Rules of thumb, not documented limits:
+
 - A key-filtered query that increases `seq_scan` on many partitions. Pruning is off or the filter does not use the key.
 - A partition with a large `n_dead_tup` and an old `last_autovacuum`.
 - One partition far larger than its peers.

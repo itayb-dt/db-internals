@@ -91,6 +91,7 @@ In that state, running transactions may continue, but only read-only transaction
 The arithmetic is simple, and the lesson is that a busy server gets there in days, so vacuum must keep up continuously.
 
 **What usually goes wrong.** The documentation lists the causes you must clear to recover, and they are also the usual causes of the problem:
+
 - an old **prepared transaction** that nobody finished
 - a **long-running or idle-in-transaction** session that holds back the horizon
 - an old **replication slot**, for example for a standby that no longer exists

@@ -148,6 +148,24 @@ def sanitize(raw_html, source_dir, topic_id, errors, where, known_ids=()):
     return re.sub(r"<iframe\b[^>]*>\s*</iframe>", drop_empty_iframe, cleaned)
 
 
+LIST_ITEM_RE = re.compile(r"^(\d+\. |- |\* )")
+
+
+def lint_markdown(body, where, errors):
+    """A list that follows a text line without a blank line renders as plain text. Report it."""
+    in_code = False
+    lines = body.split("\n")
+    for i, line in enumerate(lines):
+        if line.startswith("```"):
+            in_code = not in_code
+        if in_code or i == 0 or not LIST_ITEM_RE.match(line):
+            continue
+        prev = lines[i - 1]
+        if prev.strip() and not LIST_ITEM_RE.match(prev) and not prev.startswith((" ", "\t", "|", "#", "```", ">", "---")):
+            errors.append(f"{where}: line {i + 1} starts a list right after a text line. "
+                          f"Put a blank line before the list, or it will render as one paragraph.")
+
+
 def render_markdown(text):
     return markdown.markdown(text, extensions=["tables", "fenced_code"], output_format="html")
 
@@ -372,6 +390,8 @@ def build_content(topics, problems):
         try:
             text = open(os.path.join(CONTENT_DIR, name), encoding="utf-8").read()
             meta, body = split_frontmatter(text, where, local)
+            if name.endswith(".md"):
+                lint_markdown(body, where, local)
             body_html = render_markdown(body) if name.endswith(".md") else body
             clean = sanitize(body_html, CONTENT_DIR, tid, local, where, topics)
             title = html.escape(str(meta.get("title") or (topics[tid]["name"] if tid in topics else "Database Internals")))

@@ -128,6 +128,7 @@ SELECT * FROM pg_visibility_map_summary('orders_vm');
 **When to worry** (rules of thumb, not documented limits): an `Index Only Scan` with `Heap Fetches` near the number of rows returned, a large table whose `all_visible_pct` is low, or a bulk-loaded table that was never vacuumed.
 
 **What you can change.**
+
 - Run `VACUUM` after a bulk load, so the first reports and index-only scans are fast.
 - Make autovacuum reach the table sooner (a lower scale factor, see [Vacuum](topic:vacuum)).
 - Keep long transactions short, because rows that an old snapshot may still need cannot be marked all-visible (see [Dead rows](topic:dead-rows)).

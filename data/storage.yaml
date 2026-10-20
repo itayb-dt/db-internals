@@ -38,11 +38,18 @@ topics:
     name: Buffer pool
     domain: Memory & large values
     level: 2
-    description: In-memory cache of pages shared by all connections.
+    description: "The shared memory cache of table and index pages. Queries read and change pages in the pool, never single rows, and dirty pages are written to disk later."
+    details: |
+      A page that is already in the pool is a hit. A page that is not is a miss: the pool evicts a page nobody needs and reads the whole page from disk.
+      A change marks the whole page dirty, after a log record is written, and a checkpoint or the background writer flushes it later.
     evidence:
       - Explain the difference between a cache hit and a disk read
+      - Say why changing one value in one row still reads and writes a whole page
+      - Read shared hit, read and dirtied in EXPLAIN with BUFFERS
+      - Explain why a dirty page can stay in memory after the commit
     prerequisites:
       - {id: page, reason: The cache holds whole pages}
+      - {id: tuple, reason: Rows live inside pages and are read and changed through them, strength: soft}
 
   - id: toast
     name: TOAST
@@ -151,4 +158,22 @@ topics:
       - {id: heap, reason: The map describes the pages of the heap, strength: soft}
       - {id: mvcc, reason: Visibility to all transactions is an MVCC idea, strength: soft}
       - {id: index-scan, reason: Index-only scans are the main reader of the map, strength: soft}
+
+  - id: buffer-settings
+    name: Buffer pool settings
+    domain: Memory & large values
+    level: 4
+    description: "The settings that size and drive the buffer pool and the writing of dirty pages, and the views that show how well the cache works."
+    details: |
+      `shared_buffers` sets the size of the pool and needs a restart. `effective_cache_size` is only a hint for the planner.
+      The background writer and the checkpointer decide how fast dirty pages go to disk.
+    evidence:
+      - Say which setting sizes the pool and which one only informs the planner
+      - Find the cache hit ratio of a database and of one table
+      - Explain what a checkpoint costs and which settings control how often it happens
+      - Name two things that look like buffer settings but are not, such as work_mem and temp_buffers
+    prerequisites:
+      - {id: buffer, reason: You need to know what the pool does before you size it}
+      - {id: wal, reason: Checkpoints and WAL size drive how dirty pages are written, strength: soft}
+      - {id: statistics, reason: The planner uses a cache size assumption when it estimates costs, strength: soft}
 

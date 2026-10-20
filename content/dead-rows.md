@@ -55,6 +55,7 @@ The live data never grew, but the table is four times larger. A plain `VACUUM` d
 ## Why it matters for performance
 
 **What it costs.**
+
 - **Space.** The table and its indexes grow beyond the live data. This is called **bloat**.
 - **Slower scans.** A sequential scan reads every page, dead rows included, so it reads more pages for the same answer. Index entries that point to dead rows make index scans do wasted work too.
 - **Cache.** Dead rows share the buffer cache with live ones, so less useful data fits.
