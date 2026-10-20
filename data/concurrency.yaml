@@ -35,3 +35,23 @@ topics:
     prerequisites:
       - {id: tuple, reason: Row-level locks protect the row versions a transaction changes}
       - {id: mvcc, reason: MVCC lets readers and writers pass each other so deadlocks involve writers only, strength: soft}
+
+  - id: wraparound
+    name: Transaction ID wraparound
+    domain: Transaction IDs
+    level: 3
+    description: "Transaction IDs are 32-bit numbers that wrap around. Rows older than about two billion transactions would suddenly look like they are in the future, so vacuum must freeze them in time. If it cannot, PostgreSQL stops accepting writes."
+    details: |
+      Vacuum prevents the problem by marking old rows as frozen, so they stay visible whatever the counter does.
+      Autovacuum starts a forced vacuum on any table close to the limit, even if autovacuum is turned off.
+    evidence:
+      - Explain why a row would become invisible after two billion transactions
+      - Say what freezing does and which setting makes autovacuum start a forced vacuum
+      - Find the age of the oldest unfrozen transaction ID per database and per table
+      - Name the things that can stop vacuum from advancing the age
+      - List the steps to recover from the "not accepting commands" error
+    prerequisites:
+      - {id: mvcc, reason: Transaction IDs are how row versions are ordered and judged visible}
+      - {id: vacuum, reason: Vacuum is what freezes old rows}
+      - {id: visibility-map, reason: The all-frozen bit lets vacuum skip pages it already froze, strength: soft}
+

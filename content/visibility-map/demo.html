@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Visibility map demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif;fill:#e8eaf6}
+.m{fill:#8890b5}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img"
+     aria-label="A query visits the table for every index hit. Vacuum sweeps the pages and sets a bit for each one in the visibility map. The same query then skips the table. An update clears the bits of the pages it changed, and only those pages need a table visit again.">
+ <title>The visibility map: pages that need no checking</title>
+ <text x="40" y="44" font-size="17" font-weight="700">Table pages (heap) and their visibility map bit</text>
+ <text x="40" y="64" font-size="12" class="m">each page has one bit: green = all rows visible to everyone, grey = unknown</text>
+ <g id="grid"></g>
+ <!-- index -->
+ <rect id="idx" x="200" y="300" width="250" height="44" rx="8" fill="#161b33" stroke="#ff9e7a" stroke-width="2"/>
+ <text x="325" y="320" text-anchor="middle" font-size="14" font-weight="700" style="fill:#ff9e7a">Index entries</text>
+ <text x="325" y="337" text-anchor="middle" font-size="11" class="m">they do not say whether a row is visible</text>
+ <g id="hits"></g>
+ <!-- vacuum label -->
+ <text id="vac" x="40" y="320" font-size="14" font-weight="700" style="fill:#7ee0a1" opacity="0">VACUUM</text>
+ <!-- counters -->
+ <line x1="668" y1="30" x2="668" y2="290" stroke="#2a3158" stroke-width="1" stroke-dasharray="4 6"/>
+ <text id="runl" x="728" y="74" text-anchor="middle" font-size="13" font-weight="700"></text>
+ <text id="runl2" x="728" y="92" text-anchor="middle" font-size="11" class="m"></text>
+ <text x="728" y="130" text-anchor="middle" font-size="12" class="m">table visits</text>
+ <text id="nv" x="728" y="172" text-anchor="middle" font-size="42" font-weight="700">0</text>
+ <text x="728" y="206" text-anchor="middle" font-size="12" class="m">answered by the map</text>
+ <text id="nm" x="728" y="240" text-anchor="middle" font-size="28" font-weight="700" style="fill:#7ee0a1">0</text>
+ <rect x="684" y="262" width="14" height="8" rx="2" fill="#7ee0a1"/><text x="704" y="270" font-size="11" class="m">bit set</text>
+ <rect x="684" y="278" width="14" height="8" rx="2" fill="#3a4270"/><text x="704" y="286" font-size="11" class="m">bit clear</text>
+ <text id="cap" x="400" y="404" text-anchor="middle" font-size="18" font-weight="600"></text>
+ <text x="790" y="440" text-anchor="end" font-size="10" class="m">illustration, not to scale</text>
+ <rect id="bar" x="0" y="446" width="0" height="4" fill="#c78bff"/>
+</svg>
+<script>
+(function(){
+var LOOP=10,NS='http://www.w3.org/2000/svg',$=function(id){return document.getElementById(id)};
+var SET='#7ee0a1',CLEAR='#3a4270',BLUE='#5b7cff',ORANGE='#ff9e7a',PAGE='#161b33';
+var N=30,COLS=10,X0=40,Y0=84,CW=52,PX=62,PY=58;
+function el(tag,attrs,parent){var e=document.createElementNS(NS,tag);for(var k in attrs)e.setAttribute(k,attrs[k]);parent.appendChild(e);return e}
+var pages=[],bits=[],G=$('grid'),i;
+function cx(k){return X0+(k%COLS)*PX+CW/2}
+function cy(k){return Y0+Math.floor(k/COLS)*PY}
+for(i=0;i<N;i++){
+ pages.push(el('rect',{x:X0+(i%COLS)*PX,y:cy(i),width:CW,height:30,rx:5,fill:PAGE,stroke:'#3a4270','stroke-width':2},G));
+ bits.push(el('rect',{x:X0+(i%COLS)*PX,y:cy(i)+33,width:CW,height:8,rx:3,fill:CLEAR},G))}
+var head=el('rect',{x:0,y:0,width:CW+8,height:44,rx:7,fill:'none',stroke:'#fff','stroke-width':2.5,opacity:0},G);
+var H=$('hits'),dots=[];for(i=0;i<6;i++)dots.push(el('circle',{r:6,fill:'#ff9e7a',opacity:0},H));
+var TARGETS=[2,7,11,15,19,24],UPD=[7,19,24],IDXX=325,IDXY=300;
+var VAC0=2.9,VAC1=4.9,UPDT=6.9;           // vacuum sweep, update
+var RUNS=[{s:1.2,l:'Query 1',l2:'before VACUUM'},{s:5.2,l:'Query 2',l2:'after VACUUM'},{s:8.4,l:'Query 3',l2:'after an UPDATE'}];
+var clamp=function(x){return Math.max(0,Math.min(1,x))};
+function bitSet(k,t){var tk=VAC0+k*(VAC1-VAC0)/N;if(t<tk)return false;
+ if(UPD.indexOf(k)>=0&&t>=UPDT+0.3&&t<9.95)return false;return true}
+function render(t){
+ for(var k=0;k<N;k++){var on=bitSet(k,t);bits[k].setAttribute('fill',on?SET:CLEAR);
+  var upd=UPD.indexOf(k)>=0&&t>=UPDT&&t<UPDT+0.9;
+  pages[k].setAttribute('stroke',upd?ORANGE:'#3a4270');pages[k].setAttribute('fill',upd?'#3b2a2a':PAGE)}
+ // vacuum head
+ var vk=Math.floor((t-VAC0)/(VAC1-VAC0)*N);
+ if(vk>=0&&vk<N){head.setAttribute('x',X0+(vk%COLS)*PX-4);head.setAttribute('y',cy(vk)-3);head.setAttribute('opacity',1);$('vac').setAttribute('opacity',1)}
+ else{head.setAttribute('opacity',0);$('vac').setAttribute('opacity',0)}
+ // query runs
+ var visits=0,checks=0,label='',label2='',active=-1;
+ for(var r=0;r<RUNS.length;r++){if(t>=RUNS[r].s-0.2){active=r;label=RUNS[r].l;label2=RUNS[r].l2}}
+ for(i=0;i<6;i++)dots[i].setAttribute('opacity',0);
+ if(active>=0){var s=RUNS[active].s;
+  for(i=0;i<6;i++){var k=TARGETS[i],st=s+i*0.22,en=st+0.55,visit=!bitAt(k,st+0.5,active);
+   var p=clamp((t-st)/0.55);
+   if(t>=en){if(visit)visits++;else checks++}
+   if(t>=st&&t<en){var tx=cx(k),ty=visit?cy(k)+15:cy(k)+37,e=p*p*(3-2*p);
+    dots[i].setAttribute('cx',IDXX+(tx-IDXX)*e);dots[i].setAttribute('cy',IDXY+(ty-IDXY)*e);
+    dots[i].setAttribute('fill',visit?ORANGE:SET);dots[i].setAttribute('opacity',1)}
+   if(t>=en&&t<en+0.3){if(visit){pages[k].setAttribute('stroke',BLUE);pages[k].setAttribute('fill','#1d2a5a')}else bits[k].setAttribute('fill','#c8ffe0')}}}
+ $('nv').textContent=visits;$('nm').textContent=checks;$('runl').textContent=label;$('runl2').textContent=label2;
+ var c=t<1.0?'New data: no page has been checked yet.'
+  :t<2.9?'Index-only scan, no bits set: every index hit visits the table.'
+  :t<4.9?'VACUUM checks each page and sets its bit.'
+  :t<6.9?'Bits set: the index alone answers. No table visits.'
+  :t<8.4?'An UPDATE changes three pages and clears their bits.'
+  :t<9.8?'Only the changed pages need a table visit again.'
+  :'Vacuum will set those bits again.';
+ $('cap').textContent=c;$('bar').setAttribute('width',800*t/LOOP)}
+// whether the bit of page k is set at moment t (used to decide if a hit must visit the table)
+function bitAt(k,t,run){return bitSet(k,t)}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(reduce){render(9.3);return}
+var t0=performance.now();
+(function frame(now){render(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

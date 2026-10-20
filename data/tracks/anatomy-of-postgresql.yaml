@@ -1,0 +1,24 @@
+order: 2
+name: Anatomy of PostgreSQL
+title: The parts of a PostgreSQL server and how they fit together
+steps:
+  - topic: instance
+    why: One server with its processes, memory and data directory. The starting point for everything else.
+  - topic: databases
+    why: What is separate in each database and what the whole instance shares, such as roles and the log.
+  - topic: files-tablespaces
+    why: How data sits on disk, and how tablespaces place it on other storage.
+  - topic: heap
+    why: How a table stores its rows in pages.
+  - topic: index
+    why: Separate structures that find rows without scanning the table.
+  - topic: toast
+    why: The hidden side table for large values.
+  - topic: partitioning
+    why: One logical table stored as many physical tables.
+  - topic: buffer
+    why: The shared memory cache between queries and the files.
+  - topic: wal
+    why: The log written before the data files. One log serves every database.
+  - topic: server-logs
+    why: The error log and the slow query log, where the instance tells you what happened.

@@ -19,7 +19,12 @@ def serve():
             pass
 
     handler = functools.partial(Quiet, directory=os.path.join(ROOT, "_site"))
-    srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+    class Server(http.server.ThreadingHTTPServer):
+        def handle_error(self, request, client_address):
+            if not isinstance(sys.exc_info()[1], (BrokenPipeError, ConnectionResetError)):  # browser cancelled a download
+                super().handle_error(request, client_address)
+
+    srv = Server(("127.0.0.1", 0), handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv, f"http://127.0.0.1:{srv.server_address[1]}/"
 
@@ -96,13 +101,13 @@ def main(url=None, screenshot=None):
                 if f"step {si + 1} of {len(tr['steps'])}" not in bar or tr["name"] not in bar:
                     problems.append(f"track '{tr['name']}': step {si + 1} shows no track bar")
                 if si < len(tr["steps"]) - 1:
-                    page.click("#trackbar a[data-dir=next]")
+                    page.locator("#trackbar .tbar").filter(has_text=tr["name"]).locator("a[data-dir=next]").click()
                     nxt = next(x for x in graph["topics"] if x["id"] == tr["steps"][si + 1]["topic"])
                     if page.inner_text("#pt").strip() != nxt["name"]:
                         problems.append(f"track '{tr['name']}': Next after step {si + 1} did not open '{nxt['name']}'")
                 if si > 0:
                     page.evaluate("id => window.dbmap.open(id)", st["topic"])
-                    page.click("#trackbar a[data-dir=prev]")
+                    page.locator("#trackbar .tbar").filter(has_text=tr["name"]).locator("a[data-dir=prev]").click()
                     prv = next(x for x in graph["topics"] if x["id"] == tr["steps"][si - 1]["topic"])
                     if page.inner_text("#pt").strip() != prv["name"]:
                         problems.append(f"track '{tr['name']}': Prev at step {si + 1} did not open '{prv['name']}'")

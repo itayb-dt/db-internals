@@ -2,9 +2,23 @@
 
 Notable changes to the Database Internals map. Newest first. Topic names are the ones shown on the map.
 
+## 2026-10-21
+
+### Articles
+- **Visibility map** (new topic under Storage, with a looping animation): the two bits per page and the `_vm` file, what sets and clears them, and why index-only scans depend on it. A measured example on 200,000 rows: before `VACUUM` the map file was empty and the query read 210 buffers with a Bitmap Heap Scan, after `VACUUM` it was an Index Only Scan with 0 heap fetches and 6 buffers. Updating 5% of the rows, spread over almost every page, pushed heap fetches back to 600, so changed pages matter more than changed rows.
+- **Transaction ID wraparound** (new topic in Concurrency): what the 32-bit circular counter is, why wraparound would hide data, how freezing prevents it, the escalation from the forced autovacuum to the point where the server refuses writes, how fast it can happen at different transaction rates, how to monitor it, and the documented recovery steps. A real run shows autovacuum forcing a wraparound vacuum on a table with autovacuum turned off.
+- Vacuum and Monitoring vacuum now link to Wraparound, and Vacuum links to the visibility map.
+
+### Learning tracks
+- Second track, **Anatomy of PostgreSQL** (10 steps): The instance, Databases schemas and roles, Files and tablespaces, Heap table, Index, TOAST, Table partitioning, Buffer pool, WAL and checkpoints, Server logs.
+- New subject **Architecture** with five topics, descriptions only so far, articles to follow: **The instance**, **Databases, schemas and roles**, **Files and tablespaces**, **WAL and checkpoints**, **Server logs**.
+- A topic that is in two tracks (Heap table, TOAST, Table partitioning) shows one progress bar for each.
+
 ## 2026-10-20
 
 ### Articles
+- **Vacuum:** what vacuum does (four jobs), the manual variants and their locks, how autovacuum decides to start (with a table showing why 20% is too lazy for a 100-million-row table), why it is throttled on purpose, freezing and wraparound, and what to change.
+- **Monitoring vacuum** (new topic under Storage, not part of the track): which tables need attention, how far each is from its autovacuum trigger, what a running vacuum is doing (`pg_stat_progress_vacuum`, with real output), how to read an autovacuum log entry (real excerpt), what holds it back, and wraparound age. The track stays at 10 steps and links to Vacuum only.
 - **MVCC** (new topic in Concurrency): why readers and writers do not block each other, what `xmin`, `xmax` and `ctid` show after an `UPDATE`, how snapshots decide what a statement sees, Read Committed against Repeatable Read, and what MVCC costs. A two-session example is checked by `scripts/verify_sql.py`.
 - **Dead rows:** what they are, real cases (sessions, orders, queues, big deletes), a measured example (a 9 MB table that became 36 MB after three updates of every row, and stayed 36 MB after a plain `VACUUM`), how to see them, what holds cleanup back (old transactions, replication slots, prepared transactions, shown with real `VACUUM VERBOSE` output), heap-only updates and fillfactor, and what to change.
 - The "My table is huge" track now has 10 steps: MVCC was added after Tuple (row).

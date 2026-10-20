@@ -114,3 +114,41 @@ topics:
       - {id: dead-rows, reason: Vacuum exists to reclaim dead rows}
       - {id: heap, reason: Vacuum works through the pages of the table, strength: soft}
 
+  - id: vacuum-monitoring
+    name: Monitoring vacuum
+    domain: Space
+    level: 4
+    description: "Checking that vacuum keeps up: when it last ran, what it is doing now, what it removed, and what is holding it back."
+    details: |
+      The statistics views show dead rows and the last run per table, `pg_stat_progress_vacuum` shows a run in progress, and the autovacuum log shows what each run did.
+      A table whose dead rows stay high after vacuum usually has an old transaction holding the cleanup back.
+    evidence:
+      - Find the tables with the most dead rows and the oldest last_autovacuum
+      - Compute how many dead rows a table needs before autovacuum starts on it
+      - Read the phase and progress of a running vacuum
+      - Read an autovacuum log line and say whether dead rows were held back
+      - Find the tables closest to transaction ID wraparound
+    prerequisites:
+      - {id: vacuum, reason: You need to know what vacuum and autovacuum do before you can watch them}
+      - {id: dead-rows, reason: Dead rows are the main thing vacuum is measured by, strength: soft}
+      - {id: table-size, reason: Table size shows whether vacuum is keeping bloat down, strength: soft}
+
+  - id: visibility-map
+    name: Visibility map
+    domain: Space
+    level: 3
+    description: "A small companion file of every table that records, with two bits per page, whether all rows on the page are visible to everyone and whether they are all frozen. Vacuum sets the bits and any change to the page clears them."
+    details: |
+      It lets vacuum skip pages that have nothing to clean, and lets an index-only scan answer from the index without visiting the table.
+      The map is conservative: a set bit is always true, but a clear bit may be wrong.
+    evidence:
+      - Explain why an index-only scan still visits the table sometimes
+      - Show the size of the visibility map fork of a table
+      - Say which operations set the bits and which clear them
+      - Read Heap Fetches in an EXPLAIN ANALYZE plan and explain a high number
+    prerequisites:
+      - {id: vacuum, reason: Only vacuum sets the bits}
+      - {id: heap, reason: The map describes the pages of the heap, strength: soft}
+      - {id: mvcc, reason: Visibility to all transactions is an MVCC idea, strength: soft}
+      - {id: index-scan, reason: Index-only scans are the main reader of the map, strength: soft}
+

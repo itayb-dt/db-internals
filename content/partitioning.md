@@ -75,7 +75,7 @@ Say you must remove January. In one big table, `DELETE FROM events WHERE created
 
 1. Marks the row version as dead. The row is not removed yet, and the space is not freed.
 2. Writes a WAL record, so the delete is crash-safe and reaches replicas.
-3. Leaves the table with dead rows and index entries that `VACUUM` has to clean later.
+3. Leaves the table with [dead rows](topic:dead-rows) and index entries that `VACUUM` has to clean later.
 
 A partition drop does none of this. January is its own table, so removing it removes the files:
 
@@ -97,7 +97,7 @@ I measured it on a laptop with PostgreSQL 16.2: a table of 1.2 million rows, fou
 | Time | about 0.9 s | about 10 ms |
 | WAL written | 187 MB | 99 kB |
 | Table size afterwards | 204 MB (unchanged) | 214 MB down to 161 MB |
-| Dead rows left | 300,000 | 0 |
+| [Dead rows](topic:dead-rows) left | 300,000 | 0 |
 
 The documentation says the same: dropping or detaching a partition is far faster than a bulk operation, and it avoids the `VACUUM` overhead of a bulk delete. Detaching first has an extra benefit: the data is still there as a standalone table, so you can back it up or aggregate it before dropping it. `DROP TABLE` and a plain `DETACH` take an ACCESS EXCLUSIVE lock on the parent. Use `DETACH PARTITION ... CONCURRENTLY` to reduce the lock level, with the restrictions described in the documentation.
 

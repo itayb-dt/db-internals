@@ -1,0 +1,81 @@
+subject: Architecture
+color: "#4dd0e1"
+order: 6
+description: "The parts of a PostgreSQL server and how they relate: the instance, its databases, files, write-ahead log and logs."
+topics:
+  - id: instance
+    name: The instance
+    domain: The server
+    level: 0
+    description: "One running PostgreSQL server: a main process, one backend process per connection, background workers, shared memory and a data directory that holds every database. The documentation calls it a database cluster."
+    details: |
+      "Cluster" here means one server instance and its data directory, not a group of servers.
+      SQL Server calls the same thing an instance, and MySQL calls it a server.
+    evidence:
+      - Name the processes of a running instance and what each one does
+      - Explain what a database cluster is, and why the word is misleading
+      - Say what lives in the data directory
+    prerequisites: []
+
+  - id: databases
+    name: Databases, schemas and roles
+    domain: The server
+    level: 1
+    description: "An instance holds several databases. Each has its own catalogs, schemas and tables, and a connection works in one database at a time. Roles, tablespaces and the WAL are shared by all of them."
+    details: |
+      A query cannot reach into another database without an extension, but all databases share one write-ahead log.
+      In SQL Server every database has its own transaction log. In MySQL a database and a schema are the same thing.
+    evidence:
+      - List what is separate per database and what is shared across the instance
+      - Explain the difference between a database and a schema in PostgreSQL
+      - Say why roles are not per database
+    prerequisites:
+      - {id: instance, reason: Databases live inside an instance}
+
+  - id: files-tablespaces
+    name: Files and tablespaces
+    domain: On disk
+    level: 2
+    description: "How data sits on disk: the data directory, a set of files for every table and index, extra files for free space and row visibility, and tablespaces that place files on other storage."
+    details: |
+      Large relations are split into segment files.
+      A tablespace is a directory somewhere else, which lets you put some tables or indexes on faster or larger storage.
+    evidence:
+      - Find the file that holds a given table
+      - Say what a tablespace is and when you would create one
+      - Explain why a table has more than one file
+    prerequisites:
+      - {id: instance, reason: The data directory belongs to the instance}
+      - {id: databases, reason: Each database has its own directory of relation files}
+      - {id: page, reason: Relation files are made of pages, strength: soft}
+
+  - id: wal
+    name: WAL and checkpoints
+    domain: Durability
+    level: 2
+    description: "The write-ahead log. Every change is recorded in it before the data files, so the instance can recover after a crash. One WAL serves all databases, and replication and backup build on it."
+    details: |
+      A checkpoint writes the changed pages from memory to the data files, so recovery only has to replay the log after the last checkpoint.
+      SQL Server keeps a transaction log per database, and InnoDB has a redo log, which is the closest match.
+    evidence:
+      - Explain why a commit can return before the data files are written
+      - Say what a checkpoint does and what it costs
+      - Explain why heavy updates of large values increase WAL volume
+    prerequisites:
+      - {id: instance, reason: One WAL belongs to the whole instance}
+      - {id: buffer, reason: Changes are made in the buffer pool first and the log protects them}
+
+  - id: server-logs
+    name: Server logs
+    domain: Observability
+    level: 4
+    description: "Where the instance reports what happens: the error log, and a slow query log that you get by setting a time threshold for statements."
+    details: |
+      PostgreSQL has no separate slow query log. Statements slower than `log_min_duration_statement` are written to the same server log.
+      SQL Server has an error log, and MySQL has an error log and a separate slow query log.
+    evidence:
+      - Find where the server log is written on your instance
+      - Turn on logging of statements slower than a threshold
+      - Say what log_lock_waits and log_autovacuum_min_duration add to the log
+    prerequisites:
+      - {id: instance, reason: The log is written by the instance}
