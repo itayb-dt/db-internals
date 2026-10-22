@@ -2,6 +2,14 @@
 
 Notable changes to the Database Internals map. Newest first. Topic names are the ones shown on the map.
 
+## 2026-10-22
+
+### New
+- **Observability** subject and the track **Database Monitoring Overview** (4 steps): What database monitoring means, What a good DB observability system gives you, Dynatrace Observability Platform, and The Dynatrace Databases app. All four have articles.
+
+### Changes
+- The track "My table is huge" is now **PostgreSQL Storage**.
+
 ## 2026-10-21
 
 ### Fixes
@@ -30,7 +38,7 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 - **Monitoring vacuum** (new topic under Storage, not part of the track): which tables need attention, how far each is from its autovacuum trigger, what a running vacuum is doing (`pg_stat_progress_vacuum`, with real output), how to read an autovacuum log entry (real excerpt), what holds it back, and wraparound age. The track stays at 10 steps and links to Vacuum only.
 - **MVCC** (new topic in Concurrency): why readers and writers do not block each other, what `xmin`, `xmax` and `ctid` show after an `UPDATE`, how snapshots decide what a statement sees, Read Committed against Repeatable Read, and what MVCC costs. A two-session example is checked by `scripts/verify_sql.py`.
 - **Dead rows:** what they are, real cases (sessions, orders, queues, big deletes), a measured example (a 9 MB table that became 36 MB after three updates of every row, and stayed 36 MB after a plain `VACUUM`), how to see them, what holds cleanup back (old transactions, replication slots, prepared transactions, shown with real `VACUUM VERBOSE` output), heap-only updates and fillfactor, and what to change.
-- The "My table is huge" track now has 10 steps: MVCC was added after Tuple (row).
+- The "PostgreSQL Storage" track (formerly "My table is huge") now has 10 steps: MVCC was added after Tuple (row).
 - Deadlock and Dead rows now list MVCC as a prerequisite.
 
 ## 2026-10-19

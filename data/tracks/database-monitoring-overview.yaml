@@ -1,0 +1,12 @@
+order: 3
+name: Database Monitoring Overview
+title: What database monitoring means, what to expect from it, and how Dynatrace delivers it
+steps:
+  - topic: db-monitoring
+    why: The idea. What monitoring a database actually means and which signals it uses.
+  - topic: db-observability-expectations
+    why: What a good system gives you, built on database expertise, with root cause analysis and recommendations.
+  - topic: dt-platform
+    why: The database in context. The whole stack in one platform, plus cost and data observability.
+  - topic: dt-databases-app
+    why: Zoom in on the database, with the Databases app.

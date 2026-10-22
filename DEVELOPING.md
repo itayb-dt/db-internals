@@ -134,7 +134,7 @@ A learning track is an ordered path of 3 to 10 topics, from basic to advanced. I
 
 ```yaml
 order: 1                       # position on the home page
-name: My table is huge
+name: PostgreSQL Storage
 title: How big tables are stored, grow, get cleaned up and get split
 steps:
   - topic: page                # a topic id from data/*.yaml

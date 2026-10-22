@@ -20,7 +20,7 @@ Topics are not separate pages. Each one shows what you need to understand first 
 
 A map is great for exploring, but sometimes you have a goal. A **learning track** is an ordered path through the topics, from basic to advanced, built around one target. Each step says why it is there.
 
-For example, *My table is huge* starts with how PostgreSQL stores data and ends with partitioning and how to watch it. *Anatomy of PostgreSQL* walks through the parts of a server and how they fit together. Follow a track and each topic builds on the one before it. You can step through a track with Previous and Next, and dive into any related topic along the way.
+For example, *PostgreSQL Storage* starts with how PostgreSQL stores data and ends with partitioning and how to watch it. *Anatomy of PostgreSQL* walks through the parts of a server and how they fit together. Follow a track and each topic builds on the one before it. You can step through a track with Previous and Next, and dive into any related topic along the way.
 
 ## Why we built it
 

@@ -1,6 +1,6 @@
 order: 1
-name: My table is huge
-title: How big tables are stored, grow, get cleaned up and get split
+name: PostgreSQL Storage
+title: How PostgreSQL stores tables on disk, how they grow, get cleaned up and get split
 steps:
   - topic: page
     why: The unit of disk I/O and caching. Everything else sits on pages.

@@ -1,0 +1,62 @@
+subject: Observability
+color: "#f06292"
+order: 7
+description: "What database monitoring means, what a good observability system gives you, and how Dynatrace puts the database in the context of the whole stack."
+topics:
+  - id: db-monitoring
+    name: What database monitoring means
+    domain: Concepts
+    level: 0
+    description: Watching a database from the inside (its own statistics and logs) and from the outside (hosts, applications), to answer whether it is up, whether it is slow, why, and what changed.
+    details: |
+      Monitoring tells you that something is wrong. Observability is the ability to ask why from the data you already collect.
+      The signals are metrics, logs, traces, events and topology.
+    evidence:
+      - Name the signal types and give one database example of each
+      - Explain the difference between monitoring and observability
+      - Say what the database can tell you about itself and what only the outside view shows
+    prerequisites: []
+
+  - id: db-observability-expectations
+    name: What a good DB observability system gives you
+    domain: Concepts
+    level: 1
+    description: Built by database experts around real customer needs. It tests several explanations for a symptom, picks the most reasonable one and suggests what to do.
+    details: |
+      The expertise is built into the product, so the user does not have to know which counters matter.
+      Root cause analysis works like testing hypotheses: slow query, lock wait, saturated disk, exhausted connections, plan change, maintenance falling behind.
+    evidence:
+      - List what a good system must collect and keep, beyond raw counters
+      - Walk from a symptom such as "the app is slow" to a ranked list of possible causes
+      - Say when a recommendation can be trusted and when it only points to a cause
+    prerequisites:
+      - {id: db-monitoring, reason: The expectations build on the signals and questions of monitoring}
+
+  - id: dt-platform
+    name: Dynatrace Observability Platform
+    domain: Dynatrace
+    level: 1
+    description: A database needs context. The platform joins host and cloud metrics, services, traces, logs and Kubernetes in one place, and adds cost (FinOps) and data observability.
+    details: |
+      The database is never isolated: a slow query is felt by a service, runs on a host, and is often caused by something upstream.
+    evidence:
+      - Explain why a database problem is hard to solve without service, host and trace context
+      - Name the kinds of data the platform brings together
+      - Say what FinOps and data observability add
+    prerequisites:
+      - {id: db-observability-expectations, reason: The platform is judged against these expectations}
+
+  - id: dt-databases-app
+    name: The Dynatrace Databases app
+    domain: Dynatrace
+    level: 2
+    description: The view built for databases. A fleet overview with health scores, statement and execution plan analysis, blocking and deadlock detection, and recommendations, linked to the rest of the platform.
+    details: |
+      The Data app is a different tool, for data engineers, focused on Snowflake and data pipelines.
+    evidence:
+      - Say which questions the Databases app answers
+      - Tell the Databases app apart from the Data app
+      - Follow a slow database back to the service and the host that feel it
+    prerequisites:
+      - {id: dt-platform, reason: The app works inside the context of the platform}
+      - {id: db-observability-expectations, reason: The app is the product of those expectations, strength: soft}
