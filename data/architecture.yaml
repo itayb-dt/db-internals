@@ -79,3 +79,20 @@ topics:
       - Say what log_lock_waits and log_autovacuum_min_duration add to the log
     prerequisites:
       - {id: instance, reason: The log is written by the instance}
+
+  - id: load-balancer
+    name: Load balancers and connection pooling
+    domain: Connections
+    level: 2
+    description: "Software between the application and PostgreSQL. A pooler reuses a few server connections for many clients, and a load balancer routes traffic to the primary or spreads reads over replicas. Each PostgreSQL connection is a process, so connection count matters."
+    details: |
+      Poolers (PgBouncer, Odyssey, PgCat) and balancers (HAProxy, Pgpool-II) solve different problems, and some tools do both.
+      Transaction pooling gives the best reuse but breaks session features such as SET and session advisory locks.
+    evidence:
+      - Explain why thousands of direct connections hurt PostgreSQL even when most are idle
+      - Say the difference between a connection pooler and a load balancer
+      - Choose between session and transaction pooling for a given application
+      - Say why reads from a replica can return stale data
+    prerequisites:
+      - {id: instance, reason: Each connection is a backend process of the instance}
+      - {id: buffer, reason: Shared memory is sized partly by the connection limit, strength: soft}

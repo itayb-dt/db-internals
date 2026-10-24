@@ -2,6 +2,12 @@
 
 Notable changes to the Database Internals map. Newest first. Topic names are the ones shown on the map.
 
+## 2026-10-24
+
+### New
+- **Load balancers and connection pooling** (new topic in Architecture): the difference between a pooler and a load balancer, why PostgreSQL connections are expensive, PgBouncer's pooling modes and their limits, routing to the primary and to replicas, and how to see your own connections.
+- **Sharding** (new topic in Partitions): how it differs from partitioning and replication, shard key choice, what gets harder (cross-shard queries, transactions, resharding), what PostgreSQL offers (foreign tables, Citus), and when not to shard. Includes an animation of a query with and without the shard key.
+
 ## 2026-10-22
 
 ### New

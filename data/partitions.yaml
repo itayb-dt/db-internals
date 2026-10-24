@@ -39,3 +39,21 @@ topics:
     prerequisites:
       - {id: partitioning, reason: Metrics are collected per partition}
       - {id: statistics, reason: The parent needs a manual ANALYZE for planner statistics, strength: soft}
+
+  - id: sharding
+    name: Sharding
+    domain: Scaling out
+    level: 3
+    description: "Splitting one logical database across several servers by a shard key, so data size and load can grow past one machine. It is not part of the engine, but it decides how the whole database layer scales and behaves as one unit."
+    details: |
+      Partitioning splits a table inside one server. Sharding splits it across servers, so each shard is a separate PostgreSQL instance.
+      PostgreSQL has no built-in sharding. Extensions such as Citus add it, and distributed SQL databases do it for you.
+    evidence:
+      - Say the difference between partitioning, replication and sharding
+      - Pick a shard key for a given workload and explain what makes it good
+      - Explain why a query without the shard key must visit every shard
+      - Name what gets harder after sharding, such as joins, transactions and resharding
+    prerequisites:
+      - {id: partitioning, reason: "A shard is the same idea as a partition, placed on another server"}
+      - {id: load-balancer, reason: Routing and connection handling sit in front of the shards, strength: soft}
+      - {id: instance, reason: Each shard is a full instance, strength: soft}
