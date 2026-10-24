@@ -285,6 +285,24 @@ class ContentTests(BuildTestCase):
         self.assertEqual(s.run(lenient=True)[0], 0)
         self.assertIn('"home": false', read(s.out("graph.json")))
 
+    def test_about_page_is_built_and_flagged(self):
+        s = self.site(content={"_about.md": "---\ntitle: About\n---\nSee [A](topic:a)."})
+        self.assertEqual(s.run()[0], 0)
+        self.assertIn('href="#topic=a"', read(s.out("content", "_about.html")))
+        self.assertIn('"about": true', read(s.out("graph.json")))
+        self.assertIn('"home": false', read(s.out("graph.json")))
+
+    def test_no_about_page_is_fine(self):
+        s = self.site()
+        self.assertEqual(s.run()[0], 0)
+        self.assertIn('"about": false', read(s.out("graph.json")))
+
+    def test_about_page_is_not_counted_as_an_article(self):
+        s = self.site(content={"_about.md": "About the project, long enough."})
+        code, err = s.run()
+        self.assertEqual(code, 0)
+        self.assertNotIn("no topic with id '_about'", err)
+
     def test_underscore_files_are_ignored(self):
         s = self.site(content={"_prompt.md": "notes"})
         self.assertEqual(s.run()[0], 0)

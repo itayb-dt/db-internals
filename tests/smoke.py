@@ -63,7 +63,7 @@ def main(url=None, screenshot=None):
         for k in range(cards.count()):
             if not cards.nth(k).locator("p").inner_text().strip():
                 problems.append(f"subject card {k + 1} has no description")
-        if not page.locator("#tabAbout").is_visible() or page.locator("#tabTracks").is_visible():
+        if not page.locator("#tabHome").is_visible() or page.locator("#tabTracks").is_visible():
             problems.append("home should open on the Database Internals tab")
         for href in page.evaluate("[...document.querySelectorAll('#homebody a[href^=\"#topic=\"]')].map(a=>a.getAttribute('href'))"):
             target = next((x for x in graph["topics"] if x["id"] == href[7:]), None)
@@ -76,6 +76,57 @@ def main(url=None, screenshot=None):
             page.click("#homebtn")
             if not page.locator("#homeview").is_visible():
                 problems.append("Home button did not return to the start page")
+        # search: every topic is found by its own name, and the box opens the chosen topic
+        for t in graph["topics"]:
+            found = page.evaluate("n => window.dbmap.search(n)", t["name"])
+            if t["id"] not in found:
+                problems.append(f"search: '{t['name']}' does not find its own topic")
+        probe = next((t for t in graph["topics"] if t["has_content"]), graph["topics"][0])
+        page.fill("#q", probe["name"])
+        if not page.locator("#res .rs").count():
+            problems.append("search: typing a topic name shows no result")
+        page.press("#q", "Enter")
+        if page.inner_text("#pt").strip() != probe["name"]:
+            problems.append(f"search: Enter did not open '{probe['name']}'")
+        page.click("#homebtn")
+        page.fill("#q", "zzzz-no-such-topic")
+        if "No topic matches" not in page.inner_text("#res"):
+            problems.append("search: no 'No topic matches' message for a bad query")
+        page.fill("#q", "")
+        # subject window: expand a subject to its topics, open one, hide and show the window
+        first = graph["subjects"][0]["name"]
+        n_first = sum(1 for t in graph["topics"] if t["subject"] == first)
+        page.locator("#legbody .leg", has_text=first).click()
+        if page.locator("#legbody .lt:visible").count() != n_first:
+            problems.append(f"legend: expanding '{first}' should list {n_first} topics")
+        page.locator("#legbody .lt:visible").first.click()
+        if not page.inner_text("#pt").strip():
+            problems.append("legend: a listed topic did not open")
+        page.click("#homebtn")
+        page.click("#legx")
+        if page.locator("#legend").is_visible() or not page.locator("#legpill").is_visible():
+            problems.append("legend: the close button did not hide the window")
+        page.click("#legpill")
+        if not page.locator("#legend").is_visible():
+            problems.append("legend: the Subjects button did not bring the window back")
+        # subject cards on the home page expand to their topics too
+        page.locator("#subjects .scard").first.click()
+        if page.locator("#subjects .scard").first.locator(".lt:visible").count() != n_first:
+            problems.append(f"home: expanding the '{first}' card should list {n_first} topics")
+        page.locator("#subjects .scard").first.locator(".lt:visible").first.click()
+        if not page.inner_text("#pt").strip():
+            problems.append("home: a topic listed in a subject card did not open")
+        page.click("#homebtn")
+        # About tab
+        if graph.get("about"):
+            page.click("#tabAboutBtn")
+            try:
+                page.wait_for_selector("#aboutbody .article", timeout=10000)
+            except Exception:
+                problems.append("About page did not load")
+            page.click("#tabs .tab[data-tab=home]")
+        elif page.locator("#tabAboutBtn").is_visible():
+            problems.append("About tab is shown but there is no About page")
         # learning tracks: each expands, every step opens its topic, prev/next walk the track
         tracks = graph.get("tracks", [])
         if tracks:
@@ -113,7 +164,7 @@ def main(url=None, screenshot=None):
                         problems.append(f"track '{tr['name']}': Prev at step {si + 1} did not open '{prv['name']}'")
                 page.click("#homebtn")
         if tracks:
-            page.click("#tabs .tab[data-tab=about]")
+            page.click("#tabs .tab[data-tab=home]")
         with_content = 0
         for t in graph["topics"]:
             page.evaluate("id => window.dbmap.open(id)", t["id"])

@@ -1,0 +1,419 @@
+# Database Internals: functional requirements
+
+**Version:** 0.2 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+
+This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
+
+## How to read this document
+
+- **Status** is one of:
+  - **Built**: implemented today. Written from the code in this repository, as of the date above.
+  - **Partial**: implemented in part. The gap is stated.
+  - **Proposed**: not built. This is a suggestion for you to accept, change or drop.
+- **Check** says how QA verifies it: **Auto** (the build, the unit tests or the browser smoke test already fails on it), **Manual** (a person looks), or **None yet** (no check exists).
+- Section 9 lists the decisions I need from you. Section 10 lists where the product is not yet specified.
+- IDs never change. Retired requirements are marked **Dropped**, not deleted.
+
+## 1. Product summary
+
+**What it is.** An open, interactive map of how databases work, built around PostgreSQL. A static website, with no server and no accounts.
+
+**Who it is for.**
+
+| User | Need |
+|---|---|
+| Solution Architect (primary) | Learn database internals deeply enough to explain them to customers, and share a link |
+| Customer engineer or DBA | Understand why something happens, and why a suggested fix should work |
+| Contributor | Add or fix a topic, an article or a track with a pull request |
+
+**Why it exists** (from the README): help Solution Architects explain deep database internals, help customers solve problems with confidence, and show Dynatrace as a company that helps customers understand the technology beneath their problems.
+
+**Principles.**
+
+1. Plain language for people who know SQL but not internals.
+2. Every claim comes from official documentation, and every SQL snippet is run or marked as not run.
+3. Everything is connected: no topic stands alone, and every link has a reason.
+4. Everything is plain files in Git. Anyone can contribute with a pull request.
+5. Performance is the angle: what it costs, how to measure it, what to change.
+
+**Status of the product:** early and experimental. Public, but not announced.
+
+## 2. Concepts and vocabulary
+
+| Term | Meaning |
+|---|---|
+| **Subject** | A colour-coded group of topics, such as Storage or Indexing. Defined by one file in `data/`. |
+| **Topic** | One teachable idea, such as Page, MVCC or Deadlock. The unit of the map. |
+| **Level** | How deep a topic is: 0 Concept, 1 Core structure, 2 Mechanism, 3 Implementation, 4 Operational. |
+| **Prerequisite** | A link from one topic to another that must be understood first. Has a reason, and a strength: **hard** (default) or **soft**. |
+| **Evidence** | Checkable statements that show someone understands a topic ("explain why X"). |
+| **Article** | The long-form text for a topic. A topic may have none. |
+| **Demo** | An animation, one self-contained HTML file embedded in an article. |
+| **Track** | An ordered path of 3 to 10 topics around one goal, each step with a one-line reason. |
+| **Map** | The 3D graph of topics on the left half of the screen. |
+| **Panel** | The right half of the screen, which shows the home page or one topic. |
+
+## 3. Content inventory (snapshot)
+
+As of this version: **38 topics**, **28 articles**, **7 subjects**, **3 tracks**, **6 demos**.
+
+| Subject | Topics | Articles |
+|---|---|---|
+| Storage | 11 | 7 |
+| Indexing | 7 | 5 |
+| Query planning | 4 | 4 |
+| Partitions | 3 | 3 |
+| Concurrency | 3 | 3 |
+| Architecture | 6 | 2 |
+| Observability | 4 | 4 |
+
+| Track | Steps | Steps with an article |
+|---|---|---|
+| PostgreSQL Storage | 10 | 6 (missing: Page, Tuple, Heap table, Monitoring table size) |
+| Anatomy of PostgreSQL | 10 | 5 (missing: Databases, Files and tablespaces, Heap table, WAL, Server logs) |
+| Database Monitoring Overview | 4 | 4 |
+
+## 4. User stories
+
+| ID | As a... | I want to... | So that... |
+|---|---|---|---|
+| US-1 | Solution Architect | open the site and see what it is in ten seconds | I know whether it helps me |
+| US-2 | Solution Architect | follow a track from basic to advanced | I learn a subject in the right order |
+| US-3 | Solution Architect | send a customer a link to one topic | we discuss the same thing |
+| US-4 | Customer engineer | explore the map and see what a topic builds on | I find the gap in my understanding |
+| US-5 | Customer engineer | read how to measure and what to change | I can act on a real problem |
+| US-6 | Customer engineer | see a short animation of a hard idea | I understand it faster than from text |
+| US-7 | Contributor | add a topic or an article and get clear errors | I do not break the site |
+| US-8 | Owner | know that published content is accurate | the project is trusted |
+
+## 5. Viewer (UI) requirements
+
+### 5.1 Layout and loading
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| UI-01 | The page has two halves: the map on the left (50% width) and the panel on the right (50% width). | Built | Manual |
+| UI-02 | Below 900 px width the layout stacks: the map on top (45% height) and the panel below (55%). The drag hint is hidden. | Built | Manual |
+| UI-03 | A header at the top left shows the Dynatrace icon and the title "Database Internals". The icon links to the Dynatrace Databases documentation and opens in a new tab. | Built | Manual |
+| UI-04 | On load the viewer fetches the graph data. If that fails, a full-screen error says the data could not be loaded and how to run the site over HTTP. | Built | None yet |
+| UI-05 | The page is a single static page that works from any web host. It needs no server code. | Built | Auto (live-site check after deploy) |
+| UI-06 | Dark theme only. | Built | Manual |
+
+### 5.2 The map
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| MAP-01 | Every topic is a dot, positioned in 3D. Height shows the level (concept at the bottom, operational detail at the top). Topics of one subject cluster together. | Built | Manual |
+| MAP-02 | Dot colour is the subject. Dot size grows with the number of topics that depend on it (capped). | Built | Manual |
+| MAP-03 | Every prerequisite is a line with a moving dot along it. **Hard** prerequisites are solid. **Soft** ones are dashed. | Built | Manual |
+| MAP-04 | A topic with an article has a ring around its dot. A legend line explains it ("Ring = has a full article"). | Built | Manual |
+| MAP-05 | The topic name is drawn under each dot. | Built | Manual |
+| MAP-06 | Drag rotates the map. Scroll zooms between 0.4x and 3x. Vertical rotation is limited so the map cannot flip. | Built | Manual |
+| MAP-07 | The map rotates slowly by itself. It stops when a topic is selected and resumes when the selection is cleared. | Built | Manual |
+| MAP-08 | A click (not a drag) on a dot within 28 px selects the nearest topic. A click on empty space clears the selection. | Built | Manual |
+| MAP-09 | Selecting a topic highlights it and all its direct and indirect prerequisites. Everything else fades. Links between highlighted topics are emphasised. | Built | Manual |
+| MAP-10 | The map layout is computed in the browser and is not stored. It is different on each load. | Built | n/a |
+| MAP-11 | The map responds to window resizing, and to high-density screens. | Built | Manual |
+| MAP-12 | The map shows a count of concepts and prerequisite links ("38 concepts and 76 prerequisite links"). | Built | Manual |
+| MAP-13 | Touch support (pinch to zoom, one-finger rotate) on tablets and phones. | Proposed | None yet |
+| MAP-14 | Moved to section 5.3a (search). | Dropped here | n/a |
+| MAP-15 | A "reduce motion" setting that stops the auto-rotation and the moving dots. | Proposed | None yet |
+| MAP-16 | On load the whole map fits in its half of the screen, whatever the number of topics. The default zoom is computed from the size of the layout, and the reader can still zoom between 0.3x and 3x. | Built | Manual |
+| MAP-17 | Not every dot needs a visible name. Names are placed in order of importance (the selected topic, search matches and the hovered topic first, then topics with an article, then topics with more dependents) and a name that would overlap one already shown is left out. Zooming in does not reveal more names, so use hover or search. | Built | Manual |
+| MAP-18 | Hovering a dot shows its name and changes the cursor to a pointer. | Built | Manual |
+| MAP-19 | Choosing a topic from search or from a topic list moves the map so the dot is in the centre. Going back to the home page moves it back. | Built | Manual |
+| MAP-20 | The map stays readable with 50 or more topics. | Partial: designed for it (MAP-16, MAP-17) but only tested with 38 | None yet |
+
+### 5.3 Legend and subject filter
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| LEG-01 | A legend window at the bottom left lists every subject with its colour and its number of topics, in subject order. | Built | Manual |
+| LEG-02 | Clicking the **coloured dot** of a subject hides or shows its dots and the links that touch them. Hidden subjects are dimmed in the legend. (Changed in 0.2: before, clicking the whole row did this.) | Built | Manual |
+| LEG-03 | If the selected topic belongs to a subject that becomes hidden, the selection is cleared and the home page is shown. | Built | Manual |
+| LEG-04 | A hint at the bottom of the map explains the controls ("Drag to spin, Scroll to zoom, Click a dot"). | Built | Manual |
+| LEG-05 | The legend window has a close button. When closed, a small "Subjects" button at the same place brings it back. | Built | Auto |
+| LEG-06 | The choice (open or closed) is remembered in the browser for the next visit. | Built | Manual |
+| LEG-07 | Clicking the **name** of a subject expands it to the list of its topics. Clicking again collapses it. | Built | Auto |
+| LEG-08 | A listed topic opens in the panel and is centred on the map. If its subject was hidden, the subject is shown again. | Built | Auto (opens) |
+| LEG-09 | Each listed topic shows a ring if it has an article, and "soon" and a dimmed name if not, and its level. | Built | Manual |
+| LEG-10 | Topics in a list are sorted by level (basic to advanced), then by name. This follows the order in which a reader would learn them. | Built (see D-11) | Manual |
+| LEG-11 | The list scrolls inside the window when it is long, and never grows past the screen. | Built | Manual |
+
+### 5.3a Search
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| SRCH-01 | A search box sits at the top left of the map, under the header. Pressing `/` anywhere on the page puts the cursor in it (unless a text field has focus). | Built | Manual |
+| SRCH-02 | Typing shows up to 8 matching topics as a list of name, subject and "article" or "soon". The list updates on every key. | Built | Auto |
+| SRCH-03 | A topic matches when every word typed is found in its name, id, subject, domain or description. It does not search article text. | Built | Auto (every topic is found by its name) |
+| SRCH-04 | Results are ranked: a word that starts a word of the name first, then a word inside the name or id, then subject or domain, then description. Ties: topics with an article first, then alphabetical. | Built | Manual |
+| SRCH-05 | The matches are ringed in yellow on the map while the list is open, and their names are always shown. | Built | Manual |
+| SRCH-06 | Up and Down move through the list, Enter opens the highlighted topic, Escape clears the box. Clicking a result opens it. | Built | Auto (Enter) |
+| SRCH-07 | Opening a result shows the topic in the panel and centres it on the map. If its subject was hidden, it is shown again. | Built | Auto (opens) |
+| SRCH-08 | A query with no match shows the message "No topic matches ...". | Built | Auto |
+| SRCH-09 | Search also finds words inside article text. | Proposed | None yet |
+| SRCH-10 | Search tolerates a typing mistake ("shrading" finds Sharding) and synonyms ("pool" finds connection pooling). | Proposed | None yet |
+| SRCH-11 | The search box is also reachable on a phone, and the results list fits the screen. | Partial: the box is shown below the header on small screens, not tested on a phone | Manual |
+
+### 5.4 Home page (panel with nothing selected)
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| HOME-01 | The panel opens on the home page, with three tabs: **Database Internals** (default), **Learning tracks** and **About**. | Built | Auto |
+| HOME-02 | The first tab shows the intro written in `content/_home.md`: what the map is and how to use it. | Built | Auto |
+| HOME-03 | Below the first part of the intro, the page lists one card per subject: colour, name, the number of topics and of articles, and the subject description. Every subject needs a description. | Built | Auto |
+| HOME-04 | The text after the subject cards (for example "About the project") comes from `_home.md`. | Built | Manual |
+| HOME-05 | If the intro cannot be loaded, a plain title is shown and the subject cards still appear. | Built | Manual |
+| HOME-06 | Topic links in the intro open that topic. | Built | Auto |
+| HOME-07 | The Learning tracks tab lists every track as a collapsed card (name, title, number of steps). It is hidden if there are no tracks. | Built | Auto |
+| HOME-08 | The Home button on the topic bar returns to the home page, on the tab that was open before. | Built | Auto (returns to the home page) |
+| HOME-11 | Clicking a subject card expands it to the list of its topics, in the same format and order as the legend (LEG-07 to LEG-10). Clicking a topic opens it. | Built | Auto |
+| HOME-12 | The **About** tab shows the page written in `content/_about.md`: what the project is, why it exists, how it is organised, what an article gives you, who it is for, how it is built, and where it stands. It may repeat the first tab. It is hidden if the file does not exist. | Built | Auto |
+| HOME-13 | The About page is plain text that the owner can edit. It supports the same Markdown, safety rules and topic links as an article, but it is not a topic and is not counted as an article. | Built | Unit test |
+| HOME-09 | The home page shows the three most recent additions or a "what is new" list. | Proposed | None yet |
+| HOME-10 | The home page shows a "start here" call to action that opens the recommended first track. | Proposed | None yet |
+
+### 5.5 Topic view (panel with a topic selected)
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| TOP-01 | A topic view shows, in order: a track bar (if the topic is in a track), a meta line (subject, domain, level), the topic name, the description, optional details, and "N prerequisites in total". | Built | Auto (opens every topic) |
+| TOP-02 | "Prerequisites in total" counts all direct and indirect prerequisites. | Built | Manual |
+| TOP-03 | **Builds directly on** lists the direct prerequisites. **Unlocks next** lists the topics that depend on this one. Each entry shows the subject colour. Hovering shows the reason for the link. An empty list shows "none". | Built | Manual |
+| TOP-04 | Clicking an entry in those lists opens that topic. | Built | Manual |
+| TOP-05 | **You understand it when you can** lists the evidence statements. | Built | Manual |
+| TOP-06 | The details text (a few lines of Markdown) is shown under the description. It supports topic links. It is hidden when empty. | Built | Unit test |
+| TOP-07 | A topic with an article shows a "Read the full article" section below, loaded on demand. A topic without one shows no article section. | Built | Auto |
+| TOP-08 | The panel scrolls to the top when the view changes. | Built | Manual |
+| TOP-09 | A sticky bar at the top of the topic view has the Home button. | Built | Auto |
+| TOP-10 | If a topic cannot be displayed, an error message is shown in the panel and the viewer keeps working. | Built | None yet |
+| TOP-11 | The topic view says when it was last reviewed by a person. | Partial: article footer shows "Reviewed by" only when the author fills it in | None yet |
+| TOP-12 | The prerequisite and unlock lists can be reached with the keyboard (Tab and Enter). | Proposed | None yet |
+
+### 5.6 Article view (inside a topic)
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| AV-01 | The article loads when a topic is opened. While loading, the panel shows "Loading article...". | Built | Manual |
+| AV-02 | If the article fails to load, the panel shows an error with a **Retry** link. A slow response for an earlier topic never overwrites the topic now shown. | Built | None yet |
+| AV-03 | A loaded article is cached for the rest of the visit. | Built | n/a |
+| AV-04 | Article tables scroll sideways when too wide. Images and demos never overflow the panel. | Built | Manual |
+| AV-05 | Embedded demos fill the panel width at a 16:9 shape and load lazily. | Built | Manual |
+| AV-06 | Links to other topics (`topic:`) open that topic in the panel. External links open in a new tab. | Built | Auto |
+| AV-07 | Images are checked to render in the browser. | Built | Auto |
+| AV-08 | The article footer shows "Updated <date>" and optionally "Reviewed by <name>", then a **Sources** list of links. | Built | Unit test (sources) |
+| AV-09 | Code blocks are shown in a monospace block, with horizontal scrolling. | Built | Manual |
+| AV-10 | A "copy" button on code blocks. | Proposed | None yet |
+| AV-11 | A "table of contents" for long articles. | Proposed | None yet |
+
+### 5.7 Navigation, links and history
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| NAV-01 | Selecting a topic sets the address to `#topic=<id>`. Opening that address opens the topic. | Built | Auto |
+| NAV-02 | Opening the Learning tracks tab sets the address to `#tracks`, and the About tab sets `#about`. Opening either address opens that tab. | Built | Manual |
+| NAV-03 | An unknown topic id in the address shows the home page. | Built | None yet |
+| NAV-04 | The address changes without adding browser history entries (the Back button leaves the site). | Built | Manual |
+| NAV-05 | Browser Back and Forward move between topics. | Proposed | None yet |
+| NAV-06 | Each topic has its own address that works as a link in Slack or email, and shows a title and description in the preview. | Proposed | None yet |
+
+### 5.8 Accessibility and compatibility
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| A11Y-01 | Text colour contrast meets WCAG AA. | Proposed | None yet |
+| A11Y-02 | Everything that can be clicked can also be reached with the keyboard. Today, only the search box (with `/`, arrows, Enter, Escape) and the tabs work this way. Topic entries, track steps, legend rows and topic lists are clickable lines, not links or buttons. | Partial | None yet |
+| A11Y-03 | The map has a text alternative: the list of topics by subject (the home page subject cards are a start). | Partial | None yet |
+| A11Y-04 | Demos have a text label and respect "reduce motion" with one still frame. | Built | Manual |
+| COMP-01 | Works in current Chrome, Edge, Safari and Firefox on desktop. | Proposed (only Chromium is tested) | Auto (Chromium only) |
+| COMP-02 | Usable on a tablet and a phone. | Partial: layout stacks, touch gestures untested | Manual |
+
+## 6. Article requirements
+
+### 6.1 Purpose and audience
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| ART-01 | An article explains one topic for backend engineers and DBAs who know SQL but not internals. It assumes no knowledge of the topic and none of the engine's source code. | Built (style guide) | Manual (review) |
+| ART-02 | An article opens with a scope line that states the engine and version, and how other engines differ in one or two sentences. | Built (style guide) | Manual |
+| ART-03 | The reference engine is **PostgreSQL**. Articles name differences in other engines. Product articles (for example the Dynatrace track) state their own scope. | Built | Manual |
+
+### 6.2 Structure
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| ART-10 | An article is a file `content/<topic-id>.md` (or `.html`). The file name must equal a topic id. A file with no matching topic is an error. Having both `.md` and `.html` for one id is an error. | Built | Auto |
+| ART-11 | Frontmatter fields: `title` (optional, defaults to the topic name), `updated` (date), `sources` (list of http or https URLs), `reviewed_by` (optional). | Built | Auto |
+| ART-12 | Body uses `##` headings, short paragraphs, fenced code with a language, and at most one comparison table. | Built (style guide) | Manual |
+| ART-13 | An article ends with a short practical checklist. The build adds the Sources list. | Built (style guide) | Manual |
+| ART-14 | Target length: 900 to 1400 words plus small code blocks. | Built (style guide) | None yet |
+| ART-15 | Files and folders starting with `_` are ignored by the build. | Built | Unit test |
+
+### 6.3 Content rules
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| ART-20 | Short, clear sentences. One idea per sentence. Plain words. Active voice. Paragraphs of 2 to 4 sentences. No marketing language, emojis or filler. | Built (style guide) | Manual |
+| ART-21 | Each section starts from a situation the reader recognises, shows the query, setting or view used in daily work, gives a realistic example before the general rule, and says when advice does not apply. | Built (style guide) | Manual |
+| ART-22 | Every article answers the **performance questions**: what does it cost, when does that cost show up, how do I measure it, when should I worry (a rule of thumb), what can I change and what is the downside. | Built (style guide) | Manual |
+| ART-23 | The article is written in the author's own words and does not copy documentation text. | Built (style guide) | Manual |
+| ART-24 | The article names common mistakes and how to spot them. | Built (style guide) | Manual |
+| ART-25 | A topic is linked on first mention with `[Name](topic:id)`. An unknown id fails the build. | Built | Auto |
+
+### 6.4 Accuracy and review
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| ACC-01 | Every technical claim is verified against official documentation for the stated version. The pages are listed in `sources`. | Built (rule) | Manual |
+| ACC-02 | No invented numbers, parameter names or catalog columns. | Built (rule) | Manual |
+| ACC-03 | Every `sql` block is run against a real PostgreSQL by `scripts/verify_sql.py`. A block that cannot run starts with `-- not run: <reason>`. | Built | Auto (when run locally) |
+| ACC-04 | An article that contains SQL starts with a "How this was checked" note: what was run, on which version. | Built (style guide) | Manual |
+| ACC-05 | Rules of thumb are marked as rules of thumb. Uncertainty is stated. | Built (rule) | Manual |
+| ACC-06 | Product claims (for example about Dynatrace) come from public product documentation, listed in `sources`, with a note that features change. | Built (practice) | Manual |
+| ACC-07 | Every article is reviewed by a named person before it is marked reviewed. The review covers technical accuracy. | Proposed | None yet |
+| ACC-08 | The SQL check runs in the pull request checks. Today it must be run by hand, on a server the author provides. | Proposed | None yet |
+| ACC-09 | Each article shows the date of its last accuracy check, separate from its "Updated" date. | Proposed | None yet |
+
+### 6.5 Visuals and demos
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| VIS-01 | Add a picture only when the text makes the reader work too hard. One idea per article. | Built (style guide) | Manual |
+| VIS-02 | Use a static image for structure (a tree, a layout, a plan) and a live demo for something that happens over time. | Built (style guide) | Manual |
+| VIS-03 | Images are PNG, JPG, GIF, WebP or AVIF in `content/<topic-id>/`, with alt text, preferably under 200 KB. SVG is not allowed as a published file. | Built | Auto (type), Manual (size, alt) |
+| VIS-04 | Diagrams are authored as SVG in `content/<topic-id>/src/` and rendered to PNG by `scripts/render_images.py`. Both are committed. | Built | Manual |
+| VIS-05 | A demo is one dependency-free HTML file in `content/<topic-id>/`, embedded with an iframe. No libraries or network requests. It loops by itself in about 10 seconds or less, shows its state in words, and shows one still frame under "reduce motion". | Built | Auto (loads, no console errors), Manual (rest) |
+| VIS-06 | A demo can only be embedded by its own topic's article. It runs sandboxed with scripts allowed and no access to the page. | Built | Unit test |
+| VIS-07 | An iframe is allowed only for a local demo, or a YouTube or Vimeo embed. | Built | Unit test |
+| VIS-08 | A missing demo file fails the build. | Built | Unit test |
+| VIS-09 | Every demo is reviewed like code, because it is copied as written. | Built (rule) | Manual |
+| VIS-10 | A diagram or a demo is visually checked in a browser before publishing. | Proposed (today the smoke test only checks that a demo loads) | None yet |
+
+### 6.6 Safety of article content
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| SAF-01 | Article HTML goes through a sanitiser. Scripts, event handlers and styles are removed. Only a fixed list of tags and attributes survives. | Built | Unit test |
+| SAF-02 | Only the schemes http, https, mailto and `topic:` are allowed in links. `javascript:` is removed. | Built | Unit test |
+| SAF-03 | External links open in a new tab and carry `noopener`. Source links also carry `nofollow`. | Built | Manual |
+| SAF-04 | Relative images and assets are checked: the file exists, stays in the article's folder and has an allowed type. | Built | Unit test |
+| SAF-05 | A list placed directly after a text line (without a blank line) is an error, because it would render as one run-on paragraph. | Built | Unit test |
+
+## 7. Learning track requirements
+
+### 7.1 Definition
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| TRK-01 | A track is a file `data/tracks/<id>.yaml`. The id is the file name and does not change. | Built | Auto |
+| TRK-02 | A track has: `order` (position on the home page), `name`, `title` (one line saying what you learn) and 3 to 10 `steps`. | Built | Auto |
+| TRK-03 | A step has a `topic` (an existing topic id) and a one-line `why`. A topic cannot appear twice in a track. | Built | Auto |
+| TRK-04 | A track has one goal and is ordered from basic to advanced. | Built (rule) | Manual |
+| TRK-05 | A topic may be in several tracks. | Built | Auto |
+| TRK-06 | A step whose topic has no article yet is labelled "coming soon". A step with an article is labelled "article". | Built | Auto |
+| TRK-07 | A track should not be published with more than a few "coming soon" steps. Today two tracks have 4 and 5. | Proposed | None yet |
+| TRK-08 | Track order follows each step's prerequisites: a topic is never placed before one of its hard prerequisites. | Proposed | None yet |
+
+### 7.2 Behaviour in the viewer
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| TRK-10 | The Learning tracks tab lists the tracks by `order`, then by name. Each card expands to the numbered steps with the reason. | Built | Auto |
+| TRK-11 | Clicking a step opens its topic. | Built | Auto |
+| TRK-12 | A topic in a track shows a **track bar**: "Learning track: <name>, step N of M", with **Previous** and **Next** links to the neighbouring steps. The first step has no Previous. The last has no Next. | Built | Auto |
+| TRK-13 | A topic in several tracks shows one bar for each. | Built | Manual |
+| TRK-14 | Previous and Next work for every step of every track. | Built | Auto |
+| TRK-15 | The track bar shows the "why" of the current step. | Proposed | None yet |
+| TRK-16 | The viewer remembers how far the reader has got in a track (stored in the browser). | Proposed | None yet |
+| TRK-17 | A track shows an estimated reading time. | Proposed | None yet |
+| TRK-18 | A track has its own address (for example `#track=postgres-storage`) to share. | Proposed | None yet |
+| TRK-19 | A track has a final step that says what to do next (another track, or a practice task). | Proposed | None yet |
+
+### 7.3 Tracks today
+
+| Track | Goal | Order |
+|---|---|---|
+| PostgreSQL Storage | How PostgreSQL stores tables on disk, how they grow, get cleaned up and get split | 1 |
+| Anatomy of PostgreSQL | The parts of a server and how they fit together | 2 |
+| Database Monitoring Overview | What database monitoring means, what to expect from it, and how Dynatrace delivers it | 3 |
+
+The plan is that later tracks solve specific problems (for example "my query is slow" or "my database is running out of connections"). Those are not defined yet. See section 9.
+
+## 8. Topic data and build requirements
+
+These are the rules behind the content. They are what makes QA automatic.
+
+| ID | Requirement | Status | Check |
+|---|---|---|---|
+| DATA-01 | A subject is a file `data/<subject>.yaml` with `subject`, `color`, `description` (required) and `order`, followed by its topics. | Built | Auto |
+| DATA-02 | A topic requires `id`, `name`, `domain`, `level` (0 to 4) and `description`. Optional: `details`, `evidence`, `prerequisites`. | Built | Auto |
+| DATA-03 | A topic id is lowercase letters, digits and hyphens, unique, and never renamed. | Built | Auto |
+| DATA-04 | A prerequisite has `id`, `reason` (required) and `strength` (hard or soft). An unknown id, a missing reason or an unexpected key is an error. | Built | Auto |
+| DATA-05 | A cycle in prerequisites is an error, even in lenient mode. | Built | Unit test |
+| DATA-06 | A topic has one teachable idea. If its description needs "and", split it. | Built (rule) | Manual |
+| DATA-07 | Evidence is written as something checkable ("explain why X"), not "know about X". | Built (rule) | Manual |
+| DATA-08 | A subject's colour is unique. | Proposed | None yet |
+| DATA-09 | A topic with no article for a long time is reported. | Proposed | None yet |
+| BLD-01 | The build produces the static site and fails on any problem in strict mode. In lenient mode (used on `main`) a broken article is skipped with a warning, and data errors still fail. | Built | Unit test |
+| BLD-02 | Unit tests, a strict build and a browser smoke test run on every pull request. | Built | Auto |
+| BLD-03 | The smoke test opens every topic, every article, every topic link, every track step with Previous and Next, and every demo. It fails on a console error, a failed request or an empty article. | Built | Auto |
+| BLD-04 | A push to `main` runs the same checks, deploys to GitHub Pages, and then runs a browser check of the live site. | Built | Auto |
+| BLD-05 | Rollback is a revert of the commit on `main`. | Built | n/a |
+| BLD-06 | The smoke test also compares each page with a stored screenshot to catch layout breaks. | Proposed | None yet |
+
+## 9. Decisions for you
+
+Please answer or edit these. I have listed my suggestion first.
+
+| # | Question | Suggestion |
+|---|---|---|
+| D-1 | **Release gate for tracks.** Should a track be visible only when all its steps have articles? | Yes for GA. For now, keep "coming soon" visible, since you are moving fast. |
+| D-2 | **Review status.** Who reviews an article, and what does "reviewed" mean? Most articles have no reviewer, and the Dynatrace ones have not been reviewed. | Add a `reviewed_by` and a date. Show a "Not yet reviewed" label on articles without one. |
+| D-3 | **Problem-driven tracks.** Which are the first two? | "My query is slow" (plans, statistics, indexes) and "Too many connections" (instance, connection pooling, wait events). |
+| D-4 | **Search.** Built in 0.2 (name, subject, description). Do we need article-text search and typo tolerance before GA (SRCH-09, SRCH-10)? | Text search yes, typo tolerance later. |
+| D-5 | **Sharing.** Do topics need previews when a link is pasted in Slack or email? A single-page site cannot do it today. | Yes for GA. It needs one generated page per topic. |
+| D-6 | **Dynatrace content.** Are the product topics part of this map, or a separate area? They share the viewer today. | Keep them in the map, but label them as product content, since the rest is vendor-neutral. |
+| D-7 | **Other engines.** Articles are PostgreSQL-first. Do we add MySQL or SQL Server topics? | Not before GA. Keep "how it compares" notes. |
+| D-8 | **Licence.** The README says a licence is still to be chosen. | Choose before making the project known beyond the team. |
+| D-9 | **Measurement.** What counts as success? | Pick two numbers, for example Solution Architects who used a track, and links shared. This needs some form of usage data, which the site does not collect today. |
+| D-11 | **Order of topics in a subject list.** Today: by level, then by name. Other options: articles first, newest first, or by the order of a track. | Keep level then name. It matches how a reader learns, and the ring shows which have an article. |
+| D-12 | **"Articles" or "topics".** The lists show all topics and mark those without an article as "soon". Should they show only topics with an article? | Keep all, marked. A reader sees what is coming, and a topic page still explains the idea. |
+| D-10 | **Accessibility level.** Is WCAG AA a requirement for GA? | Yes. The keyboard gap (A11Y-02) is the biggest one. |
+
+## 10. Not specified yet
+
+These are the gaps I found while writing this. Each needs a requirement or an explicit "out of scope".
+
+- **Usage data.** The site has no analytics, so nobody can tell which topics or tracks are used.
+- **Feedback.** There is no way for a reader to report an error or ask for a topic, except through GitHub.
+- **Versioning.** Articles say "PostgreSQL 17". There is no plan for updating to the next version, or for keeping old versions.
+- **Language.** English only.
+- **Print and offline use.** An article cannot be exported or printed in a good layout.
+- **Ownership.** There is no owner list per subject.
+- **Support promise.** No statement on how fast an error is fixed.
+- **Content roadmap.** The 10 topics without an article (Databases, Files and tablespaces, WAL, Server logs, Index scan, Partial index, Page, Tuple, Heap table, Monitoring table size) have no priority order.
+
+## 11. Out of scope
+
+- Accounts, logins and personal progress stored on a server.
+- Running SQL in the browser against a live database.
+- Comments or discussion on the site.
+- A hosted database for readers to practice on.
+
+## 12. QA flow
+
+1. **On every pull request**, the automatic checks must pass: unit tests, strict build, browser smoke test. These cover the requirements marked **Auto** or **Unit test**.
+2. **Before an article is published**, a reviewer checks it against section 6: accuracy of claims against the sources, the SQL status, the performance questions, and the style.
+3. **Before a demo is published**, someone watches the whole loop in a browser (VIS-10).
+4. **Before a release**, one person walks through the **Manual** items in section 5 on desktop and on a phone.
+5. **After deploy**, the live-site check runs. A red run means production is broken. Roll back first and investigate after.
+
+To make QA repeatable, each requirement ID can become a test case. Requirements marked **None yet** are the first candidates for new automatic tests.
+
+## 13. Change log of this document
+
+| Version | Date | Change |
+|---|---|---|
+| 0.1 | 2026-10-24 | First draft, written from the current code, README, developer guide and style guide. |
+| 0.2 | 2026-10-24 | Added and built: search (SRCH), hideable subject window with topic lists (LEG-05 to LEG-11), subject cards with topic lists (HOME-11), About tab (HOME-12, HOME-13), map fitted to the screen with label decluttering (MAP-16 to MAP-20). LEG-02 changed (the dot toggles, not the row). Decisions D-11 and D-12 added. |

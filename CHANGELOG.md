@@ -4,6 +4,16 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-10-24
 
+### Viewer
+- **Search.** A box under the header finds topics by name, subject, domain or description. Press `/` to focus it. The matches get a yellow ring on the map, and choosing one opens the topic and centres it.
+- **Subjects window.** It has a close button, with a small "Subjects" button to bring it back (remembered). Clicking a subject name lists its topics, sorted by level, with a ring for those that have an article. Clicking the coloured dot hides or shows the subject on the map, which the whole row used to do.
+- **Subject cards on the home page** expand to the same topic lists and show the number of articles.
+- **About tab** next to Database Internals and Learning tracks. The text is in `content/_about.md`.
+- **The map fits the screen** when it loads. Names that would overlap are left out, so a crowded map stays readable. Hovering a dot shows its name.
+
+### Documentation
+- New `Product/functional-requirements.md`: the requirements for the viewer, articles and tracks, with IDs and QA checks.
+
 ### New
 - **Load balancers and connection pooling** (new topic in Architecture): the difference between a pooler and a load balancer, why PostgreSQL connections are expensive, PgBouncer's pooling modes and their limits, routing to the primary and to replicas, and how to see your own connections.
 - **Sharding** (new topic in Partitions): how it differs from partitioning and replication, shard key choice, what gets harder (cross-shard queries, transactions, resharding), what PostgreSQL offers (foreign tables, Citus), and when not to shard. Includes an animation of a query with and without the shard key.

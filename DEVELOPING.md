@@ -114,6 +114,7 @@ Rules:
 - A file that matches no topic id is an error. Topics without an article are only listed in the build output.
 - Live demos are single, dependency-free HTML files next to the topic's images: `content/<topic-id>/<name>.html`. Embed one in the article with `<iframe src="<topic-id>/<name>.html" title="..." width="800" height="450"></iframe>`. A demo can only be embedded by its own topic's article. It runs in a sandbox (scripts allowed, no access to the page) and is copied as written, so review it like code. The build fails if the file is missing, and the browser test opens every demo and fails on console errors. Keep demos short, looping, and independent of any CDN.
 - `content/_home.md` is the start page shown on the right when nobody has selected a topic. It supports the same frontmatter and `topic:` links. Below its first part the viewer lists the subjects, each with the `description` from its data file, and your "About the project" heading comes after them. The home pane has two tabs: the intro and the learning tracks.
+- `content/_about.md` is the text of the **About** tab. It has the same format and rules as `_home.md`. Without the file the tab is hidden.
 - Other files and folders starting with `_` are ignored. Read `content/_prompt.md` before writing an article.
 
 ## Run locally

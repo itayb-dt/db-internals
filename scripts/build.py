@@ -23,6 +23,8 @@ OUT = os.path.join(ROOT, "_site")
 LEVELS = ["Concept", "Core structure", "Mechanism", "Implementation", "Operational"]
 REQUIRED = ["id", "name", "domain", "level", "description"]
 HOME_ID = "_home"  # content/_home.md is the start page shown in the viewer
+ABOUT_ID = "_about"  # content/_about.md is the About tab
+SPECIAL_IDS = (HOME_ID, ABOUT_ID)
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 # Files that may sit next to an article in content/<id>/. SVG is left out on purpose:
@@ -358,11 +360,12 @@ def build_content(topics, problems):
         return rendered, assets
     files = {}
     for name in sorted(os.listdir(CONTENT_DIR)):
-        if os.path.splitext(name)[0] == HOME_ID and name.endswith((".md", ".html")):
-            if HOME_ID in files:
-                errors.append(f"content/{name}: the home page already has {files[HOME_ID]}; keep only one")
+        if os.path.splitext(name)[0] in SPECIAL_IDS and name.endswith((".md", ".html")):
+            sid = os.path.splitext(name)[0]
+            if sid in files:
+                errors.append(f"content/{name}: {sid} already has {files[sid]}; keep only one")
             else:
-                files[HOME_ID] = name
+                files[sid] = name
             continue
         if name.startswith(("_", ".")):  # _prompt.md and other helper files are not articles
             continue
@@ -394,7 +397,8 @@ def build_content(topics, problems):
                 lint_markdown(body, where, local)
             body_html = render_markdown(body) if name.endswith(".md") else body
             clean = sanitize(body_html, CONTENT_DIR, tid, local, where, topics)
-            title = html.escape(str(meta.get("title") or (topics[tid]["name"] if tid in topics else "Database Internals")))
+            title = html.escape(str(meta.get("title") or (topics[tid]["name"] if tid in topics else
+                                                          "About" if tid == ABOUT_ID else "Database Internals")))
             if isinstance(meta.get("updated"), (datetime.date, datetime.datetime)):
                 meta["updated"] = meta["updated"].isoformat()[:10]
             frag = (f'<article class="article"><h1>{title}</h1>{clean}'
@@ -458,10 +462,11 @@ def build(lenient=False):
         report(f"WARNING: {len(set(problems))} content problem(s); the affected articles were skipped "
                f"and the rest of the site was built:", problems)
     graph = {"levels": LEVELS, "subjects": subjects, "topics": list(topics.values()), "edges": edges,
-             "home": HOME_ID in rendered, "tracks": tracks}
+             "home": HOME_ID in rendered, "about": ABOUT_ID in rendered, "tracks": tracks}
     write_site(graph, rendered, assets)
     print(f"OK: {len(topics)} topics, {len(edges)} links, {len(subjects)} subjects, "
-          f"{len(rendered) - (HOME_ID in rendered)} articles{' + home page' if HOME_ID in rendered else ''} -> _site/")
+          f"{len([r for r in rendered if r not in SPECIAL_IDS])} articles"
+          f"{' + home page' if HOME_ID in rendered else ''}{' + about page' if ABOUT_ID in rendered else ''} -> _site/")
     missing = [t for t in topics if t not in rendered]
     print(f"Topics without content yet ({len(missing)}): {', '.join(missing) if missing else 'none'}")
 
