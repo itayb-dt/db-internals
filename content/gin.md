@@ -22,26 +22,18 @@ GIN is an [index](topic:index) of the **inverted** kind. Instead of "row, then v
 
 A search looks up the key and reads the list of rows. Searching for two keys combines two lists.
 
+Take a `tickets` table with a `tags` array and a `payload` `jsonb` column, each with a GIN index. These queries can use them:
+
 ```sql
-CREATE TABLE tickets (id bigint PRIMARY KEY, tags text[], payload jsonb);
-
-CREATE INDEX tickets_tags_gin ON tickets USING gin (tags);
-CREATE INDEX tickets_payload_gin ON tickets USING gin (payload);
-
 SELECT * FROM tickets WHERE tags @> ARRAY['urgent'];
 SELECT * FROM tickets WHERE payload @> '{"status": "open"}';
 ```
 
-The array operators supported by the built-in class are `<@`, `@>`, `=` and `&&`. For `jsonb` there are two operator classes. `jsonb_ops` is the default and supports more operators. `jsonb_path_ops` supports fewer operators but is faster for them:
-
-```sql
-CREATE INDEX tickets_payload_path_gin ON tickets USING gin (payload jsonb_path_ops);
-```
+The array operators supported by the built-in class are `<@`, `@>`, `=` and `&&`. For `jsonb` there are two operator classes. `jsonb_ops` is the default and supports more operators. `jsonb_path_ops` supports fewer operators but is faster for them. You choose the class when you create the index.
 
 Full-text search uses GIN on a `tsvector`:
 
 ```sql
-CREATE INDEX articles_fts_gin ON articles USING gin (to_tsvector('english', body));
 SELECT id FROM articles WHERE to_tsvector('english', body) @@ to_tsquery('english', 'index & scan');
 ```
 
@@ -85,7 +77,7 @@ SELECT * FROM pgstatginindex('tickets_tags_gin');
 
 - Make autovacuum more aggressive on the table, so the pending list is cleaned in the background.
 - Raise `gin_pending_list_limit` (per index, in kB) to reduce foreground cleanups, knowing that a cleanup then takes longer.
-- Turn off fast update (`WITH (fastupdate = off)`) if steady response time matters more than insert speed.
+- Turn off fast update for the index (the `fastupdate` storage option) if steady response time matters more than insert speed.
 - Raise `maintenance_work_mem` before large builds.
 - For huge bulk loads, consider dropping and recreating the index.
 - Use `jsonb_path_ops` if you only need containment queries.

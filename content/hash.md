@@ -10,7 +10,7 @@ sources:
   - https://www.postgresql.org/docs/release/10.0/
 ---
 
-This article is about the **PostgreSQL 17** hash index. Yes, PostgreSQL supports hash indexes. Engines differ here: MySQL's InnoDB builds an adaptive hash index internally and does not let you create one, while the MEMORY engine does offer hash indexes. Oracle and SQL Server use hash structures for clusters and in-memory tables, not as a general `CREATE INDEX` type.
+This article is about the **PostgreSQL 17** hash index. Yes, PostgreSQL supports hash indexes. Engines differ here: MySQL's InnoDB builds an adaptive hash index internally and does not let you create one, while the MEMORY engine does offer hash indexes. Oracle and SQL Server use hash structures for clusters and in-memory tables, not as a general index type.
 
 > **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The `pgstathashindex` function mentioned in the text comes from the `pgstattuple` extension and was not run.
 
@@ -19,8 +19,7 @@ This article is about the **PostgreSQL 17** hash index. Yes, PostgreSQL supports
 A hash index applies a hash function to the indexed value and uses the result to pick a **bucket page**. To find a row, the database hashes the search value and goes straight to that bucket, instead of descending a tree like a [B-tree](topic:btree) does. Inside a bucket, entries are sorted by hash code, so a page can be searched with binary search.
 
 ```sql
-CREATE INDEX sessions_token_hash ON sessions USING hash (token);
-
+-- served by a hash index on token
 SELECT * FROM sessions WHERE token = 'f3a9c1d4e8b27a60';
 ```
 
@@ -53,7 +52,7 @@ Two situations hurt:
 - **Many rows with the same value.** All of them land in the same bucket and its overflow chain, and a lookup must scan the whole chain. The documentation says an unbalanced hash index can be worse than a B-tree. Hash indexes suit unique or nearly unique data.
 - **Fast-growing tables.** Bucket splits happen during inserts and add latency.
 
-An index does not shrink. Vacuum removes dead entries and compacts overflow pages, and empty overflow pages are reused, but the only way to reduce the size is `REINDEX`.
+An index does not shrink. Vacuum removes dead entries and compacts overflow pages, and empty overflow pages are reused, but the only way to reduce the size is to rebuild the index.
 
 ## When a hash index is the right choice
 
@@ -67,11 +66,9 @@ In practice, a B-tree is often good enough, and it also gives you ranges, orderi
 
 **When it shows up.** On tables where many rows share one value, and on tables that grow quickly.
 
-**How to measure.** Compare sizes and plans against a B-tree on the same column:
+**How to measure.** Compare sizes and plans against a B-tree on the same column (build one on a copy of the data):
 
 ```sql
-CREATE INDEX sessions_token_btree ON sessions (token);
-
 SELECT indexrelname, pg_size_pretty(pg_relation_size(indexrelid)) AS size, idx_scan
 FROM pg_stat_user_indexes
 WHERE relname = 'sessions';
@@ -93,7 +90,7 @@ The `pgstattuple` extension also provides `pgstathashindex('index_name')` with b
 
 - Use a B-tree if you need ranges, ordering, uniqueness or several columns.
 - Exclude very frequent values with a partial index, if the queries allow it.
-- Rebuild a bloated hash index with `REINDEX INDEX CONCURRENTLY`.
+- Rebuild a bloated hash index online.
 - Avoid them on tables with a fast insert rate and no real benefit from the smaller index.
 
 ## Practical checklist
@@ -102,5 +99,5 @@ The `pgstattuple` extension also provides `pgstathashindex('index_name')` with b
 - Test against a B-tree on real data before choosing.
 - Do not use it for unique constraints or multicolumn indexes.
 - Check how many rows share each value.
-- Rebuild with `REINDEX` if the index grows without need.
+- Rebuild the index if it grows without need.
 - See [Index](topic:index) for how the types compare.

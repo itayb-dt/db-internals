@@ -23,6 +23,16 @@ Backend engineers and DBAs who know SQL but not database internals. Assume no kn
 - Say when the advice does not apply. Name the trade-off.
 - Cover the common mistake and how to spot it.
 
+## Level of detail
+
+Keep it high level. The reader wants to know what the thing is, when to use it, and which problem it solves. They do not need to learn how to build it.
+
+- **No setup commands.** Do not show `CREATE`, `ALTER` or `DROP` statements to build the example. Say it in words: "an index on `customer_id`", "a table with a `tags` array". The tables and indexes the examples assume go in `tests/sql_setup/<article>.sql`, and the article describes them in one sentence.
+- **Exception.** Show a DDL statement only when the statement itself is what the article explains, and keep it to one short block.
+- **A `SELECT` to make a point is welcome.** So are `EXPLAIN` and queries on system views and catalog tables, such as `pg_stat_user_indexes`, `pg_stats` or `pg_class`. Every query must answer a question the reader has, such as "is it used?", "how big is it?" or "is it keeping up?".
+- **Name the lever, not the syntax.** When the advice is to change something, say what it is ("lower `pages_per_range`", "rebuild the index online", "turn off fast update") and its downside. Do not paste the full command.
+- **Ask of every code block:** does it help the reader decide or understand, or does it only show how to type something? Remove the second kind.
+
 ## Performance
 
 Every article must answer, for its topic:

@@ -24,12 +24,7 @@ BRIN stores a small summary for each **block range**, a group of pages next to e
 
 To answer `WHERE created_at >= '2026-10-17'`, the database reads the summaries and skips every range whose maximum is below that date. It then scans the pages in the remaining ranges. The index is lossy: it returns whole ranges, and the executor rechecks each row and discards the ones that do not match.
 
-```sql
-CREATE INDEX events_created_brin ON events USING brin (created_at);
-
--- a smaller range is more precise, and a bigger index
-CREATE INDEX events_created_brin32 ON events USING brin (created_at) WITH (pages_per_range = 32);
-```
+The range size is a setting of the index, `pages_per_range`. A smaller range is more precise and makes a bigger index.
 
 The number of index entries is the table size in pages divided by `pages_per_range`. For a table of many gigabytes this is a very small index, which is cheap to scan and cheap to maintain.
 

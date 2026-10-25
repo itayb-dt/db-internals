@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.2 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.3 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -260,6 +260,10 @@ As of this version: **38 topics**, **28 articles**, **7 subjects**, **3 tracks**
 | ART-23 | The article is written in the author's own words and does not copy documentation text. | Built (style guide) | Manual |
 | ART-24 | The article names common mistakes and how to spot them. | Built (style guide) | Manual |
 | ART-25 | A topic is linked on first mention with `[Name](topic:id)`. An unknown id fails the build. | Built | Auto |
+| ART-26 | **High level.** An article explains what the thing is, when to use it and which problem it solves. It does not teach how to build it: no `CREATE`, `ALTER` or `DROP` statements to set up the example. A DDL statement is shown only when the statement is itself the subject, in one short block. | Built (rule, in the style guide). The five index articles follow it. Other articles do not yet (see D-14). | Manual |
+| ART-27 | A `SELECT`, an `EXPLAIN` or a query on a system view or catalog table (`pg_stat_*`, `pg_stats`, `pg_class`) is welcome when it makes a point, such as "is it used?", "how big is it?" or "is it keeping up?". | Built (rule) | Manual |
+| ART-28 | When advice is to change something, the article names the lever and its downside ("lower `pages_per_range`", "rebuild the index online") and does not paste the full command. | Built (rule) | Manual |
+| ART-29 | Setup that the examples assume (tables, indexes) lives in `tests/sql_setup/<article>.sql`, not in the article. | Built | Manual |
 
 ### 6.4 Accuracy and review
 
@@ -381,6 +385,7 @@ Please answer or edit these. I have listed my suggestion first.
 | D-11 | **Order of topics in a subject list.** Today: by level, then by name. Other options: articles first, newest first, or by the order of a track. | Keep level then name. It matches how a reader learns, and the ring shows which have an article. |
 | D-12 | **"Articles" or "topics".** The lists show all topics and mark those without an article as "soon". Should they show only topics with an article? | Keep all, marked. A reader sees what is coming, and a topic page still explains the idea. |
 | D-13 | **Which other articles need a demo?** Today 11 articles have one. Candidates: Execution plan (reading a plan from the leaves up), Vacuum, MVCC, Statistics, Buffer pool settings. | Add to MVCC, Vacuum and Execution plan first, since they are the hardest to picture. |
+| D-14 | **Other articles with setup commands.** Partitioning, TOAST, Vacuum, Dead rows, Visibility map, Buffer pool and others still contain `CREATE`, `ALTER` or `INSERT` blocks. Review them against ART-26? | Yes, one at a time. Partitioning is the one where some DDL may be the point. |
 | D-10 | **Accessibility level.** Is WCAG AA a requirement for GA? | Yes. The keyboard gap (A11Y-02) is the biggest one. |
 
 ## 10. Not specified yet
@@ -419,3 +424,4 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 |---|---|---|
 | 0.1 | 2026-10-24 | First draft, written from the current code, README, developer guide and style guide. |
 | 0.2 | 2026-10-24 | Added and built: search (SRCH), hideable subject window with topic lists (LEG-05 to LEG-11), subject cards with topic lists (HOME-11), About tab (HOME-12, HOME-13), map fitted to the screen with label decluttering (MAP-16 to MAP-20). LEG-02 changed (the dot toggles, not the row). Decisions D-11 and D-12 added. |
+| 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |

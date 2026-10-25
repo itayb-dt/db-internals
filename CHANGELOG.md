@@ -7,6 +7,10 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 ### New
 - **Animations for the five index articles**: Index (a sequential scan against an index lookup), B-Tree (a lookup, then a range along the linked leaves), Hash index (an equality lookup, and why a range cannot work), GIN (key to row lists, two keys combined, an insert) and BRIN (skipping block ranges, and what happens when the rows are not in order). Each runs about 10 seconds and is embedded in its article.
 
+### Changes
+- **Index articles are high level.** The Index, B-Tree, Hash index, GIN and BRIN articles no longer show `CREATE INDEX` or `CREATE TABLE`. They say what each type is, when to use it and how to see it in the system. `SELECT` queries and system views stay. The setup the examples need moved to `tests/sql_setup/`.
+- **Writing guide.** `content/_prompt.md` has a new "Level of detail" section, and `DEVELOPING.md` and `CONTRIBUTING.md` carry the same rule: no setup commands, and a `SELECT` or system view only to make a point.
+
 ### Fixes
 - Index article: removed a note about sample plan output, because the article has none.
 - GIN article: the pending list is flushed by vacuum or auto-analyze (it said "analyzed").

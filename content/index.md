@@ -24,13 +24,9 @@ Without an index, the database has no way to know where that row is. It reads th
 
 Now the same for `WHERE customer_id = 42` on a busy shop. The customer has 30 orders. You still read 100 million rows to find 30.
 
-An **index** is a separate, smaller structure that maps column values to row locations. It works like the index at the back of a book: you look up the term, then jump to the page. For a B-tree, the default type, the database walks a tree a few levels deep instead of scanning the table:
+An **index** is a separate, smaller structure that maps column values to row locations. It works like the index at the back of a book: you look up the term, then jump to the page. For a B-tree, the default type, the database walks a tree a few levels deep instead of scanning the table.
 
-```sql
-CREATE INDEX orders_customer_id_idx ON orders (customer_id);
-```
-
-After that, the same query touches a handful of index pages and about 30 table rows. You do not have to change the query. PostgreSQL keeps the index up to date and decides by itself when to use it.
+With an index on `customer_id`, the same query touches a handful of index pages and about 30 table rows. You do not have to change the query. PostgreSQL keeps the index up to date and decides by itself when to use it.
 
 The animation runs the same query twice. First on the table alone, then with an index.
 
@@ -52,7 +48,7 @@ Rule of thumb: index the columns you filter, join and sort on, in your most freq
 
 ## Different physical index types
 
-"Index" is the concept. Under it sit several physical structures, each good at a different kind of question. `CREATE INDEX` builds a B-tree unless you choose another with `USING`:
+"Index" is the concept. Under it sit several physical structures, each good at a different kind of question. A B-tree is what you get unless you ask for another type:
 
 | Type | Good for | Covered in this map |
 |---|---|---|
@@ -64,14 +60,9 @@ Rule of thumb: index the columns you filter, join and sort on, in your most freq
 
 Each has its own cost profile. A B-tree is the safe default. The others earn their place when the data or the query does not fit a B-tree.
 
-```sql
-CREATE INDEX docs_tags_gin ON docs USING gin (tags);
-CREATE INDEX events_created_brin ON events USING brin (created_at);
-```
-
 ## Why it matters for performance
 
-**What it costs.** Reads from an index are cheap. The cost moves to writes, disk space and cache. Creating an index on a large table can take a long time. By default, writes to the table are blocked while it builds.
+**What it costs.** Reads from an index are cheap. The cost moves to writes, disk space and cache. Building an index on a large table can take a long time. By default, writes to the table are blocked while it builds.
 
 **When it shows up.** On write-heavy tables with many indexes, each row change turns into several index changes. On large tables, unused indexes still cost every write.
 
@@ -94,7 +85,7 @@ LIMIT 20;
 
 **When to worry.** An index with `idx_scan = 0` over a long period (counters reset with a statistics reset, so check the period) and a large size is a candidate for removal. Do not drop indexes that enforce unique or primary key constraints.
 
-**What you can change.** Use `CREATE INDEX CONCURRENTLY` on busy tables, so writes can continue (it takes longer and has caveats). Use partial indexes for a small subset of rows. Use multicolumn indexes for queries that filter on the same columns together. Remove duplicates and unused indexes.
+**What you can change.** Build indexes on busy tables in the mode that lets writes continue (it takes longer and has caveats). Use partial indexes for a small subset of rows. Use multicolumn indexes for queries that filter on the same columns together. Remove duplicates and unused indexes.
 
 ## Practical checklist
 
@@ -103,4 +94,4 @@ LIMIT 20;
 - Index foreign key columns that you join or delete by.
 - Keep the number of indexes on write-heavy tables small.
 - Review unused and duplicate indexes regularly.
-- Build on busy tables with `CONCURRENTLY`.
+- Build indexes on busy tables without blocking writes.

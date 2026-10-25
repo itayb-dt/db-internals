@@ -20,6 +20,7 @@ Do not commit `_site/` or generated JSON.
 
 - Verify technical claims against the official documentation for a stated version, and list the pages in `sources`.
 - Do not invent numbers, parameter names or catalog columns.
+- Keep it high level. Explain what a thing is, when to use it and which problem it solves. Do not show `CREATE`, `ALTER` or `DROP` statements to build the example. A `SELECT` or a query on a system view is welcome when it makes a point (see `content/_prompt.md`).
 - Run the SQL you include with `python3 scripts/verify_sql.py` (see [DEVELOPING.md](DEVELOPING.md)). If a block cannot run, mark it `-- not run: <reason>` and say so in the article.
 - Mark rules of thumb as rules of thumb.
 - Explain in your own words. Do not copy documentation text.

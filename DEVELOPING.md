@@ -109,6 +109,7 @@ Text, `code`, tables and images.
 Rules:
 
 - Use Markdown (tables and fenced code are supported) or a raw `.html` file. Both go through the same sanitiser: scripts, event handlers and styles are removed, and iframes are allowed only for YouTube and Vimeo embeds.
+- Keep articles high level: what it is, when to use it, which problem it solves. No `CREATE`, `ALTER` or `DROP` statements to build the example (describe the object in words, and put any setup in `tests/sql_setup/<article>.sql`). A `SELECT`, an `EXPLAIN` or a query on a system view is fine when it makes a point. See `content/_prompt.md`, section "Level of detail".
 - Put images in `content/<topic-id>/` and reference them relative to `content/`, for example `toast/chunks.png`. Diagrams can be authored as SVG in `content/<topic-id>/src/` and rendered to PNG with `python3 scripts/render_images.py` (needs Playwright). Commit both. The PNG is published, the SVG source is not. Allowed files: png, jpg, gif, webp, avif, pdf, txt, sql, csv. SVG is not allowed.
 - Link to another topic with `[B-Tree](topic:btree)`, using the topic id. The build fails on an unknown id. In the viewer a click opens that topic, and the address bar gets a shareable link such as `#topic=btree`. The same links work in `details`.
 - A file that matches no topic id is an error. Topics without an article are only listed in the build output.
@@ -148,7 +149,7 @@ Write the steps in block style as above. In the one-line `{...}` style a comma e
 
 ## Checking the SQL in the articles
 
-`python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables from `tests/sql_setup/<article>.sql`. The examples that need two sessions (deadlock, MVCC visibility, vacuum held back by an old snapshot) are run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.
+`python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables, and any indexes the examples assume, from `tests/sql_setup/<article>.sql`. The examples that need two sessions (deadlock, MVCC visibility, vacuum held back by an old snapshot) are run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.
 
 If a block cannot run, because it needs a contrib extension, two sessions or a shell, start it with `-- not run: <reason>` and say so in the article's "How this was checked" line.
 

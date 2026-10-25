@@ -50,14 +50,13 @@ The leaf pages of a B-tree are also linked to the next leaf, which is what makes
 PostgreSQL considers a B-tree for these operators: `<`, `<=`, `=`, `>=`, `>`. Constructs built from them also work: `BETWEEN`, `IN`, `IS NULL` and `IS NOT NULL`. It can serve `LIKE 'foo%'` (a constant pattern anchored at the start), but not `LIKE '%foo'`. If the database does not use the C locale, such a pattern index needs a special operator class (for example `text_pattern_ops`).
 
 ```sql
-CREATE INDEX orders_customer_created_idx ON orders (customer_id, created_at);
-
+-- served by an index on (customer_id, created_at)
 SELECT * FROM orders
 WHERE customer_id = 42 AND created_at >= now() - interval '30 days'
 ORDER BY created_at DESC;
 ```
 
-In a multicolumn index, column order matters. The index works best when the query constrains the leading columns. The index above serves the query for one customer and a date range, but is a poor fit for a query on `created_at` alone.
+In a multicolumn index, column order matters. The index works best when the query constrains the leading columns. An index on `(customer_id, created_at)` serves the query above, for one customer and a date range, but is a poor fit for a query on `created_at` alone.
 
 Any type that can be sorted can be indexed. One limit: an index entry cannot exceed about one-third of a page, after compression. This is why you cannot index very large text values directly (index a hash of the value instead).
 
@@ -96,7 +95,7 @@ WHERE relname = 'orders';
 - Drop indexes that are not used.
 - Put the most selective or most commonly filtered column first in multicolumn indexes.
 - Use a partial index when queries touch only part of the table.
-- Rebuild a bloated index without blocking writes: `REINDEX INDEX CONCURRENTLY orders_customer_created_idx;`
+- Rebuild a bloated index without blocking writes (PostgreSQL can rebuild an index online).
 - Prefer ordered keys (sequence, time-ordered ids) over random ones when you can.
 
 ## Practical checklist
@@ -105,5 +104,5 @@ WHERE relname = 'orders';
 - Match column order to the queries.
 - Check plans with `EXPLAIN (ANALYZE, BUFFERS)`.
 - Watch index size and `idx_scan` regularly.
-- Rebuild bloated indexes with `REINDEX ... CONCURRENTLY`.
+- Rebuild bloated indexes online.
 - Avoid indexing very large values directly.
