@@ -39,15 +39,21 @@ SELECT id FROM articles WHERE to_tsvector('english', body) @@ to_tsquery('englis
 
 The index must be built on the same expression the query uses.
 
-The animation shows the inverted structure. A search reads the list for one key, or combines the lists of two keys. Then a new row adds entries to several lists.
+The first animation shows a search. It looks up one tag and reads its list of rows, and then a search for two tags, which keeps only the rows that are in both lists.
 
-<iframe src="gin/demo.html" title="Animation: a GIN index maps each tag to the rows that contain it. A search for urgent reads one list, a search for urgent and bug combines two lists, and inserting a new row adds entries under two tags" width="800" height="450"></iframe>
+<iframe src="gin/select.html" title="Animation: a GIN index maps each tag to the rows that have it. A search for urgent reads one list. A search for urgent and bug reads two lists and keeps the rows that are in both, so only those rows are read from the table" width="800" height="450"></iframe>
 
-*The animation repeats about every 10 seconds.*
+*The animation repeats about every 19 seconds.*
 
 ## Why writes are the weak spot
 
-One row can contain many keys, so one insert can mean many index inserts. To soften this, GIN uses a **pending list** (fast update, on by default). New entries first go to an unsorted list and are moved into the main structure in bulk. This happens when the table is vacuumed or auto-analyzed, when the list exceeds `gin_pending_list_limit`, or when you call `gin_clean_pending_list`.
+One row can contain many keys, so one insert can mean many index inserts. The second animation shows an insert, and how the entries are collected first and merged later.
+
+<iframe src="gin/insert.html" title="Animation: inserting a row with the tags urgent and ui needs an entry for each tag. GIN collects the entries in a pending list and later merges them into the main index" width="800" height="450"></iframe>
+
+*The animation repeats about every 17 seconds.*
+
+To soften the cost, GIN uses a **pending list** (fast update, on by default). New entries first go to an unsorted list and are moved into the main structure in bulk. This happens when the table is vacuumed or auto-analyzed, when the list exceeds `gin_pending_list_limit`, or when you call `gin_clean_pending_list`.
 
 The pending list has two costs. Searches must also read the pending list, so a long list slows reads. And the insert that triggers a cleanup is much slower than the others. Autovacuum keeps this under control.
 

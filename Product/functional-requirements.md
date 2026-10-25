@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.3 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.4 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -287,13 +287,14 @@ As of this version: **38 topics**, **28 articles**, **7 subjects**, **3 tracks**
 | VIS-02 | Use a static image for structure (a tree, a layout, a plan) and a live demo for something that happens over time. | Built (style guide) | Manual |
 | VIS-03 | Images are PNG, JPG, GIF, WebP or AVIF in `content/<topic-id>/`, with alt text, preferably under 200 KB. SVG is not allowed as a published file. | Built | Auto (type), Manual (size, alt) |
 | VIS-04 | Diagrams are authored as SVG in `content/<topic-id>/src/` and rendered to PNG by `scripts/render_images.py`. Both are committed. | Built | Manual |
-| VIS-05 | A demo is one dependency-free HTML file in `content/<topic-id>/`, embedded with an iframe. No libraries or network requests. It loops by itself in about 10 seconds or less, shows its state in words, and shows one still frame under "reduce motion". | Built | Auto (loads, no console errors), Manual (rest) |
+| VIS-05 | A demo is one dependency-free HTML file in `content/<topic-id>/`, embedded with an iframe. No libraries or network requests. It loops by itself, shows its state in words, and shows one still frame under "reduce motion". Length: see VIS-12. | Built | Auto (loads, no console errors), Manual (rest) |
 | VIS-06 | A demo can only be embedded by its own topic's article. It runs sandboxed with scripts allowed and no access to the page. | Built | Unit test |
 | VIS-07 | An iframe is allowed only for a local demo, or a YouTube or Vimeo embed. | Built | Unit test |
 | VIS-08 | A missing demo file fails the build. | Built | Unit test |
 | VIS-09 | Every demo is reviewed like code, because it is copied as written. | Built (rule) | Manual |
-| VIS-11 | Every article in the Indexing subject that explains a mechanism (Index, B-Tree, Hash index, GIN, BRIN) has a demo of about 10 seconds. Other articles get one when the idea happens over time (see D-13). | Built for Indexing, Proposed for the rest | Auto (loads), Manual (content) |
 | VIS-10 | A diagram or a demo is visually checked in a browser before publishing. | Proposed (today the smoke test only checks that a demo loads) | None yet |
+| VIS-11 | Every article in the Indexing subject that explains a mechanism (Index, B-Tree, Hash index, GIN, BRIN) has at least one demo. Other articles get one when the idea happens over time (see D-13). | Built for Indexing, Proposed for the rest | Auto (loads), Manual (content) |
+| VIS-12 | **Pace.** A demo gives each step about 2 seconds, so a reader can follow it. A whole demo is 10 to 20 seconds. A demo shows one idea. If it needs more time, it is split into several demos, each embedded where its idea is explained. An article can embed more than one demo. | Built for the GIN demos (19 s and 17 s). The other index demos are about 10 s with steps of about 1 s (see D-15). | Manual |
 
 ### 6.6 Safety of article content
 
@@ -386,6 +387,7 @@ Please answer or edit these. I have listed my suggestion first.
 | D-12 | **"Articles" or "topics".** The lists show all topics and mark those without an article as "soon". Should they show only topics with an article? | Keep all, marked. A reader sees what is coming, and a topic page still explains the idea. |
 | D-13 | **Which other articles need a demo?** Today 11 articles have one. Candidates: Execution plan (reading a plan from the leaves up), Vacuum, MVCC, Statistics, Buffer pool settings. | Add to MVCC, Vacuum and Execution plan first, since they are the hardest to picture. |
 | D-14 | **Other articles with setup commands.** Partitioning, TOAST, Vacuum, Dead rows, Visibility map, Buffer pool and others still contain `CREATE`, `ALTER` or `INSERT` blocks. Review them against ART-26? | Yes, one at a time. Partitioning is the one where some DDL may be the point. |
+| D-15 | **Slow down the other index demos?** Index, B-Tree, Hash and BRIN run about 10 seconds with steps of about one second, the same pace as the old GIN demo. | Yes. Review them one at a time, and split where an idea needs more time (for example B-Tree: lookup and range as two demos). |
 | D-10 | **Accessibility level.** Is WCAG AA a requirement for GA? | Yes. The keyboard gap (A11Y-02) is the biggest one. |
 
 ## 10. Not specified yet
@@ -425,3 +427,4 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.1 | 2026-10-24 | First draft, written from the current code, README, developer guide and style guide. |
 | 0.2 | 2026-10-24 | Added and built: search (SRCH), hideable subject window with topic lists (LEG-05 to LEG-11), subject cards with topic lists (HOME-11), About tab (HOME-12, HOME-13), map fitted to the screen with label decluttering (MAP-16 to MAP-20). LEG-02 changed (the dot toggles, not the row). Decisions D-11 and D-12 added. |
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
+| 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |

@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GIN index demo</title>
+<title>GIN search demo</title>
 <style>
 html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
 svg{width:100%;height:100%;display:block}
 text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
 </style></head><body>
-<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A GIN index maps each key to the list of rows that contain it. A search for one key reads one list, a search for two keys combines two lists, and inserting a row adds entries to several lists.">
- <title>GIN index demo</title>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A GIN index maps each tag to the rows that have it. A search for one tag reads one list. A search for two tags reads two lists and keeps the rows that are in both.">
+ <title>GIN search demo</title>
 </svg>
 <script>
 (function(){
-var NS='http://www.w3.org/2000/svg',LOOP=10,svg=document.getElementById('s');
+var NS='http://www.w3.org/2000/svg',LOOP=19,svg=document.getElementById('s');
 function clamp(x){return Math.max(0,Math.min(1,x))}
 function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
 function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
@@ -28,43 +28,38 @@ var crumb=txt(36,34,'',{a:'start',b:1,size:14});
 var cap=txt(400,430,'',{b:1,size:16});
 var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
 var STILL=5;
-var STILL=2.2;
+var STILL=14.5;
 
-crumb.textContent='';
 var rows=[['urgent','bug'],['bug'],['urgent','ui'],['ui'],['urgent','bug','ui'],['urgent','ui']];
-txt(140,70,'table: tags per row',{size:12,fill:MUTE});txt(560,70,'GIN: key, then the rows that contain it',{size:12,fill:MUTE});
+txt(140,70,'table: tags per row',{size:12,fill:MUTE});txt(560,70,'GIN index: each tag, then the rows that have it',{size:12,fill:MUTE});
 var rb=[],rt=[];
 for(var i=0;i<6;i++){var y=84+i*46;rb.push(box(40,y,200,36));rt.push(txt(54,y+23,'row '+(i+1)+'  {'+rows[i].join(', ')+'}',{a:'start',size:12,b:1}))}
-var keys=['urgent','bug','ui'],ky=[110,210,310],kb=[],ch={};
+var keys=['urgent','bug','ui'],ky=[100,190,280],kb=[],ch={};
 var lists={urgent:[1,3,5,6],bug:[1,2,5],ui:[3,4,5,6]};
 for(var k=0;k<3;k++){kb.push(box(330,ky[k],100,40,{stroke:CY}));txt(380,ky[k]+25,keys[k],{b:1,size:14});ch[keys[k]]=[];
  for(var c=0;c<lists[keys[k]].length;c++){var cc=box(450+c*44,ky[k]+4,36,32,{rx:5});var ct=txt(468+c*44,ky[k]+25,lists[keys[k]][c],{b:1});ch[keys[k]].push([cc,ct,lists[keys[k]][c]])}}
+function showChip(p,v){p[0].setAttribute('opacity',v);p[1].setAttribute('opacity',v)}
+function reset(row6,chip6){for(var i=0;i<6;i++)on(rb[i],false);kb.forEach(function(e){on(e,false)});
+ for(var k in ch)ch[k].forEach(function(p){on(p[0],false);showChip(p,p[2]===6&&!chip6?0:1)});
+ rb[5].setAttribute('opacity',row6?1:0);rt[5].setAttribute('opacity',row6?1:0)}
+function lights(name,col,fill,skip6){ch[name].forEach(function(p){if(!(skip6&&p[2]===6))on(p[0],true,fill,col,2.5)})}
+function green(name,rowsOn){ch[name].forEach(function(p){if(rowsOn.indexOf(p[2])>=0)on(p[0],true,'#1f4a38',GREEN,4)})}
+
 function render(t){
- var ph=t<3.3?0:t<7?1:2;
- for(var i=0;i<6;i++){on(rb[i],false)}
- kb.forEach(function(e){on(e,false)});
- for(var k in ch)ch[k].forEach(function(p){on(p[0],false);p[0].setAttribute('opacity',1);p[1].setAttribute('opacity',1)});
- // row 6 and the entries that point to it appear only in the last phase
- var late=t>=7.4;
- rb[5].setAttribute('opacity',late?1:0);rt[5].setAttribute('opacity',late?1:0);
- ch.urgent[3][0].setAttribute('opacity',late?1:0);ch.urgent[3][1].setAttribute('opacity',late?1:0);
- ch.ui[3][0].setAttribute('opacity',late?1:0);ch.ui[3][1].setAttribute('opacity',late?1:0);
- if(ph===0){crumb.textContent='WHERE tags @> \'{urgent}\'    (contains urgent)';
-  if(t>=0.6)on(kb[0],true,'#2a3158',YEL,3);
-  if(t>=1.2)ch.urgent.forEach(function(p){if(p[2]!==6)on(p[0],true,'#3a3358',YEL,2.5)});
-  if(t>=2.0)[1,3,5].forEach(function(r){on(rb[r-1],true,'#1f4a38',GREEN,3)});
-  cap.textContent=t<0.6?'GIN is inverted: for each key, the list of rows that hold it.':t<1.2?'Look up the key urgent.':t<2.0?'Its list is rows 1, 3 and 5.':'Three rows found without scanning the table.';
- }else if(ph===1){crumb.textContent='WHERE tags @> \'{urgent,bug}\'    (both)';
-  if(t>=3.7)on(kb[0],true,'#2a3158',YEL,3);
-  if(t>=3.7)on(kb[1],true,'#2a3158',CY,3);
-  if(t>=4.3){ch.urgent.forEach(function(p){if(p[2]!==6)on(p[0],true,'#3a3358',YEL,2.5)});ch.bug.forEach(function(p){on(p[0],true,'#2a3f4a',CY,2.5)})}
-  if(t>=5.3){[1,5].forEach(function(r){ch.urgent.forEach(function(p){if(p[2]===r)on(p[0],true,'#1f4a38',GREEN,4)});ch.bug.forEach(function(p){if(p[2]===r)on(p[0],true,'#1f4a38',GREEN,4)})})}
-  if(t>=6.0)[1,5].forEach(function(r){on(rb[r-1],true,'#1f4a38',GREEN,3)});
-  cap.textContent=t<4.3?'Two keys: look up two lists.':t<5.3?'urgent: 1, 3, 5.   bug: 1, 2, 5.':t<6.0?'Only rows 1 and 5 are in both lists.':'Two lists combined: rows 1 and 5.';
- }else{crumb.textContent='INSERT a row with tags {urgent, ui}';
-  if(t>=7.4)on(rb[5],true,'#2a3158',YEL,3);
-  if(t>=8.0){on(ch.urgent[3][0],true,'#3a3358',YEL,3);on(ch.ui[3][0],true,'#3a3358',YEL,3);on(kb[0],true,'#2a3158',YEL,3);on(kb[2],true,'#2a3158',YEL,3)}
-  cap.textContent=t<7.4?'Now the write side.':t<8.0?'A new row arrives with two tags.':'One row, two index entries. More tags, more work per write.';
+ var ph=t<8.2?0:1,T=ph?t-8.2:t;
+ reset(false,false);
+ if(ph===0){crumb.textContent='WHERE tags @> \'{urgent}\'    (rows that have the tag urgent)';
+  if(T>=2.0)on(kb[0],true,'#2a3158',YEL,3);
+  if(T>=4.2)lights('urgent',YEL,'#3a3358',true);
+  if(T>=6.4)[1,3,5].forEach(function(r){on(rb[r-1],true,'#1f4a38',GREEN,3)});
+  cap.textContent=T<2.0?'GIN is inverted: for each tag, the list of rows that have it.':T<4.2?'Step 1: look up the tag urgent.':T<6.4?'Step 2: its list says rows 1, 3 and 5.':'Step 3: read just those rows. The table was never scanned.';
+ }else{crumb.textContent='WHERE tags @> \'{urgent,bug}\'    (rows that have both tags)';
+  if(T>=1.6)on(kb[0],true,'#2a3158',YEL,3);
+  if(T>=3.0)on(kb[1],true,'#2a3158',CY,3);
+  if(T>=4.6){lights('urgent',YEL,'#3a3358',true);lights('bug',CY,'#2a3f4a',false)}
+  if(T>=6.8){green('urgent',[1,5]);green('bug',[1,5])}
+  if(T>=8.6)[1,5].forEach(function(r){on(rb[r-1],true,'#1f4a38',GREEN,3)});
+  cap.textContent=T<1.6?'Now a query with two tags.':T<4.6?'Step 1: look up both tags.':T<6.8?'Step 2: urgent has rows 1, 3, 5.  bug has rows 1, 2, 5.':T<8.6?'Step 3: keep the rows that are in both lists: 1 and 5.':'Step 4: read just rows 1 and 5.';
  }
 }
 

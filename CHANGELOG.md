@@ -2,6 +2,12 @@
 
 Notable changes to the Database Internals map. Newest first. Topic names are the ones shown on the map.
 
+## 2026-10-26
+
+### Changes
+- **GIN animation split in two and slowed down.** `gin/select.html` shows a search for one tag and for two tags (19 seconds). `gin/insert.html` shows an insert, the pending list and the later merge (17 seconds). Each step now lasts about 2 seconds. The article embeds each one where its idea is explained.
+- **Writing guide:** demos are paced at about 2 seconds a step and run 10 to 20 seconds. A demo shows one idea, so a longer story is split into several demos.
+
 ## 2026-10-25
 
 ### New

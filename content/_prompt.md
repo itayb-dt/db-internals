@@ -58,7 +58,8 @@ Hard ideas need a picture. Add one when the text alone makes the reader work too
 - Use a static **image** for structure: a tree, a page layout, a plan. Use a **live demo** for something that happens over time: a wait, a split, a retry.
 - Keep each article about one idea. If an article grows long, split it into sub topics and give each its own visual.
 - Images: PNG in `content/<topic-id>/`, small (aim for under 200 KB), with alt text. Author diagrams as SVG in `content/<topic-id>/src/` and render them with `python3 scripts/render_images.py`.
-- Demos: one plain HTML file, `content/<topic-id>/<name>.html`, embedded with `<iframe src="<topic-id>/<name>.html" ...>`. No libraries and no network requests. Loop by itself, run about 10 seconds or less, use simple motion, and show the state in words as it changes. Draw the scene as a function of time so the loop restarts cleanly. Respect `prefers-reduced-motion` with one still frame.
+- Demos: one plain HTML file, `content/<topic-id>/<name>.html`, embedded with `<iframe src="<topic-id>/<name>.html" ...>`. No libraries and no network requests. Loop by itself, give each step about 2 seconds so a reader can follow it (a whole demo of 10 to 20 seconds), use simple motion, and show the state in words as it changes. Draw the scene as a function of time so the loop restarts cleanly. Respect `prefers-reduced-motion` with one still frame.
+- One demo shows one idea. If it needs more than about 20 seconds, split it into several demos (for example one for a search and one for an insert) and embed each where its idea is explained. An article may embed more than one demo.
 - Show a visual only for what the article explains. Do not decorate.
 
 ## Accuracy

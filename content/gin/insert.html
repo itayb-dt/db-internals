@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GIN insert demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Inserting a row with two tags adds an entry for each tag. GIN first collects the entries in a pending list and merges them into the main index later.">
+ <title>GIN insert demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=17,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=5;
+var STILL=12.0;
+
+var rows=[['urgent','bug'],['bug'],['urgent','ui'],['ui'],['urgent','bug','ui'],['urgent','ui']];
+txt(140,70,'table: tags per row',{size:12,fill:MUTE});txt(560,70,'GIN index: each tag, then the rows that have it',{size:12,fill:MUTE});
+var rb=[],rt=[];
+for(var i=0;i<6;i++){var y=84+i*46;rb.push(box(40,y,200,36));rt.push(txt(54,y+23,'row '+(i+1)+'  {'+rows[i].join(', ')+'}',{a:'start',size:12,b:1}))}
+var keys=['urgent','bug','ui'],ky=[100,190,280],kb=[],ch={};
+var lists={urgent:[1,3,5,6],bug:[1,2,5],ui:[3,4,5,6]};
+for(var k=0;k<3;k++){kb.push(box(330,ky[k],100,40,{stroke:CY}));txt(380,ky[k]+25,keys[k],{b:1,size:14});ch[keys[k]]=[];
+ for(var c=0;c<lists[keys[k]].length;c++){var cc=box(450+c*44,ky[k]+4,36,32,{rx:5});var ct=txt(468+c*44,ky[k]+25,lists[keys[k]][c],{b:1});ch[keys[k]].push([cc,ct,lists[keys[k]][c]])}}
+function showChip(p,v){p[0].setAttribute('opacity',v);p[1].setAttribute('opacity',v)}
+function reset(row6,chip6){for(var i=0;i<6;i++)on(rb[i],false);kb.forEach(function(e){on(e,false)});
+ for(var k in ch)ch[k].forEach(function(p){on(p[0],false);showChip(p,p[2]===6&&!chip6?0:1)});
+ rb[5].setAttribute('opacity',row6?1:0);rt[5].setAttribute('opacity',row6?1:0)}
+function lights(name,col,fill,skip6){ch[name].forEach(function(p){if(!(skip6&&p[2]===6))on(p[0],true,fill,col,2.5)})}
+function green(name,rowsOn){ch[name].forEach(function(p){if(rowsOn.indexOf(p[2])>=0)on(p[0],true,'#1f4a38',GREEN,4)})}
+
+var pend=box(330,352,330,46,{stroke:'#3a4270',rx:8}),pl=txt(345,346,'pending list (unsorted, merged later)',{a:'start',size:11,fill:MUTE});
+var p1=box(342,360,150,30,{rx:5,fill:'#3a3358',stroke:YEL}),p1t=txt(417,380,'urgent \u2192 row 6',{b:1,size:12});
+var p2=box(502,360,150,30,{rx:5,fill:'#3a3358',stroke:YEL}),p2t=txt(577,380,'ui \u2192 row 6',{b:1,size:12});
+function pv(a,b,v){a.setAttribute('opacity',v);b.setAttribute('opacity',v)}
+function render(t){
+ var row6=t>=2.4,merged=t>=12.4;
+ reset(row6,merged);
+ crumb.textContent='INSERT a row with tags {urgent, ui}';
+ pv(p1,p1t,t>=5.0&&!merged?1:0);pv(p2,p2t,t>=7.0&&!merged?1:0);
+ on(pend,t>=9.2&&t<12.4,'#161b33',YEL,3);
+ if(t>=2.4&&t<12.4)on(rb[5],true,'#2a3158',YEL,3);
+ if(t>=4.8&&t<7.0)on(kb[0],true,'#2a3158',YEL,3);
+ if(t>=7.0&&t<9.2)on(kb[2],true,'#2a3158',YEL,3);
+ if(merged){on(kb[0],true,'#2a3158',YEL,3);on(kb[2],true,'#2a3158',YEL,3);on(ch.urgent[3][0],true,'#3a3358',YEL,3);on(ch.ui[3][0],true,'#3a3358',YEL,3)}
+ cap.textContent=t<2.4?'Now the write side: one INSERT.':t<4.8?'A new row arrives with two tags.':t<7.0?'The tag urgent needs a new entry: row 6.':t<9.2?'The tag ui needs one too. One row, two index entries.':t<12.4?'GIN first collects entries in a pending list, so the INSERT stays fast.':t<15.0?'Later the entries are merged into the main index, in bulk.':'A row with many tags means many entries. That is why GIN writes cost more.';
+}
+
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>
