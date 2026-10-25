@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>B-tree demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A B-tree with a root page and three linked leaf pages. A lookup of one key goes from the root to one leaf. A range lookup finds the first key and then reads along the linked leaves.">
+ <title>B-tree demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=10,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=5;
+var STILL=3.2;
+
+crumb.textContent='';
+var root=box(290,72,220,38,{stroke:CY}),rk=[txt(345,97,'30',{b:1,size:15}),txt(455,97,'60',{b:1,size:15})];
+txt(400,64,'root page',{size:11,fill:MUTE});
+var lx=[40,300,560],keys=[[5,12,21,28],[30,38,42,55],[60,71,85,93]],leaf=[],kc=[],kt=[],ln=[];
+for(var j=0;j<3;j++){leaf.push(box(lx[j],200,200,44,{stroke:CY}));ln.push(line(400,110,lx[j]+100,200,{stroke:'#3a4270'}));
+ txt(lx[j]+100,262,'leaf page',{size:11,fill:MUTE});kc.push([]);kt.push([]);
+ for(var i=0;i<4;i++){kc[j].push(box(lx[j]+4+i*48,206,44,32,{rx:4}));kt[j].push(txt(lx[j]+26+i*48,227,keys[j][i],{b:1}))}}
+var nx=[line(240,222,300,222,{stroke:MUTE}),line(500,222,560,222,{stroke:MUTE})];
+txt(270,214,'next',{size:10,fill:MUTE});txt(530,214,'next',{size:10,fill:MUTE});
+var note=txt(400,300,'',{size:13,fill:MUTE});
+function key(j,i,f,c){on(kc[j][i],f,c==='g'?'#1f4a38':'#3a3358',c==='g'?GREEN:YEL,2.5)}
+function render(t){
+ var A=t<4.8;
+ crumb.textContent=A?'WHERE id = 42    (one value)':'WHERE id BETWEEN 38 AND 60    (a range)';
+ on(root,false);for(var j=0;j<3;j++){on(leaf[j],false);lon(ln[j],false);for(var i=0;i<4;i++)key(j,i,false)}
+ lon(nx[0],false);lon(nx[1],false);note.textContent='';
+ if(A){
+  if(t>=0.6&&t<4.8)on(root,true,'#2a3158',YEL,3);
+  if(t>=1.5)lon(ln[1],true,YEL,3);
+  if(t>=2.3)on(leaf[1],true,'#2a3158',YEL,3);
+  if(t>=3.0)key(1,2,true,'g');
+  cap.textContent=t<0.6?'A B-tree is a sorted tree. Every node is one page.':t<1.5?'Start at the root. 42 is at least 30 and below 60...':t<2.3?'...so follow the middle link.':t<3.0?'Search inside the leaf page.':'Found after reading 2 pages. A big table needs only a few more.';
+ }else{
+  if(t>=5.3)on(root,true,'#2a3158',YEL,3);
+  if(t>=5.8){lon(ln[1],true,YEL,3);on(leaf[1],true,'#2a3158',YEL,3)}
+  if(t>=6.3)key(1,1,true,'g');
+  if(t>=6.8)key(1,2,true,'g');
+  if(t>=7.3)key(1,3,true,'g');
+  if(t>=7.8){lon(nx[1],true,YEL,3);on(leaf[2],true,'#2a3158',YEL,3)}
+  if(t>=8.3)key(2,0,true,'g');
+  if(t>=8.9){key(2,1,true,'y');note.textContent='71 is above 60: stop.'}
+  cap.textContent=t<5.8?'A range starts the same way: find the first key.':t<7.8?'Then read along the sorted leaf, no need to go back up.':t<8.9?'Linked leaf pages continue the range.':'The range is done. Sorted leaves make ranges and ORDER BY cheap.';
+ }
+}
+
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

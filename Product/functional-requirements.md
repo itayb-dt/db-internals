@@ -288,6 +288,7 @@ As of this version: **38 topics**, **28 articles**, **7 subjects**, **3 tracks**
 | VIS-07 | An iframe is allowed only for a local demo, or a YouTube or Vimeo embed. | Built | Unit test |
 | VIS-08 | A missing demo file fails the build. | Built | Unit test |
 | VIS-09 | Every demo is reviewed like code, because it is copied as written. | Built (rule) | Manual |
+| VIS-11 | Every article in the Indexing subject that explains a mechanism (Index, B-Tree, Hash index, GIN, BRIN) has a demo of about 10 seconds. Other articles get one when the idea happens over time (see D-13). | Built for Indexing, Proposed for the rest | Auto (loads), Manual (content) |
 | VIS-10 | A diagram or a demo is visually checked in a browser before publishing. | Proposed (today the smoke test only checks that a demo loads) | None yet |
 
 ### 6.6 Safety of article content
@@ -379,6 +380,7 @@ Please answer or edit these. I have listed my suggestion first.
 | D-9 | **Measurement.** What counts as success? | Pick two numbers, for example Solution Architects who used a track, and links shared. This needs some form of usage data, which the site does not collect today. |
 | D-11 | **Order of topics in a subject list.** Today: by level, then by name. Other options: articles first, newest first, or by the order of a track. | Keep level then name. It matches how a reader learns, and the ring shows which have an article. |
 | D-12 | **"Articles" or "topics".** The lists show all topics and mark those without an article as "soon". Should they show only topics with an article? | Keep all, marked. A reader sees what is coming, and a topic page still explains the idea. |
+| D-13 | **Which other articles need a demo?** Today 11 articles have one. Candidates: Execution plan (reading a plan from the leaves up), Vacuum, MVCC, Statistics, Buffer pool settings. | Add to MVCC, Vacuum and Execution plan first, since they are the hardest to picture. |
 | D-10 | **Accessibility level.** Is WCAG AA a requirement for GA? | Yes. The keyboard gap (A11Y-02) is the biggest one. |
 
 ## 10. Not specified yet

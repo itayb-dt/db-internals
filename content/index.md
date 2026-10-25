@@ -1,6 +1,6 @@
 ---
 title: "Indexes: why every database needs them"
-updated: 2026-10-18
+updated: 2026-10-25
 sources:
   - https://www.postgresql.org/docs/17/indexes-intro.html
   - https://www.postgresql.org/docs/17/indexes-types.html
@@ -10,7 +10,7 @@ sources:
 
 This article explains the idea of an index in general. The syntax and details are checked against the **PostgreSQL 17** documentation. Other relational engines use the same idea, mostly with B-trees by default, and differ in details such as clustered indexes (SQL Server, InnoDB), where the table itself is stored in index order.
 
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. Sample plan output is illustrative.
+> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2.
 
 ## The problem: finding one row among millions
 
@@ -31,6 +31,12 @@ CREATE INDEX orders_customer_id_idx ON orders (customer_id);
 ```
 
 After that, the same query touches a handful of index pages and about 30 table rows. You do not have to change the query. PostgreSQL keeps the index up to date and decides by itself when to use it.
+
+The animation runs the same query twice. First on the table alone, then with an index.
+
+<iframe src="index/demo.html" title="Animation: without an index the database reads all 24 pages of the table to find one customer. With an index it reads the index root, one index leaf and then one table page" width="800" height="450"></iframe>
+
+*The animation repeats about every 10 seconds.*
 
 ## What an index does not do for free
 

@@ -206,7 +206,7 @@ cv.addEventListener('pointermove',e=>{if(!drag){hover=pick(e,20);cv.style.cursor
  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
  if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;yaw+=dx*.008;pitch=Math.max(-1.4,Math.min(1.4,pitch+dy*.006));drag.x=e.clientX;drag.y=e.clientY});
 cv.addEventListener('pointerleave',()=>{hover=null});
-cv.addEventListener('pointerup',e=>{const m=drag&&drag.moved;drag=null;if(m)return;select(pick(e,28))});
+cv.addEventListener('pointerup',e=>{if(!drag)return;const m=drag.moved;drag=null;if(m)return;select(pick(e,28))});  // only a press that started on the map is a click on the map
 cv.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.3,Math.min(3,zoom*(e.deltaY<0?1.1:.9)))},{passive:false});
 const P=id=>document.getElementById(id);
 function fill(el,items,cls,fn){const u=P(el);u.innerHTML='';

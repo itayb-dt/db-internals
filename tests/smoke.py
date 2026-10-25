@@ -89,6 +89,16 @@ def main(url=None, screenshot=None):
         if page.inner_text("#pt").strip() != probe["name"]:
             problems.append(f"search: Enter did not open '{probe['name']}'")
         page.click("#homebtn")
+        # a mouse click on a result must keep the topic open and show its article (the click used to fall through to the map)
+        page.fill("#q", probe["name"])
+        page.locator("#res .rs").first.click()
+        try:
+            page.wait_for_selector("#artbody .article", timeout=8000)
+        except Exception:
+            problems.append("search: clicking a result did not show the article")
+        if not page.locator("#topicview").is_visible():
+            problems.append("search: clicking a result did not keep the topic open")
+        page.click("#homebtn")
         page.fill("#q", "zzzz-no-such-topic")
         if "No topic matches" not in page.inner_text("#res"):
             problems.append("search: no 'No topic matches' message for a bad query")

@@ -2,6 +2,15 @@
 
 Notable changes to the Database Internals map. Newest first. Topic names are the ones shown on the map.
 
+## 2026-10-25
+
+### New
+- **Animations for the five index articles**: Index (a sequential scan against an index lookup), B-Tree (a lookup, then a range along the linked leaves), Hash index (an equality lookup, and why a range cannot work), GIN (key to row lists, two keys combined, an insert) and BRIN (skipping block ranges, and what happens when the rows are not in order). Each runs about 10 seconds and is embedded in its article.
+
+### Fixes
+- Index article: removed a note about sample plan output, because the article has none.
+- GIN article: the pending list is flushed by vacuum or auto-analyze (it said "analyzed").
+
 ## 2026-10-24
 
 ### Viewer
@@ -10,6 +19,9 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 - **Subject cards on the home page** expand to the same topic lists and show the number of articles.
 - **About tab** next to Database Internals and Learning tracks. The text is in `content/_about.md`.
 - **The map fits the screen** when it loads. Names that would overlap are left out, so a crowded map stays readable. Hovering a dot shows its name.
+
+### Fixes
+- Choosing a search result with the mouse opened the topic and then closed it again, so the article never showed. The map now ignores a mouse release that did not start on the map. The browser test clicks a result.
 
 ### Documentation
 - New `Product/functional-requirements.md`: the requirements for the viewer, articles and tracks, with IDs and QA checks.

@@ -1,6 +1,6 @@
 ---
 title: "BRIN indexes: tiny indexes for huge, ordered tables"
-updated: 2026-10-18
+updated: 2026-10-25
 sources:
   - https://www.postgresql.org/docs/17/indexes-types.html
   - https://www.postgresql.org/docs/17/brin.html
@@ -46,6 +46,12 @@ WHERE schemaname = 'public' AND tablename = 'events' AND attname = 'created_at';
 ```
 
 Updates and deletes followed by inserts into freed space can mix old and new values into the same ranges, which weakens the summaries over time.
+
+The animation runs one query on two tables. In the first the rows follow the order of the column, so most block ranges are skipped. In the second the rows are in random order, so none can be.
+
+<iframe src="brin/demo.html" title="Animation: with rows in order, a BRIN index lets the query skip five of eight block ranges. With rows in random order every range may match and nothing is skipped" width="800" height="450"></iframe>
+
+*The animation repeats about every 10 seconds.*
 
 ## Keeping the index current
 

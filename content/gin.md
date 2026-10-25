@@ -1,6 +1,6 @@
 ---
 title: "GIN indexes: searching inside values"
-updated: 2026-10-18
+updated: 2026-10-25
 sources:
   - https://www.postgresql.org/docs/17/indexes-types.html
   - https://www.postgresql.org/docs/17/gin.html
@@ -47,9 +47,15 @@ SELECT id FROM articles WHERE to_tsvector('english', body) @@ to_tsquery('englis
 
 The index must be built on the same expression the query uses.
 
+The animation shows the inverted structure. A search reads the list for one key, or combines the lists of two keys. Then a new row adds entries to several lists.
+
+<iframe src="gin/demo.html" title="Animation: a GIN index maps each tag to the rows that contain it. A search for urgent reads one list, a search for urgent and bug combines two lists, and inserting a new row adds entries under two tags" width="800" height="450"></iframe>
+
+*The animation repeats about every 10 seconds.*
+
 ## Why writes are the weak spot
 
-One row can contain many keys, so one insert can mean many index inserts. To soften this, GIN uses a **pending list** (fast update, on by default). New entries first go to an unsorted list and are moved into the main structure in bulk. This happens when the table is vacuumed or analyzed, when the list exceeds `gin_pending_list_limit`, or when you call `gin_clean_pending_list`.
+One row can contain many keys, so one insert can mean many index inserts. To soften this, GIN uses a **pending list** (fast update, on by default). New entries first go to an unsorted list and are moved into the main structure in bulk. This happens when the table is vacuumed or auto-analyzed, when the list exceeds `gin_pending_list_limit`, or when you call `gin_clean_pending_list`.
 
 The pending list has two costs. Searches must also read the pending list, so a long list slows reads. And the insert that triggers a cleanup is much slower than the others. Autovacuum keeps this under control.
 

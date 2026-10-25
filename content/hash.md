@@ -1,6 +1,6 @@
 ---
 title: "Hash indexes: equality lookups only"
-updated: 2026-10-18
+updated: 2026-10-25
 sources:
   - https://www.postgresql.org/docs/17/indexes-types.html
   - https://www.postgresql.org/docs/17/hash-index.html
@@ -33,6 +33,12 @@ A hash index stores only a 4-byte hash code per row, not the column value. This 
 - Any data type can be indexed, even types without a sort order.
 
 The documentation lists two more limits: hash indexes support only single-column indexes and cannot enforce uniqueness. A unique constraint always needs a B-tree.
+
+The animation shows an equality lookup, which goes straight to one bucket, and a range query, which cannot use the index. The bucket numbers are made up.
+
+<iframe src="hash/demo.html" title="Animation: the value abc is hashed to one bucket page and found. For a range, neighbouring values a, b and c land in unrelated buckets, so the index cannot help" width="800" height="450"></iframe>
+
+*The animation repeats about every 10 seconds.*
 
 ## Are they safe to use?
 

@@ -1,6 +1,6 @@
 ---
 title: "B-Tree indexes: the default index"
-updated: 2026-10-18
+updated: 2026-10-25
 sources:
   - https://www.postgresql.org/docs/17/indexes-types.html
   - https://www.postgresql.org/docs/17/btree.html
@@ -23,6 +23,12 @@ Because the leaves are sorted, a B-tree also finds a range (`BETWEEN`) by locati
 [![The same 15 keys stored in a binary search tree (four levels, one key per node) and in a B-tree (a root page and three leaf pages with many keys each)](btree/btree-vs-bst-structure.png)](btree/btree-vs-bst-structure.png)
 
 *Click the image to open it full size.*
+
+The animation shows a lookup of one key, and then a range. Both start at the root. The range then continues along the linked leaf pages.
+
+<iframe src="btree/demo.html" title="Animation: a lookup of key 42 goes from the root page to one leaf page, and a range lookup from 38 to 60 reads along the linked leaf pages" width="800" height="450"></iframe>
+
+*The animation repeats about every 10 seconds.*
 
 ## How it differs from a binary search tree
 

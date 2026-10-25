@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BRIN index demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A BRIN index keeps a min and max per block range. When values follow the table order, most ranges are skipped. When the values are in random order, no range can be skipped.">
+ <title>BRIN index demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=10,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=5;
+var STILL=3.5;
+
+var rngA=['1\u201312','13\u201325','26\u201337','38\u201350','51\u201362','63\u201375','76\u201387','88\u2013100'];
+var mxA=[12,25,37,50,62,75,87,100];
+var rngB=['2\u201397','1\u201399','3\u201398','2\u2013100','4\u201396','1\u201398','5\u201399','2\u201395'];
+var rb=[],pgs=[],sm=[],st=[];
+txt(400,70,'orders table: 8 block ranges of 4 pages. Under each: the min and max of created_at (day number)',{size:12,fill:MUTE});
+for(var i=0;i<8;i++){var x=30+i*94;rb.push(box(x,84,84,118,{rx:8,fill:'#161b33'}));pgs.push([]);
+ for(var p=0;p<4;p++)pgs[i].push(box(x+8,92+p*26,68,20,{rx:3}));
+ sm.push(txt(x+42,222,'',{size:13,b:1}));st.push(txt(x+42,244,'',{size:12,b:1}))}
+var cnt=txt(400,300,'',{b:1,size:17});
+txt(400,340,'',{size:12,fill:MUTE});
+function render(t){
+ var A=t<4.9;
+ crumb.textContent='WHERE created_at >= day 70';
+ var scan=0;
+ for(var i=0;i<8;i++){
+  var lab=A?rngA[i]:rngB[i];sm[i].textContent=lab;
+  var show=A?t>=0.8:t>=5.4,keep,decided;
+  if(A){decided=t>=1.2+Math.min(i,5)*0.3;keep=mxA[i]>=70}else{decided=t>=6.0+i*0.25;keep=true}
+  if(!show)decided=false;
+  var skipped=decided&&!keep,scanned=decided&&keep;
+  if(scanned)scan++;
+  on(rb[i],scanned,'#161b33',YEL,3);
+  for(var p=0;p<4;p++){on(pgs[i][p],scanned,'#3a3358',YEL,2);pgs[i][p].setAttribute('opacity',skipped?0.25:1)}
+  rb[i].setAttribute('opacity',skipped?0.45:1);
+  st[i].textContent=skipped?'skip':scanned?'scan':'';st[i].setAttribute('fill',skipped?MUTE:YEL);
+  sm[i].setAttribute('fill',show?'#e8eaf6':'#161b33');
+ }
+ cnt.textContent=scan||A&&t>3?'pages to read: '+(scan*4)+' of 32':'';
+ if(A)cap.textContent=t<0.8?'BRIN keeps just a min and a max for each block range.':t<2.9?'Ranges whose max is below day 70 cannot match: skip them.':'Only 3 ranges can match. Read those, recheck each row.';
+ else cap.textContent=t<5.4?'Same table, but the rows are in random order...':t<8.0?'Every range now holds low and high values.':'Nothing can be skipped. BRIN needs the physical order to match.';
+}
+
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>
