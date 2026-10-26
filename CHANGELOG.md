@@ -4,6 +4,10 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-10-26
 
+### New
+- **Track "My query is slow"** (7 steps): Analyzing slow queries, Common root causes of slow queries, Query metrics, Execution plan, Actual execution plan, Index and Table partitioning. It goes from the approach, to why it happens, to the numbers, to the plan, to the fixes.
+- Three new topics in Observability, each with an article: **Analyzing slow queries** (the method), **Common root causes of slow queries** (reads too much, poor plan, waits, runs too often, with a symptom table) and **Query metrics** (the main numbers, how to rank and compare them, and what `pg_stat_statements` cannot show). The Dynatrace Databases app is mentioned as built-in monitoring, without its own topic.
+
 ### Changes
 - **GIN animation split in two and slowed down.** `gin/select.html` shows a search for one tag and for two tags (19 seconds). `gin/insert.html` shows an insert, the pending list and the later merge (17 seconds). Each step now lasts about 2 seconds. The article embeds each one where its idea is explained.
 - **Writing guide:** demos are paced at about 2 seconds a step and run 10 to 20 seconds. A demo shows one idea, so a longer story is split into several demos.

@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.4 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.5 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -55,7 +55,7 @@ This document describes what the product must do: the viewer (UI), the articles,
 
 ## 3. Content inventory (snapshot)
 
-As of this version: **38 topics**, **28 articles**, **7 subjects**, **3 tracks**, **6 demos**.
+As of this version: **41 topics**, **31 articles**, **7 subjects**, **4 tracks**, **11 demos**.
 
 | Subject | Topics | Articles |
 |---|---|---|
@@ -65,13 +65,14 @@ As of this version: **38 topics**, **28 articles**, **7 subjects**, **3 tracks**
 | Partitions | 3 | 3 |
 | Concurrency | 3 | 3 |
 | Architecture | 6 | 2 |
-| Observability | 4 | 4 |
+| Observability | 7 | 7 |
 
 | Track | Steps | Steps with an article |
 |---|---|---|
 | PostgreSQL Storage | 10 | 6 (missing: Page, Tuple, Heap table, Monitoring table size) |
 | Anatomy of PostgreSQL | 10 | 5 (missing: Databases, Files and tablespaces, Heap table, WAL, Server logs) |
 | Database Monitoring Overview | 4 | 4 |
+| My query is slow | 7 | 7 |
 
 ## 4. User stories
 
@@ -343,6 +344,7 @@ As of this version: **38 topics**, **28 articles**, **7 subjects**, **3 tracks**
 | PostgreSQL Storage | How PostgreSQL stores tables on disk, how they grow, get cleaned up and get split | 1 |
 | Anatomy of PostgreSQL | The parts of a server and how they fit together | 2 |
 | Database Monitoring Overview | What database monitoring means, what to expect from it, and how Dynatrace delivers it | 3 |
+| My query is slow | Find why a query is slow, read its plan and choose the fix. Steps: Analyzing slow queries, Common root causes, Query metrics, Execution plan, Actual execution plan, Index, Table partitioning | 4 |
 
 The plan is that later tracks solve specific problems (for example "my query is slow" or "my database is running out of connections"). Those are not defined yet. See section 9.
 
@@ -428,3 +430,4 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.2 | 2026-10-24 | Added and built: search (SRCH), hideable subject window with topic lists (LEG-05 to LEG-11), subject cards with topic lists (HOME-11), About tab (HOME-12, HOME-13), map fitted to the screen with label decluttering (MAP-16 to MAP-20). LEG-02 changed (the dot toggles, not the row). Decisions D-11 and D-12 added. |
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
+| 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |

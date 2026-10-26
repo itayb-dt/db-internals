@@ -60,3 +60,55 @@ topics:
     prerequisites:
       - {id: dt-platform, reason: The app works inside the context of the platform}
       - {id: db-observability-expectations, reason: The app is the product of those expectations, strength: soft}
+
+  - id: analyzing-slow-queries
+    name: Analyzing slow queries
+    domain: Slow queries
+    level: 0
+    description: What "slow" means and how to approach it. Find the worst query, look at its plan, name the cause, fix it, and measure again.
+    details: |
+      A query can be slow because one run takes long, or because a cheap query runs far too often.
+      Guessing wastes time. A fixed loop of find, understand, name, fix and measure does not.
+    evidence:
+      - Say the difference between one slow run and a cheap query that runs too often
+      - Name the steps of the analysis loop and what each one answers
+      - Ask the first questions about a complaint, such as since when, for whom and what changed
+    prerequisites:
+      - {id: db-monitoring, reason: The analysis starts from the signals that monitoring collects, strength: soft}
+
+  - id: slow-query-causes
+    name: Common root causes of slow queries
+    domain: Slow queries
+    level: 1
+    description: Why a query becomes slow. It reads too much, it picked a poor plan, it waits for something, or it runs too often. Each cause has a symptom, a way to confirm it and a fix.
+    details: |
+      Knowing the usual causes turns a long list of possible explanations into a short one.
+      Most of them are covered by their own topic, and this one links to them.
+    evidence:
+      - List the main groups of causes and one example of each
+      - Match a symptom, such as a slow query that is fast on a small table, to its likely cause
+      - Say which step of the track confirms a given cause
+    prerequisites:
+      - {id: analyzing-slow-queries, reason: The causes are what the analysis loop looks for}
+      - {id: index, reason: A missing or unused index is the most common cause, strength: soft}
+      - {id: statistics, reason: Stale statistics lead to bad plans, strength: soft}
+      - {id: dead-rows, reason: Dead rows make a table larger than its data, strength: soft}
+      - {id: deadlock, reason: Lock waits are one cause of slowness, strength: soft}
+
+  - id: query-metrics
+    name: Query metrics
+    domain: Slow queries
+    level: 2
+    description: The main numbers that describe a query (calls, total and mean time, rows, cache hits and reads, temporary files, waits) and how to analyse them. In PostgreSQL most come from pg_stat_statements.
+    details: |
+      Rank by total time to find the biggest cost, and by mean or maximum time to find the slowest single runs.
+      The counters only grow, so compare two samples to see a trend.
+    evidence:
+      - Name the main query metrics and what each one tells you
+      - Explain why the query with the highest total time may not be the slowest one
+      - Say what a low cache hit ratio, a high rows per call or temporary files point to
+      - Say what pg_stat_statements cannot show
+    prerequisites:
+      - {id: analyzing-slow-queries, reason: The metrics are how the first step of the loop is done}
+      - {id: statistics, reason: Rows read against rows needed is a sign of poor estimates, strength: soft}
+      - {id: dt-databases-app, reason: A monitoring product can collect these metrics for you, strength: soft}
