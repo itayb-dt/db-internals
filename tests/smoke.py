@@ -13,6 +13,11 @@ from playwright.sync_api import sync_playwright
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+def is_favicon(url):
+    """A standalone demo page has no icon, and real Chrome asks for /favicon.ico. That 404 is not a problem."""
+    return url.split("?")[0].endswith("/favicon.ico")
+
+
 def serve():
     class Quiet(http.server.SimpleHTTPRequestHandler):
         def log_message(self, *args):
@@ -40,10 +45,10 @@ def main(url=None, screenshot=None):
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=os.environ.get("PW_CHROMIUM") or None)
         page = browser.new_page(viewport={"width": 1400, "height": 900})
-        page.on("console", lambda m: m.type == "error" and problems.append(f"console error: {m.text}"))
+        page.on("console", lambda m: m.type == "error" and not is_favicon(m.location.get("url", "")) and problems.append(f"console error: {m.text}"))
         page.on("pageerror", lambda e: problems.append(f"page error: {e}"))
         page.on("requestfailed", lambda r: "ERR_ABORTED" in (r.failure or "") or problems.append(f"request failed: {r.url}"))  # aborted = we moved on while it loaded
-        page.on("response", lambda r: r.status >= 400 and problems.append(f"HTTP {r.status}: {r.url}"))
+        page.on("response", lambda r: r.status >= 400 and not is_favicon(r.url) and problems.append(f"HTTP {r.status}: {r.url}"))
         page.goto(url)
         page.wait_for_function("window.dbmap && window.dbmap.ids.length > 0", timeout=15000)
         n_loaded = page.evaluate("window.dbmap.ids.length")
@@ -203,6 +208,10 @@ def main(url=None, screenshot=None):
                     page.evaluate("id => window.dbmap.open(id)", t["id"])
                     page.wait_for_selector("#artbody .article", timeout=10000)
                 if page.locator("#artbody img").count():
+                    try:  # on a live site the images may still be loading
+                        page.wait_for_function("[...document.querySelectorAll('#artbody img')].every(i => i.complete)", timeout=15000)
+                    except Exception:
+                        pass
                     bad = page.evaluate("[...document.querySelectorAll('#artbody img')].filter(i=>!i.complete||!i.naturalWidth).length")
                     if bad:
                         problems.append(f"{t['id']}: {bad} image(s) did not render")
@@ -214,7 +223,7 @@ def main(url=None, screenshot=None):
         if url_is_local:
             for d in demos:
                 dp = browser.new_page(viewport={"width": 800, "height": 450})
-                dp.on("console", lambda m, d=d: m.type == "error" and problems.append(f"demo {d}: console error: {m.text}"))
+                dp.on("console", lambda m, d=d: m.type == "error" and not is_favicon(m.location.get("url", "")) and problems.append(f"demo {d}: console error: {m.text}"))
                 dp.on("pageerror", lambda e, d=d: problems.append(f"demo {d}: page error: {e}"))
                 dp.goto(url + d)
                 dp.wait_for_timeout(1500)

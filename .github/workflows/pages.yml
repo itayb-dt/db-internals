@@ -18,13 +18,23 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt -r requirements-dev.txt
-      - run: python3 -m playwright install --with-deps chromium
+      # Use the Chrome that GitHub's runners already have. Installing a browser with apt is usually 20 seconds
+      # but sometimes takes 10 minutes when the package mirror is slow. Fall back to the install only if Chrome is missing.
+      - name: Browser for the tests
+        timeout-minutes: 5
+        run: |
+          if [ -x /usr/bin/google-chrome ]; then
+            echo "PW_CHROMIUM=/usr/bin/google-chrome" >> "$GITHUB_ENV"
+          else
+            python3 -m playwright install --with-deps chromium
+          fi
       - name: Unit tests
         run: python3 -m unittest discover -s tests -v
       # Pull requests are strict: any problem fails the check.
@@ -42,6 +52,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     environment:
@@ -52,6 +63,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   verify-live:
+    timeout-minutes: 10
     # Opens the live site in a browser right after deploying. A red run here means prod is broken.
     needs: deploy
     runs-on: ubuntu-latest
@@ -61,5 +73,14 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
-      - run: python3 -m playwright install --with-deps chromium
+      # Use the Chrome that GitHub's runners already have. Installing a browser with apt is usually 20 seconds
+      # but sometimes takes 10 minutes when the package mirror is slow. Fall back to the install only if Chrome is missing.
+      - name: Browser for the tests
+        timeout-minutes: 5
+        run: |
+          if [ -x /usr/bin/google-chrome ]; then
+            echo "PW_CHROMIUM=/usr/bin/google-chrome" >> "$GITHUB_ENV"
+          else
+            python3 -m playwright install --with-deps chromium
+          fi
       - run: python3 tests/smoke.py "${{ needs.deploy.outputs.page_url }}"

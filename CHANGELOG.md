@@ -8,6 +8,10 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 - **Track "My query is slow"** (7 steps): Analyzing slow queries, Common root causes of slow queries, Query metrics, Execution plan, Actual execution plan, Index and Table partitioning. It goes from the approach, to why it happens, to the numbers, to the plan, to the fixes.
 - Three new topics in Observability, each with an article: **Analyzing slow queries** (the method), **Common root causes of slow queries** (reads too much, poor plan, waits, runs too often, with a symptom table) and **Query metrics** (the main numbers, how to rank and compare them, and what `pg_stat_statements` cannot show). The Dynatrace Databases app is mentioned as built-in monitoring, without its own topic.
 
+### Infrastructure
+- **Faster, bounded builds.** Installing the test browser with `apt` usually takes 20 seconds, but sometimes took 10 minutes. The workflow now uses the Chrome that GitHub's runners already have, and falls back to the install only if it is missing. Each job and the browser step have a time limit (15, 10 and 5 minutes).
+- The browser test waits for images to load before checking them. This fixed a random failure in the check of the live site. It also ignores the browser's request for `/favicon.ico`, and the site now has an icon.
+
 ### Changes
 - **GIN animation split in two and slowed down.** `gin/select.html` shows a search for one tag and for two tags (19 seconds). `gin/insert.html` shows an insert, the pending list and the later merge (17 seconds). Each step now lasts about 2 seconds. The article embeds each one where its idea is explained.
 - **Writing guide:** demos are paced at about 2 seconds a step and run 10 to 20 seconds. A demo shows one idea, so a longer story is split into several demos.
