@@ -163,6 +163,8 @@ def main(url=None, screenshot=None):
                 if page.inner_text("#pt").strip() != topic["name"]:
                     problems.append(f"track '{tr['name']}': step {si + 1} did not open '{topic['name']}'")
                     break
+                if page.locator("#trackbar .tbar").count() != 1:
+                    problems.append(f"track '{tr['name']}': step {si + 1} shows {page.locator('#trackbar .tbar').count()} track headers, expected 1")
                 bar = page.inner_text("#trackbar")
                 if f"step {si + 1} of {len(tr['steps'])}" not in bar.lower() or tr["name"] not in bar:
                     problems.append(f"track '{tr['name']}': step {si + 1} shows no track bar")

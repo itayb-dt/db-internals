@@ -4,6 +4,10 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-11-01
 
+### Viewer
+- **Fix: one track header at a time.** A topic that is in two tracks, such as Monitoring table size, showed two stacked headers, and the second one hid where you were in the track you were following. The header now shows only the track you came from. A topic opened from the map, search or a link shows the first track that contains it.
+- **The Learning tracks list looks like the track header.** Each track shows the route icon, the name in gold type with the subtitle under it, a pill with the number of steps, and a chevron at the end.
+
 ### New
 - **Track "The DB Instance CPU is high"** (5 steps, a problem track with the phases now, why and fix): Query metrics, Common root causes of high CPU, Execution plan, Index, and Load balancers and connection pooling. It reuses topics from other tracks.
 - New topic **Common root causes of high CPU**, with one article and two animations. It starts with three quick checks (where the CPU goes: user, system, waiting for disk or stolen; one process or many; which sessions run on the CPU), and then walks a tree of hypotheses: one session hogs a core, many sessions each use a little (more requests, overlapping jobs, costly statements, too many active sessions, parallel queries, background work), or the host waits on disk or has another cause. Locks are rejected because they do not use CPU. The wording is generic and PostgreSQL specific.

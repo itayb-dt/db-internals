@@ -57,10 +57,12 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 .scard p{margin:3px 0 0;color:#aeb4d6;font-size:13px;line-height:1.45}
 .sub-h{margin:26px 0 10px}
 .track{border:1px solid rgba(255,255,255,.12);border-radius:10px;margin:0 0 10px;background:#141a30}
-.track summary{cursor:pointer;padding:12px 14px;list-style:none;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.track summary{cursor:pointer;padding:14px 16px;list-style:none;display:flex;gap:14px;align-items:center}.track summary:hover{background:rgba(255,255,255,.03)}
 .track summary::-webkit-details-marker{display:none}
-.track summary:before{content:"\25B8";color:#8890b5;font-size:12px}.track[open] summary:before{content:"\25BE"}
-.tn{font-size:15px;font-weight:700;color:#fff}.tt{color:#aeb4d6;font-size:12.5px;flex:1 1 220px}.tc{color:#8890b5;font-size:11px;white-space:nowrap}
+.track summary::after{content:"\25B8";color:#8890b5;font-size:12px;flex:none}.track[open] summary::after{content:"\25BE"}
+.ti{color:#ffd166;flex:none;display:flex}.ti svg{width:26px;height:26px}.tx{flex:1;min-width:0}
+.tn{display:block;font-size:18px;font-weight:800;color:#ffd166;line-height:1.3;letter-spacing:-.01em}.tt{display:block;color:#aeb4d6;font-size:13px;line-height:1.45;margin-top:3px}
+.tc{flex:none;background:rgba(255,255,255,.07);border-radius:999px;padding:3px 10px;color:#cfd3f0;font-size:11.5px;white-space:nowrap}
 .tsteps{margin:0;padding:0 14px 8px;list-style:none}
 .tstep{display:flex;gap:10px;padding:8px 0;border-top:1px solid rgba(255,255,255,.07);cursor:pointer;font-size:13px}
 .tstep:hover .tl{text-decoration:underline}
@@ -156,7 +158,7 @@ document.getElementById('sub').textContent=nodes.length+' concepts and '+links.l
 function ancestors(n){const seen=new Set(),st=[n];while(st.length){const c=st.pop();pre[c.id].forEach(l=>{if(!seen.has(l.s.id)){seen.add(l.s.id);st.push(l.s)}})}return seen}
 const names=G.subjects.map(s=>s.name),cluster={};
 names.forEach((k,i)=>{const a=i/names.length*Math.PI*2;cluster[k]=[Math.cos(a)*150,Math.sin(a)*150]});
-const off=new Set();let sel=null,anc=new Set(),alpha=1;
+const off=new Set();let curTrack=null,sel=null,anc=new Set(),alpha=1;
 function step(){
  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
   const a=nodes[i],b=nodes[j];let dx=a.x-b.x,dy=a.y-b.y,dz=a.z-b.z;const d2=dx*dx+dy*dy+dz*dz+1;
@@ -279,22 +281,26 @@ for(let i=0;i<250;i++)step();
 {const R=Math.max(1,...nodes.map(n=>Math.hypot(n.x,n.y,n.z))),fmax=520/Math.max(100,820-R);zoom=Math.max(.35,Math.min(1.5,330/(R*fmax)))}
 // learning tracks: ordered paths through the topics
 const TRACKS=(G.tracks||[]).map(t=>({...t,steps:t.steps.filter(x=>byId[x.topic])})).filter(t=>t.steps.length);
+const ROUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="6" r="2.6"/><path d="M8.6 18H14a3.2 3.2 0 0 0 0-6.4h-4a3.2 3.2 0 0 1 0-6.4h5.4"/></svg>';
 (function buildTracks(){
  if(!TRACKS.length){P('tabTracksBtn').style.display='none';return}const box=P('tracks'),mk=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e};
   TRACKS.forEach(t=>{const d=mk('details','track'),sm=mk('summary');
-  const n=mk('span','tn');n.textContent=t.name;const ti=mk('span','tt');ti.textContent=t.title;
-  const c=mk('span','tc');c.textContent=t.steps.length+' steps';sm.append(n,ti,c);d.appendChild(sm);
+  const ic=mk('span','ti');ic.innerHTML=ROUTE;const tx=mk('div','tx');
+  const n=mk('span','tn');n.textContent=t.name;const ti=mk('span','tt');ti.textContent=t.title;tx.append(n,ti);
+  const c=mk('span','tc');c.textContent=t.steps.length+' steps';sm.append(ic,tx,c);d.appendChild(sm);
   const ol=mk('ol','tsteps');
   t.steps.forEach((st,i)=>{const m=byId[st.topic],li=mk('li','tstep');
    const num=mk('span','tnum');num.textContent=i+1;const body=mk('div');
    const l=mk('span','tl');l.textContent=m.name;const bd=mk('span','badge '+(m.has_content?'ok':'soon'));bd.textContent=m.has_content?'article':'coming soon';
-   const w=mk('span','why');w.textContent=st.why;body.append(l,bd,w);li.append(num,body);li.onclick=()=>select(m);ol.appendChild(li)});
+   const w=mk('span','why');w.textContent=st.why;body.append(l,bd,w);li.append(num,body);li.onclick=()=>{curTrack=t.id;select(m)};ol.appendChild(li)});
   d.appendChild(ol);box.appendChild(d)})})();
 const PHASE={now:'What is happening now',why:'Why did it happen',fix:'How to fix it'};
-const ROUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="6" r="2.6"/><path d="M8.6 18H14a3.2 3.2 0 0 0 0-6.4h-4a3.2 3.2 0 0 1 0-6.4h5.4"/></svg>';
 function trackBar(n){const box=P('trackbar'),intro=P('trackintro');box.innerHTML='';intro.innerHTML='';box.style.top=P('bar').offsetHeight+'px';
  const mk=(tag,c)=>{const e=document.createElement(tag);if(c)e.className=c;return e};
- TRACKS.forEach(t=>{const i=t.steps.findIndex(x=>x.topic===n.id);if(i<0)return;const M=t.steps.length,pct=Math.round((i+1)/M*100);
+ // one track at a time: the one the reader is following, or else the first track that has this topic
+ const here=TRACKS.filter(t=>t.steps.some(x=>x.topic===n.id));
+ const cur=here.find(t=>t.id===curTrack)||here[0];curTrack=cur?cur.id:null;
+ (cur?[cur]:[]).forEach(t=>{const i=t.steps.findIndex(x=>x.topic===n.id);const M=t.steps.length,pct=Math.round((i+1)/M*100);
   const b=mk('div','tbar'),top=mk('div','tb-top'),txt=mk('div','tb-txt'),nm=mk('div','tb-name'),st=mk('div','tb-step');
   nm.innerHTML=ROUTE;const nt=mk('span');nt.textContent=t.name;nt.title=t.title;nm.appendChild(nt);
   const ph=t.steps[i].phase;
@@ -302,16 +308,16 @@ function trackBar(n){const box=P('trackbar'),intro=P('trackintro');box.innerHTML
   st.append(document.createTextNode('Step '+(i+1)+' of '+M));txt.append(nm,st);
   const arrow=(idx,dir)=>{const ch=dir==='prev'?'\u2039':'\u203A';
    if(idx<0||idx>=M){const sp=mk('span','tb-arrow off');sp.textContent=ch;return sp}
-   const m=byId[t.steps[idx].topic],a=mk('a','tb-arrow');a.textContent=ch;a.dataset.dir=dir;a.title=(dir==='prev'?'Previous: ':'Next: ')+m.name;a.setAttribute('aria-label',a.title);a.onclick=()=>select(m);return a};
+   const m=byId[t.steps[idx].topic],a=mk('a','tb-arrow');a.textContent=ch;a.dataset.dir=dir;a.title=(dir==='prev'?'Previous: ':'Next: ')+m.name;a.setAttribute('aria-label',a.title);a.onclick=()=>{curTrack=t.id;select(m)};return a};
   const ring=mk('div','tb-ring');ring.setAttribute('aria-label',pct+'% of the track');
   ring.innerHTML='<svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="17" fill="none" stroke="#2a3158" stroke-width="4.5"/><circle cx="21" cy="21" r="17" fill="none" stroke="#ffd166" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="'+(106.81*pct/100).toFixed(2)+' 106.81"/></svg><b>'+pct+'%</b>';
   const nav=mk('div','tb-nav');nav.append(arrow(i-1,'prev'),ring,arrow(i+1,'next'));top.append(txt,nav);
   const segs=mk('div','tb-segs');
   t.steps.forEach((s,k)=>{const m=byId[s.topic],e=mk('a','seg'+(k<i?' done':k===i?' cur':'')+(m.has_content?'':' soon')+(k>0&&s.phase!==t.steps[k-1].phase?' gap':''));
-   e.title=(s.phase?PHASE[s.phase]+': ':'')+(k+1)+'. '+m.name+(m.has_content?'':' (coming soon)');e.onclick=()=>select(m);segs.appendChild(e)});
+   e.title=(s.phase?PHASE[s.phase]+': ':'')+(k+1)+'. '+m.name+(m.has_content?'':' (coming soon)');e.onclick=()=>{curTrack=t.id;select(m)};segs.appendChild(e)});
   b.append(top,segs);box.appendChild(b);
   if(t.problem){const p=mk('p','tintro');p.textContent=t.problem;intro.appendChild(p)}});
- box.style.position=box.children.length===1?'sticky':'static'}
+ box.style.position='sticky'}
 // home view: the editable intro (content/_home.md), then one card per subject
 let homeTab='home',aboutLoaded=false;
 function loadAbout(){if(aboutLoaded)return;aboutLoaded=true;const box=P('aboutbody');

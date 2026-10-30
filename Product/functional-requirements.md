@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.12 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.14 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -329,7 +329,7 @@ As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**
 
 | ID | Requirement | Status | Check |
 |---|---|---|---|
-| TRK-10 | The Learning tracks tab lists the tracks by `order`, then by name. Each card expands to the numbered steps with the reason. | Built | Auto |
+| TRK-10 | The Learning tracks tab lists the tracks by `order`, then by name. Each card shows the route icon, the track name in gold type with its subtitle **under** it (not beside it), a pill with the number of steps, and a chevron. Clicking expands the numbered steps with the reason. | Built | Auto |
 | TRK-11 | Clicking a step opens its topic. | Built | Auto |
 | TRK-12 | A topic in a track shows a **track header** that says where the reader is: a route icon and the track name in large gold type, a line with the phase and "Step N of M", a ring with the percentage of the track (N of M), and **Previous** and **Next** arrows to the neighbouring steps. The first step has a dimmed Previous. The last has a dimmed Next. The next step is not named twice. | Built | Auto |
 | TRK-23 | A problem track has a **problem statement** of one or two sentences: what happened, and briefly why the reader should care. It is shown under the header of every step. | Built | Manual |
@@ -337,7 +337,8 @@ As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**
 | TRK-25 | The rules for writing a problem track are in `content/_track_prompt.md`. | Built | Manual |
 | TRK-20 | Below the title the header shows one **segment** for each step: steps before this one filled, the current one in gold and taller, the steps still ahead dim. A step whose topic has no article yet is fainter. | Built | Manual |
 | TRK-21 | Clicking a segment opens that step. Hovering shows its number and name, and "coming soon" when it has no article. | Built | Manual |
-| TRK-22 | When the topic is in one track, the header stays at the top of the panel while the article scrolls, so the reader always sees where they are. When it is in several tracks, the headers are stacked and scroll away, to save space. | Built | Manual |
+| TRK-22 | The header stays at the top of the panel while the article scrolls, so the reader always sees where they are. | Built | Manual |
+| TRK-26 | The header shows **one track at a time**, the one the reader is following. A topic that is in several tracks (for example Monitoring table size) shows the track that the reader came from, through a step in the Learning tracks list, an arrow or a segment. A topic opened from the map, from search or from a link shows the first track that contains it, and a topic in no track shows no header. The progress is always the progress in that one track. | Built | Auto (one header on every step) |
 | TRK-13 | A topic in several tracks shows one bar for each. | Built | Manual |
 | TRK-14 | Previous and Next work for every step of every track. | Built | Auto |
 | TRK-15 | The track bar shows the "why" of the current step. | Proposed | None yet |
@@ -444,6 +445,8 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.14 | 2026-11-01 | The track header shows one track at a time (TRK-26), fixing stacked headers for topics that belong to two tracks. |
+| 0.13 | 2026-11-01 | The Learning tracks cards show the icon, the name with the subtitle under it (TRK-10). |
 | 0.12 | 2026-11-01 | New problem track "The DB Instance CPU is high" with one new topic and two animations (sections 3 and 7.3). The causes come second, and the first checks are part of the causes article. |
 | 0.11 | 2026-10-31 | Track header redone: icon, large gold name, phase and step, the problem statement, no prerequisite count. Problem tracks get a problem statement and phases now, why and fix (TRK-23 to TRK-25). The tracks My query is slow and My database is large were reordered to follow the phases. |
 | 0.10 | 2026-10-31 | The track header shows step N of M, the track name, a percentage ring, segments for every step and arrows (TRK-12, TRK-20 to TRK-22). |
