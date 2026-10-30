@@ -164,7 +164,7 @@ def main(url=None, screenshot=None):
                     problems.append(f"track '{tr['name']}': step {si + 1} did not open '{topic['name']}'")
                     break
                 bar = page.inner_text("#trackbar")
-                if f"step {si + 1} of {len(tr['steps'])}" not in bar or tr["name"] not in bar:
+                if f"step {si + 1} of {len(tr['steps'])}" not in bar.lower() or tr["name"] not in bar:
                     problems.append(f"track '{tr['name']}': step {si + 1} shows no track bar")
                 if si < len(tr["steps"]) - 1:
                     page.locator("#trackbar .tbar").filter(has_text=tr["name"]).locator("a[data-dir=next]").click()

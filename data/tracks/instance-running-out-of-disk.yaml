@@ -1,18 +1,26 @@
 order: 6
 name: The DB Instance is running out of disk space
 title: Find what fills the disk of a PostgreSQL instance, and when to hand over to the database track
+problem: The disk of the instance is almost full. When the disk under the write-ahead log fills, PostgreSQL shuts down, so the time you have is short.
 steps:
   - topic: instance-disk-space
-    why: The first checks. The largest database and what changed recently, then where else the disk goes.
+    phase: now
+    why: What is happening now. The largest database and what changed recently, then where else the disk goes.
   - topic: wal
+    phase: why
     why: The write-ahead log. Why pg_wal grows and what makes the server stop.
   - topic: server-logs
+    phase: why
     why: What the instance writes to its log, where it goes and who removes old files.
   - topic: error-log
+    phase: why
     why: The error log. What it holds, and how a repeating error fills the disk.
   - topic: slow-query-log
+    phase: why
     why: The slow query log. Thresholds, sampling and the risk of personal data.
   - topic: disk-outside-postgres
+    phase: why
     why: Managed or self-managed. What else can fill the disk when you run the system yourself.
   - topic: database-growth-causes
+    phase: fix
     why: The hand-over. If a database is the largest consumer, the track My database is large takes over here.

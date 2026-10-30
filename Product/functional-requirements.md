@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.9 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.11 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -181,8 +181,8 @@ As of this version: **49 topics**, **42 articles**, **7 subjects**, **6 tracks**
 
 | ID | Requirement | Status | Check |
 |---|---|---|---|
-| TOP-01 | A topic view shows, in order: a track bar (if the topic is in a track), a meta line (subject, domain, level), the topic name, the description, optional details, and "N prerequisites in total". | Built | Auto (opens every topic) |
-| TOP-02 | "Prerequisites in total" counts all direct and indirect prerequisites. | Built | Manual |
+| TOP-01 | A topic view shows, in order: a track bar (if the topic is in a track), a meta line (subject, domain, level), the topic name, the description, and optional details. The number of prerequisites is not shown. | Built | Auto (opens every topic) |
+| TOP-02 | Dropped in 0.11: the topic view no longer shows the total number of prerequisites. | Dropped | n/a |
 | TOP-03 | **Builds directly on** lists the direct prerequisites. **Unlocks next** lists the topics that depend on this one. Each entry shows the subject colour. Hovering shows the reason for the link. An empty list shows "none". | Built | Manual |
 | TOP-04 | Clicking an entry in those lists opens that topic. | Built | Manual |
 | TOP-05 | **You understand it when you can** lists the evidence statements. | Built | Manual |
@@ -316,7 +316,7 @@ As of this version: **49 topics**, **42 articles**, **7 subjects**, **6 tracks**
 | ID | Requirement | Status | Check |
 |---|---|---|---|
 | TRK-01 | A track is a file `data/tracks/<id>.yaml`. The id is the file name and does not change. | Built | Auto |
-| TRK-02 | A track has: `order` (position on the home page), `name`, `title` (one line saying what you learn) and 3 to 10 `steps`. | Built | Auto |
+| TRK-02 | A track has: `order` (position on the home page), `name`, `title` (one line saying what you learn), 3 to 10 `steps`, and for a problem track a `problem` of one or two sentences. | Built | Auto |
 | TRK-03 | A step has a `topic` (an existing topic id) and a one-line `why`. A topic cannot appear twice in a track. | Built | Auto |
 | TRK-04 | A track has one goal and is ordered from basic to advanced. | Built (rule) | Manual |
 | TRK-05 | A topic may be in several tracks. | Built | Auto |
@@ -330,7 +330,13 @@ As of this version: **49 topics**, **42 articles**, **7 subjects**, **6 tracks**
 |---|---|---|---|
 | TRK-10 | The Learning tracks tab lists the tracks by `order`, then by name. Each card expands to the numbered steps with the reason. | Built | Auto |
 | TRK-11 | Clicking a step opens its topic. | Built | Auto |
-| TRK-12 | A topic in a track shows a **track bar**: "Learning track: <name>, step N of M", with **Previous** and **Next** links to the neighbouring steps. The first step has no Previous. The last has no Next. | Built | Auto |
+| TRK-12 | A topic in a track shows a **track header** that says where the reader is: a route icon and the track name in large gold type, a line with the phase and "Step N of M", a ring with the percentage of the track (N of M), and **Previous** and **Next** arrows to the neighbouring steps. The first step has a dimmed Previous. The last has a dimmed Next. The next step is not named twice. | Built | Auto |
+| TRK-23 | A problem track has a **problem statement** of one or two sentences: what happened, and briefly why the reader should care. It is shown under the header of every step. | Built | Manual |
+| TRK-24 | In a problem track every step has a **phase**: `now` (what is happening now: the relevant metrics, events and recent trends), `why` (why did it happen: the potential root causes) or `fix` (how to fix it). The phases go in that order. The header shows the phase of the current step, and a wider gap in the segments marks where a phase ends. The build rejects a track with a missing, unknown or out-of-order phase. | Built | Auto (unit tests) |
+| TRK-25 | The rules for writing a problem track are in `content/_track_prompt.md`. | Built | Manual |
+| TRK-20 | Below the title the header shows one **segment** for each step: steps before this one filled, the current one in gold and taller, the steps still ahead dim. A step whose topic has no article yet is fainter. | Built | Manual |
+| TRK-21 | Clicking a segment opens that step. Hovering shows its number and name, and "coming soon" when it has no article. | Built | Manual |
+| TRK-22 | When the topic is in one track, the header stays at the top of the panel while the article scrolls, so the reader always sees where they are. When it is in several tracks, the headers are stacked and scroll away, to save space. | Built | Manual |
 | TRK-13 | A topic in several tracks shows one bar for each. | Built | Manual |
 | TRK-14 | Previous and Next work for every step of every track. | Built | Auto |
 | TRK-15 | The track bar shows the "why" of the current step. | Proposed | None yet |
@@ -436,6 +442,8 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.11 | 2026-10-31 | Track header redone: icon, large gold name, phase and step, the problem statement, no prerequisite count. Problem tracks get a problem statement and phases now, why and fix (TRK-23 to TRK-25). The tracks My query is slow and My database is large were reordered to follow the phases. |
+| 0.10 | 2026-10-31 | The track header shows step N of M, the track name, a percentage ring, segments for every step and arrows (TRK-12, TRK-20 to TRK-22). |
 | 0.9 | 2026-10-31 | 13 new demos of 20 to 30 seconds for the articles of the last four tracks (VIS-12 pace updated, D-13 narrowed). |
 | 0.8 | 2026-10-31 | New track "The DB Instance is running out of disk space" (7 steps). It hands over to "My database is large". New topics The error log and The slow query log; WAL and checkpoints and Server logs now have articles (sections 3 and 7.3). Open point: the Anatomy track is at its 10-step limit (see D-16). |
 | 0.7 | 2026-10-31 | New track "My database is large" with three new topics and the article for Monitoring table size (sections 3 and 7.3). |

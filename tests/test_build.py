@@ -253,6 +253,28 @@ class TrackTests(BuildTestCase):
         self.assertEqual(code, 1)
         self.assertIn("unexpected key(s)", err)
 
+    def test_track_problem_and_phases_reach_the_graph(self):
+        track = ("name: T\ntitle: x\nproblem: Something is wrong. It costs you.\nsteps:\n"
+                 "  - {topic: a, why: first, phase: now}\n  - {topic: b, why: second, phase: why}\n  - {topic: c, why: third, phase: fix}\n")
+        s = self.site(tracks={"t": track})
+        self.assertEqual(s.run()[0], 0)
+        g = read(s.out("graph.json"))
+        self.assertIn("Something is wrong. It costs you.", g)
+        self.assertIn('"phase": "fix"', g)
+
+    def test_phases_must_be_complete_valid_and_in_order(self):
+        base = "name: T\ntitle: x\nsteps:\n"
+        bad = {
+            "partial": "  - {topic: a, why: one, phase: now}\n  - {topic: b, why: two}\n  - {topic: c, why: three, phase: fix}\n",
+            "unknown": "  - {topic: a, why: one, phase: now}\n  - {topic: b, why: two, phase: later}\n  - {topic: c, why: three, phase: fix}\n",
+            "order": "  - {topic: a, why: one, phase: fix}\n  - {topic: b, why: two, phase: now}\n  - {topic: c, why: three, phase: why}\n",
+        }
+        for name, steps in bad.items():
+            s = self.site(tracks={"t": base + steps})
+            code, err = s.run()
+            self.assertEqual(code, 1, name)
+            self.assertIn("phase", err, name)
+
     def test_too_many_steps(self):
         steps = "".join("  - {topic: a, why: w}\n" for _ in range(11))
         s = self.site(tracks={"t": "name: X\ntitle: T\nsteps:\n" + steps})

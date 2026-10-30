@@ -1,22 +1,32 @@
 order: 5
 name: My database is large
 title: Why a database is big, why it grows, and how to keep the growth under control
+problem: The database keeps growing, and the disk bill and the time to restore or upgrade grow with it. The growth may be healthy, or it may be waste that you pay for and that slows every query.
 steps:
   - topic: database-size-problem
+    phase: now
     why: Why size matters. The costs, and the three questions to ask.
-  - topic: database-growth-causes
-    why: Why it grows. The healthy reason first, then the others.
   - topic: table-size
-    why: See where the space goes. Table, large values and indexes.
+    phase: now
+    why: What is happening now. Where the space goes, in the table, the large values and the indexes.
+  - topic: database-growth-causes
+    phase: why
+    why: Why it grows. The healthy reason first, then the others.
   - topic: index
+    phase: why
     why: Indexes take space too, and every extra one grows with the table.
   - topic: toast
+    phase: why
     why: Large values live outside the table, so the table looks small.
   - topic: dead-rows
+    phase: why
     why: Old row versions that still take space. The most common waste.
   - topic: vacuum
+    phase: fix
     why: How dead space is found and reused, and why it does not shrink the files.
   - topic: vacuum-configuration
+    phase: fix
     why: The settings that make vacuum start on time and keep up.
   - topic: vacuum-monitoring
+    phase: fix
     why: How to see whether vacuum is keeping up.

@@ -68,8 +68,22 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 .tl{color:#fff;font-weight:600}.why{display:block;color:#8890b5;margin-top:2px}
 .badge{font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:2px 7px;margin-left:8px;font-weight:400}
 .badge.ok{background:rgba(126,224,161,.15);color:#7ee0a1}.badge.soon{background:rgba(255,255,255,.07);color:#8890b5}
-.tbar{border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;margin:0 0 14px;font-size:12.5px;color:#aeb4d6;background:#141a30}
-.tbar b{color:#fff}.tbar a{color:#9db2ff;cursor:pointer}.tbar a:hover{text-decoration:underline}.tbar .nav{display:flex;justify-content:space-between;gap:12px;margin-top:4px}
+#trackbar{position:sticky;z-index:1;background:#0f1324;margin:-18px -24px 12px;padding:12px 24px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
+#trackbar:empty{display:none}
+.tbar{margin:0 0 10px}.tbar:last-child{margin:0}
+.tb-top{display:flex;align-items:center;gap:12px}.tb-txt{flex:1;min-width:0}
+.tb-name{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:800;color:#ffd166;line-height:1.25;letter-spacing:-.01em}
+.tb-name svg{flex:none;width:22px;height:22px}.tb-name span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-step{font-size:12.5px;color:#cfd3f0;margin-top:1px}.tb-step b{color:#fff;font-weight:700}
+.tb-nav{display:flex;align-items:center;gap:8px}
+.tb-arrow{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;color:#dfe3ff;cursor:pointer;font-size:19px;line-height:1;user-select:none}
+.tb-arrow:hover{background:rgba(255,255,255,.1)}.tb-arrow.off{opacity:.25;cursor:default;pointer-events:none}
+.tb-ring{position:relative;width:42px;height:42px}.tb-ring svg{width:42px;height:42px;transform:rotate(-90deg)}.tb-ring b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff}
+.tb-segs{display:flex;gap:4px;margin-top:9px;align-items:center;height:8px}
+.seg{flex:1;height:5px;border-radius:3px;background:#2a3158;cursor:pointer;display:block}.seg:hover{background:#4a5590}.seg.gap{margin-left:8px}
+.seg.done{background:#6f7bb8}.seg.cur{background:#ffd166;height:8px}.seg.soon{opacity:.5}
+#trackintro:empty{display:none}
+.tintro{margin:0 0 14px;font-size:13.5px;line-height:1.5;color:#c9cde8}
 .trow{display:flex;gap:10px;padding:5px 0;cursor:pointer;font-size:13px;color:#c9cde8}.trow:hover b{text-decoration:underline}
 .trow b{color:#fff;font-weight:600;white-space:nowrap}.trow span{color:#8890b5}
 @media(max-width:900px){.searchbox{top:58px;width:min(340px,calc(100vw - 32px))}.legend{max-width:calc(100vw - 32px)}.head{height:36px}.head img{height:22px;width:22px}.head span{font-size:16px;line-height:22px;height:22px}canvas{width:100%;height:45%}.pane{top:45%;width:100%;height:55%;border-left:0;border-top:1px solid rgba(255,255,255,.1)}.hint{display:none}}
@@ -100,8 +114,6 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 .meta{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8890b5}
 .panel h3{margin:4px 0 6px;font-size:18px}
 .panel p{margin:0 0 12px;color:#aeb4d6;line-height:1.45}
-.big{font-size:34px;font-weight:700;line-height:1}
-.big small{font-size:12px;font-weight:400;color:#8890b5;margin-left:6px}
 ul{list-style:none;margin:0 0 12px;padding:0}
 li{padding:3px 0}
 li.link{cursor:pointer}li.link:hover{color:#fff;text-decoration:underline}
@@ -122,9 +134,8 @@ li.ev{color:#aeb4d6;padding-left:12px;text-indent:-12px}li.ev:before{content:"\2
 <div id="tabTracks" style="display:none"><p class="m" style="color:#8890b5;margin:0 0 14px;font-size:13px">Pick a track to follow a path from the basics to the advanced topics. Click a track to see its steps.</p><div id="tracks"></div></div>
 </div>
 <div class="pad" id="topicview" style="display:none">
-<div id="trackbar"></div>
+<div id="trackbar"></div><div id="trackintro"></div>
 <div class="meta" id="pm"></div><h3 id="pt"></h3><p id="pd"></p><div class="details" id="pdt" style="display:none"></div>
-<div class="big"><span id="pn">0</span><small>prerequisites in total</small></div><div style="height:12px"></div>
 <h4>Builds directly on</h4><ul id="pb"></ul><h4>Unlocks next</h4><ul id="pu"></ul><h4>You understand it when you can</h4><ul id="pe"></ul>
 <div id="art" style="display:none"><h4>Read the full article</h4><div id="artbody"></div></div></div></div>
 <div class="box hint"><b>Drag</b> to spin &middot; <b>Scroll</b> to zoom &middot; <b>Click</b> a dot</div>
@@ -230,7 +241,7 @@ function selectTopic(n){sel=n;if(!n){anc=new Set();artTok++;showView(false);auto
  setHash(n.id);
  auto=false;anc=ancestors(n);showView(true);trackBar(n);
  P('pm').textContent=n.subject+' · '+n.domain+' · '+G.levels[n.level];
- P('pt').textContent=n.name;P('pd').textContent=n.description;P('pn').textContent=anc.size;
+ P('pt').textContent=n.name;P('pd').textContent=n.description;
  const dt=P('pdt');dt.style.display=n.details_html?'block':'none';dt.innerHTML=n.details_html||'';
  showArticle(n);
  const nodeLi=(m,reason)=>{const li=document.createElement('li');li.className='link';li.title=reason||'';
@@ -279,14 +290,28 @@ const TRACKS=(G.tracks||[]).map(t=>({...t,steps:t.steps.filter(x=>byId[x.topic])
    const l=mk('span','tl');l.textContent=m.name;const bd=mk('span','badge '+(m.has_content?'ok':'soon'));bd.textContent=m.has_content?'article':'coming soon';
    const w=mk('span','why');w.textContent=st.why;body.append(l,bd,w);li.append(num,body);li.onclick=()=>select(m);ol.appendChild(li)});
   d.appendChild(ol);box.appendChild(d)})})();
-function trackBar(n){const box=P('trackbar');box.innerHTML='';
- TRACKS.forEach(t=>{const i=t.steps.findIndex(x=>x.topic===n.id);if(i<0)return;
-  const b=document.createElement('div');b.className='tbar';
-  const top=document.createElement('div');top.innerHTML='Learning track: <b></b> \u00B7 step '+(i+1)+' of '+t.steps.length;top.querySelector('b').textContent=t.name;b.appendChild(top);
-  const nav=document.createElement('div');nav.className='nav';
-  const link=(st,arrow)=>{const a=document.createElement('a'),m=byId[st.topic];a.textContent=arrow==='<'?'\u2190 '+m.name:m.name+' \u2192';a.dataset.dir=arrow==='<'?'prev':'next';a.onclick=()=>select(m);return a};
-  const prev=i>0?link(t.steps[i-1],'<'):document.createElement('span'),next=i<t.steps.length-1?link(t.steps[i+1],'>'):document.createElement('span');
-  nav.append(prev,next);b.appendChild(nav);box.appendChild(b)})}
+const PHASE={now:'What is happening now',why:'Why did it happen',fix:'How to fix it'};
+const ROUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="6" r="2.6"/><path d="M8.6 18H14a3.2 3.2 0 0 0 0-6.4h-4a3.2 3.2 0 0 1 0-6.4h5.4"/></svg>';
+function trackBar(n){const box=P('trackbar'),intro=P('trackintro');box.innerHTML='';intro.innerHTML='';box.style.top=P('bar').offsetHeight+'px';
+ const mk=(tag,c)=>{const e=document.createElement(tag);if(c)e.className=c;return e};
+ TRACKS.forEach(t=>{const i=t.steps.findIndex(x=>x.topic===n.id);if(i<0)return;const M=t.steps.length,pct=Math.round((i+1)/M*100);
+  const b=mk('div','tbar'),top=mk('div','tb-top'),txt=mk('div','tb-txt'),nm=mk('div','tb-name'),st=mk('div','tb-step');
+  nm.innerHTML=ROUTE;const nt=mk('span');nt.textContent=t.name;nt.title=t.title;nm.appendChild(nt);
+  const ph=t.steps[i].phase;
+  if(ph){const bb=mk('b');bb.textContent=PHASE[ph];st.append(bb,document.createTextNode(' \u00B7 '))}
+  st.append(document.createTextNode('Step '+(i+1)+' of '+M));txt.append(nm,st);
+  const arrow=(idx,dir)=>{const ch=dir==='prev'?'\u2039':'\u203A';
+   if(idx<0||idx>=M){const sp=mk('span','tb-arrow off');sp.textContent=ch;return sp}
+   const m=byId[t.steps[idx].topic],a=mk('a','tb-arrow');a.textContent=ch;a.dataset.dir=dir;a.title=(dir==='prev'?'Previous: ':'Next: ')+m.name;a.setAttribute('aria-label',a.title);a.onclick=()=>select(m);return a};
+  const ring=mk('div','tb-ring');ring.setAttribute('aria-label',pct+'% of the track');
+  ring.innerHTML='<svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="17" fill="none" stroke="#2a3158" stroke-width="4.5"/><circle cx="21" cy="21" r="17" fill="none" stroke="#ffd166" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="'+(106.81*pct/100).toFixed(2)+' 106.81"/></svg><b>'+pct+'%</b>';
+  const nav=mk('div','tb-nav');nav.append(arrow(i-1,'prev'),ring,arrow(i+1,'next'));top.append(txt,nav);
+  const segs=mk('div','tb-segs');
+  t.steps.forEach((s,k)=>{const m=byId[s.topic],e=mk('a','seg'+(k<i?' done':k===i?' cur':'')+(m.has_content?'':' soon')+(k>0&&s.phase!==t.steps[k-1].phase?' gap':''));
+   e.title=(s.phase?PHASE[s.phase]+': ':'')+(k+1)+'. '+m.name+(m.has_content?'':' (coming soon)');e.onclick=()=>select(m);segs.appendChild(e)});
+  b.append(top,segs);box.appendChild(b);
+  if(t.problem){const p=mk('p','tintro');p.textContent=t.problem;intro.appendChild(p)}});
+ box.style.position=box.children.length===1?'sticky':'static'}
 // home view: the editable intro (content/_home.md), then one card per subject
 let homeTab='home',aboutLoaded=false;
 function loadAbout(){if(aboutLoaded)return;aboutLoaded=true;const box=P('aboutbody');

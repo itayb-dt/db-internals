@@ -9,7 +9,7 @@ sources:
   - https://docs.dynatrace.com/docs/observe/infrastructure-observability/databases
 ---
 
-This article continues from [Common root causes of slow queries](topic:slow-query-causes). It covers the main numbers that describe a query, and how to read them to find the one that costs the most. It uses **PostgreSQL 17**. Other databases keep similar numbers under other names.
+This article continues from [Analyzing slow queries](topic:analyzing-slow-queries). It covers the main numbers that describe a query, and how to read them to find the one that costs the most. It uses **PostgreSQL 17**. Other databases keep similar numbers under other names.
 
 > **How this was checked:** The column names and settings come from the PostgreSQL 17 documentation. The SQL below was **not run**, because it needs a live server with the `pg_stat_statements` extension. Each block is marked. Thresholds are rules of thumb.
 

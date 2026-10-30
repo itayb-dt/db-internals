@@ -4,6 +4,12 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-10-31
 
+### Viewer
+- **A shorter, clearer track header.** A topic in a learning track shows a route icon and the name of the track in large gold type, the phase and the step ("Why did it happen, Step 3 of 9"), a ring with the percentage, Previous and Next arrows, and a segment for every step. Clicking a segment opens that step. When the topic is in one track, the header stays at the top while you scroll. The next step is no longer named twice.
+- **Problem tracks.** A track that starts from a problem has a one or two sentence problem statement, shown under the header, and every step belongs to a phase: what is happening now, why did it happen, how to fix it. The build checks the phases. `content/_track_prompt.md` describes how to write one.
+- **The topic view no longer shows the number of prerequisites.**
+- **Two tracks were reordered to follow the phases.** In "My query is slow", Query metrics now comes before Common root causes. In "My database is large", Monitoring table size now comes before Why a database suddenly grows. The "continues from" sentences of the four articles were updated.
+
 ### Animations
 - **13 new animations of 20 to 30 seconds**, one for each article of the tracks "My query is slow", "My database is large" and "The DB Instance is running out of disk space", paced at about two seconds a step. Analyzing slow queries (the five-step loop), Common root causes (the four reasons), Query metrics (ranking by total time against mean time), Why a large database is a problem (copies multiply), Why a database suddenly grows (size against rows), Monitoring table size (what each size function counts), Vacuum configuration (when autovacuum starts, and workers sharing a budget), The instance is running out of disk space (the two first checks), WAL and checkpoints (from a change to a log that piles up), Server logs (files and who removes them), The error log (a repeating error), The slow query log (thresholds, sampling and personal data) and Managed or self-managed (the gap between PostgreSQL and the volume).
 - The writing guide now says 20 to 30 seconds for a process with several steps.

@@ -138,12 +138,16 @@ A learning track is an ordered path of 3 to 10 topics, from basic to advanced. I
 order: 1                       # position on the home page
 name: PostgreSQL Storage
 title: How big tables are stored, grow, get cleaned up and get split
+problem: One or two sentences. What happened and why it matters.   # optional, for problem tracks
 steps:
   - topic: page                # a topic id from data/*.yaml
+    phase: now                 # optional: now, why or fix
     why: The unit of disk I/O and caching.
 ```
 
 Each step needs a `topic` and a one-line `why`. The build fails on an unknown topic, a duplicate, or a wrong number of steps. Steps whose topic has no article yet are labelled "coming soon".
+
+A track that starts from a problem ("My query is slow") also has a `problem` of one or two sentences, which the header shows on every step, and a `phase` for each step: `now` (what is happening now), `why` (why did it happen) or `fix` (how to fix it), in that order. The header shows the name of the track with an icon, the phase, the step, a percentage ring, a segment for every step and the problem statement. See `content/_track_prompt.md` for how to write one.
 
 Write the steps in block style as above. In the one-line `{...}` style a comma ends the value, so the rest of the sentence would be lost. The build reports this as an unexpected key.
 

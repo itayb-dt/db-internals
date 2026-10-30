@@ -7,7 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/routine-vacuuming.html
 ---
 
-This article continues from [Why a database suddenly grows](topic:database-growth-causes). It shows how to find where the space goes: which tables, and inside each table, the rows, the large values and the indexes. It is about **PostgreSQL 17**.
+This article continues from [Why a large database is a problem](topic:database-size-problem). It shows how to find where the space goes: which tables, and inside each table, the rows, the large values and the indexes. It is about **PostgreSQL 17**.
 
 > **How this was checked:** The names and meanings of the size functions come from the PostgreSQL 17 documentation, listed in the sources. The page on these functions was long, so please confirm the exact wording of each function there. The two queries below were **not run**, because there is no server here. They only use the functions named in the documentation.
 

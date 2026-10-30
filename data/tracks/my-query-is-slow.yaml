@@ -1,18 +1,26 @@
 order: 4
 name: My query is slow
 title: Find why a query is slow, read its plan and choose the fix
+problem: A query that used to be fast now takes seconds. People wait for it, and one slow query can hold locks and use resources that slow everything else down.
 steps:
   - topic: analyzing-slow-queries
+    phase: now
     why: The approach. What slow means, and the loop of find, understand, name the cause, fix and measure.
-  - topic: slow-query-causes
-    why: Why it happens. The common causes, so the list of suspects is short before anything technical.
   - topic: query-metrics
-    why: Find the worst query. The main numbers and how to read them.
+    phase: now
+    why: What is happening now. The main numbers, and how to find the query that costs the most.
+  - topic: slow-query-causes
+    phase: why
+    why: Why it happens. The common causes, so the list of suspects is short before anything technical.
   - topic: execution-plan
+    phase: why
     why: What the database planned to do, and how to read it.
   - topic: actual-plan
+    phase: why
     why: What really happened, and where the estimate was wrong.
   - topic: index
+    phase: fix
     why: The most common fix. How an index replaces a scan with a lookup, and what it costs.
   - topic: partitioning
+    phase: fix
     why: When the table is huge. How skipping partitions cuts the data a query reads.

@@ -68,7 +68,7 @@ The first tells you where to look. The second tells you how much time you have. 
 - Looking at the total only, and missing that one table is most of it.
 - Adding disk space as the first reaction, and paying for waste.
 - Looking only when something has already gone wrong, with no history to compare with.
-- Assuming that deleting rows makes the database smaller. It usually does not. See the next article.
+- Assuming that deleting rows makes the database smaller. It usually does not. See [Why a database suddenly grows](topic:database-growth-causes).
 
 ## Checklist
 

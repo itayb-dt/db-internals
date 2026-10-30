@@ -11,7 +11,7 @@ sources:
   - https://www.postgresql.org/docs/17/sql-prepare.html
 ---
 
-This article continues from [Analyzing slow queries](topic:analyzing-slow-queries). It answers one question: why does a query become slow? Knowing the usual reasons turns a long list of suspects into a short one. The details of each fix are in the topics it links to. The examples use **PostgreSQL 17**, but these causes are the same in most relational databases.
+This article continues from [Query metrics](topic:query-metrics), which found the query that costs the most. It answers one question: why does a query become slow? Knowing the usual reasons turns a long list of suspects into a short one. The details of each fix are in the topics it links to. The examples use **PostgreSQL 17**, but these causes are the same in most relational databases.
 
 > **How this was checked:** The article has no SQL. The causes and the way to confirm them come from the PostgreSQL 17 documentation listed in the sources, and from common practice. Thresholds are rules of thumb.
 

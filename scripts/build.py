@@ -305,6 +305,10 @@ def load_tracks(topics, errors):
         for k in ("name", "title", "steps"):
             if not doc.get(k):
                 errors.append(f"{fname}: missing '{k}'")
+        problem = doc.get("problem", "")
+        if problem and not isinstance(problem, str):
+            errors.append(f"{fname}: 'problem' must be text")
+            problem = ""
         steps = doc.get("steps") or []
         if not isinstance(steps, list):
             errors.append(f"{fname}: 'steps' must be a list")
@@ -314,7 +318,7 @@ def load_tracks(topics, errors):
         ok = []
         for i, st in enumerate(steps, 1):
             extra = sorted(str(k) for k in st) if isinstance(st, dict) else []
-            extra = [k for k in extra if k not in ("topic", "why")]
+            extra = [k for k in extra if k not in ("topic", "why", "phase")]
             if extra:
                 errors.append(f"{fname}: step {i} has unexpected key(s) {extra}. "
                               f"If the 'why' text contains a comma or colon, write the step in block style or quote the text.")
@@ -326,12 +330,24 @@ def load_tracks(topics, errors):
             elif not st.get("why"):
                 errors.append(f"{fname}: step {i} ('{t}') needs a 'why' line")
             else:
-                ok.append({"topic": t, "why": st["why"]})
+                step = {"topic": t, "why": st["why"]}
+                if st.get("phase"):
+                    step["phase"] = st["phase"]
+                ok.append(step)
+        phases = [s.get("phase") for s in ok]
+        if any(phases):
+            order = {"now": 0, "why": 1, "fix": 2}
+            if not all(phases):
+                errors.append(f"{fname}: if one step has a 'phase', every step needs one")
+            elif any(p not in order for p in phases):
+                errors.append(f"{fname}: 'phase' must be now, why or fix")
+            elif phases != sorted(phases, key=order.get):
+                errors.append(f"{fname}: phases must go in order: now, then why, then fix")
         if tid in seen:
             errors.append(f"{fname}: duplicate track id")
         seen.add(tid)
         tracks.append({"id": tid, "order": doc.get("order", 100), "name": doc.get("name", tid),
-                       "title": doc.get("title", ""), "steps": ok})
+                       "title": doc.get("title", ""), "problem": problem.strip(), "steps": ok})
     tracks.sort(key=lambda t: (t["order"], t["name"]))
     for t in tracks:
         del t["order"]
