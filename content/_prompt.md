@@ -28,7 +28,9 @@ Backend engineers and DBAs who know SQL but not database internals. Assume no kn
 Keep it high level. The reader wants to know what the thing is, when to use it, and which problem it solves. They do not need to learn how to build it.
 
 - **No setup commands.** Do not show `CREATE`, `ALTER` or `DROP` statements to build the example. Say it in words: "an index on `customer_id`", "a table with a `tags` array". The tables and indexes the examples assume go in `tests/sql_setup/<article>.sql`, and the article describes them in one sentence.
-- **Exception.** Show a DDL statement only when the statement itself is what the article explains, and keep it to one short block.
+- **Extensions.** Say that it is an extension and that it is installed like any other. Do not show `CREATE EXTENSION`.
+- **Creating an object.** Say it in a sentence: "create a bloom index on these columns". Do not show `CREATE INDEX` or other DDL just to show how to type it.
+- **Exception.** Show a DDL statement or a `SELECT` only when there is a very good reason: the statement itself is what the article explains, or the reader cannot understand the point without it. Keep it to one short block, and ask yourself whether a sentence would do.
 - **A `SELECT` to make a point is welcome.** So are `EXPLAIN` and queries on system views and catalog tables, such as `pg_stat_user_indexes`, `pg_stats` or `pg_class`. Every query must answer a question the reader has, such as "is it used?", "how big is it?" or "is it keeping up?".
 - **Name the lever, not the syntax.** When the advice is to change something, say what it is ("lower `pages_per_range`", "rebuild the index online", "turn off fast update") and its downside. Do not paste the full command.
 - **Ask of every code block:** does it help the reader decide or understand, or does it only show how to type something? Remove the second kind.
@@ -58,8 +60,8 @@ Hard ideas need a picture. Add one when the text alone makes the reader work too
 - Use a static **image** for structure: a tree, a page layout, a plan. Use a **live demo** for something that happens over time: a wait, a split, a retry.
 - Keep each article about one idea. If an article grows long, split it into sub topics and give each its own visual.
 - Images: PNG in `content/<topic-id>/`, small (aim for under 200 KB), with alt text. Author diagrams as SVG in `content/<topic-id>/src/` and render them with `python3 scripts/render_images.py`.
-- Demos: one plain HTML file, `content/<topic-id>/<name>.html`, embedded with `<iframe src="<topic-id>/<name>.html" ...>`. No libraries and no network requests. Loop by itself, give each step about 2 seconds so a reader can follow it (a whole demo of 10 to 20 seconds), use simple motion, and show the state in words as it changes. Draw the scene as a function of time so the loop restarts cleanly. Respect `prefers-reduced-motion` with one still frame.
-- One demo shows one idea. If it needs more than about 20 seconds, split it into several demos (for example one for a search and one for an insert) and embed each where its idea is explained. An article may embed more than one demo.
+- Demos: one plain HTML file, `content/<topic-id>/<name>.html`, embedded with `<iframe src="<topic-id>/<name>.html" ...>`. No libraries and no network requests. Loop by itself, give each step about 2 seconds so a reader can follow it (a whole demo of 20 to 30 seconds for a process with several steps, less for a simple idea), use simple motion, and show the state in words as it changes. Draw the scene as a function of time so the loop restarts cleanly. Respect `prefers-reduced-motion` with one still frame.
+- One demo shows one idea. If it needs more than about 30 seconds, split it into several demos (for example one for a search and one for an insert) and embed each where its idea is explained. An article may embed more than one demo.
 - Show a visual only for what the article explains. Do not decorate.
 
 ## Accuracy

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WAL demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A change is written to memory and to the write-ahead log. Commit flushes the log. A checkpoint writes the changed pages to the data files and old log segments are recycled. If the archive command fails the log segments pile up in pg_wal until the disk is full.">
+ <title>WAL demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=30,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=28.5;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='A change, its log, a checkpoint, and a log that cannot be removed';
+var MB=box(40,80,200,120,{stroke:'#5b7cff'});txt(140,98,'Memory (buffer pool)',{size:12,b:1,fill:MUTE});
+var mp=box(70,118,70,48,{rx:5}),mpt=txt(105,147,'page',{size:12,b:1});
+var WB=box(300,80,200,250,{stroke:'#ff9e7a'});txt(400,98,'pg_wal (the log)',{size:12,b:1,fill:MUTE});
+var DB=box(560,80,200,120,{stroke:GREEN});txt(660,98,'Data files',{size:12,b:1,fill:MUTE});
+var dp=box(590,118,70,48,{rx:5}),dpt=txt(625,147,'page',{size:12,b:1});
+var AB=box(560,230,200,100,{stroke:VIO});txt(660,248,'Archive or replica',{size:12,b:1,fill:MUTE});
+var ml=txt(105,184,'changed in memory',{size:11,b:1,fill:'#ff9e7a'}),dl1=txt(625,184,'not written yet',{size:11,fill:MUTE}),dl2=txt(625,184,'written',{size:11,b:1,fill:GREEN});
+var aml=txt(660,300,'archive command fails',{size:13,b:1,fill:'#ff6b6b'}),aln=line(500,225,560,265,{stroke:'#3a4270',sw:3});
+var SL=[];for(var k=0;k<10;k++)SL.push(box(315,306-k*22,170,18,{rx:3,fill:'#2a3050',stroke:'#7a82a8'}));
+var DK=box(300,344,200,14,{rx:4}),DF=box(300,344,20,14,{rx:4,fill:'#ff9e7a',stroke:'#ff9e7a'});txt(400,372,'disk under pg_wal',{size:11,fill:MUTE});
+var dot=mk('circle',{r:8,fill:YEL,cx:-30,cy:-30}),dlab=txt(0,0,'',{size:12,b:1,fill:YEL});
+function along(P,u){var n=P.length-1,v=u*n,i=Math.min(n-1,Math.floor(v)),f=v-i;return [P[i][0]+(P[i+1][0]-P[i][0])*f,P[i][1]+(P[i+1][1]-P[i][1])*f]}
+function mv(P,u,l,c){var p=along(P,u);dot.setAttribute('cx',p[0]);dot.setAttribute('cy',p[1]);dot.setAttribute('fill',c||YEL);dot.setAttribute('opacity',1);put(dlab,p[0],p[1]-14);dlab.textContent=l||'';dlab.setAttribute('fill',c||YEL)}
+function render(t){
+ dot.setAttribute('opacity',0);dlab.textContent='';
+ if(t>=4&&t<5.5)mv([[8,142],[66,142]],prog(t,4,5.5),'UPDATE');
+ else if(t>=5.5&&t<7.5)mv([[140,142],[400,262]],prog(t,5.5,7.5),'log record');
+ else if(t>=8.6&&t<10.6)mv([[400,262],[20,262]],prog(t,8.6,10.6),'commit returns',GREEN);
+ else if(t>=12.4&&t<15.4)mv([[140,118],[140,70],[625,70],[625,114]],prog(t,12.4,15.4),'checkpoint');
+ var dirty=t>=5.5&&t<15.4;on(mp,dirty,'#6b4a2a','#ff9e7a',3);vis(ml,dirty);
+ on(dp,t>=15.4,'#1f4a38',GREEN,3);vis(dl1,t>=9&&t<15.4);vis(dl2,t>=15.4);
+ // segments
+ var cnt=t<21?0:Math.min(10,Math.floor((t-21)/0.6)+1);
+ for(var k=0;k<10;k++){var v=false,o=1,f='#2a3050',s='#7a82a8';
+  if(t<16.8){if(k<2)v=true;if(k===2&&t>=7.5){v=true;f='#6b5a2a';s=YEL}if(k===2&&t>=9){s=GREEN}if(t>=16&&k<3)o=0.3}
+  else if(t>=21){if(k<cnt){v=true;f=cnt>=8?'#6b2a2a':'#6b5a2a';s=cnt>=8?'#ff6b6b':YEL}}
+  vis(SL[k],v);op(SL[k],v?o:0);SL[k].setAttribute('fill',f);SL[k].setAttribute('stroke',s)}
+ var fr=t<21?0.12:0.12+0.88*cnt/10;wid(DF,200*fr);DF.setAttribute('fill',fr>0.8?'#ff6b6b':'#ff9e7a');DF.setAttribute('stroke',fr>0.8?'#ff6b6b':'#ff9e7a');
+ var fail=t>=18;on(AB,fail,'#2a1b28','#ff6b6b',3);vis(aml,fail);lon(aln,fail,'#ff6b6b',3);
+ if(t<4)say('A change goes to the log first, and to the data files later.','Memory, the write-ahead log (pg_wal) and the data files.');
+ else if(t<5.5)say('An UPDATE changes a page in memory.','The data file is not touched yet.');
+ else if(t<8.6)say('The change is also written to the log.','The log is a fast, sequential append.');
+ else if(t<12.4)say('COMMIT makes sure the log is on disk, and returns.','The data files can wait: after a crash, the log can redo the change.');
+ else if(t<17)say('A checkpoint writes the changed pages to the data files.','Then the old log segments are not needed and are recycled.');
+ else if(t<21)say('But a log segment is kept until it has been archived.','If the archive command fails, it is tried again and again.');
+ else if(t<27)say('So the log keeps piling up in pg_wal.','A replication slot that nobody reads does the same.');
+ else say('If the disk under pg_wal fills, PostgreSQL does a PANIC shutdown.','Fix the cause. Never delete log files by hand.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

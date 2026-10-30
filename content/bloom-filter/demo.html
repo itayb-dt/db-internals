@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bloom filter demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A Bloom filter is a row of 16 bits. Adding a value uses three hash functions to pick three bits and set them to 1. Checking a value looks at the same three bits. If any bit is 0 the value is definitely not in the set. If all are 1 the value may be in the set, which can be a false positive.">
+ <title>Bloom filter demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=20,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=19;
+
+var X=function(i){return 40+i*45},cells=[],bt=[];
+txt(400,326,'bit array of 16 bits. All bits start at 0.',{size:12,fill:MUTE});
+for(var i=0;i<16;i++){cells.push(box(X(i),240,40,40,{rx:6}));bt.push(txt(X(i)+20,267,'0',{b:1,size:15,fill:MUTE}));txt(X(i)+20,298,i,{size:11,fill:MUTE})}
+var chip=box(330,70,140,40,{stroke:VIO}),chipT=txt(400,96,'',{b:1,size:17});
+var HC=[YEL,CY,'#ff9e7a'],HL=[];
+for(var j=0;j<3;j++){HL.push(line(400,110,400,240,{stroke:HC[j],sw:3}));HL[j].setAttribute('opacity',0)}
+var hn=[txt(0,0,'hash 1',{size:11,b:1,fill:HC[0]}),txt(0,0,'hash 2',{size:11,b:1,fill:HC[1]}),txt(0,0,'hash 3',{size:11,b:1,fill:HC[2]})];
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+var VAL=['alice','bob','carol','dave'],BITS=[[2,7,12],[5,7,14],[3,9,14],[2,5,12]];
+var SETAT=[[1.2,2.6,4.0],[6.2,7.6,9.0]];
+function render(t){
+ var sc=Math.min(3,Math.floor(t/5)),T=t-sc*5,v=VAL[sc],bits=BITS[sc],add=sc<2;
+ crumb.textContent=add?'ADD "'+v+'" to the set':'CHECK "'+v+'": is it in the set?';
+ chipT.textContent=T>=0.2?v:'';chip.setAttribute('opacity',T>=0.2?1:0);
+ var set={},fresh=-1;
+ for(var s=0;s<2;s++)for(var j=0;j<3;j++)if(t>=SETAT[s][j]){set[BITS[s][j]]=1}
+ var shown=0;
+ for(var j=0;j<3;j++){var at=1.2+1.4*j,vis=T>=at&&!(sc===2&&j>0);HL[j].setAttribute('opacity',vis?1:0);hn[j].setAttribute('opacity',vis?1:0);
+  if(vis){shown=j+1;var b=bits[j],x=X(b)+20;HL[j].setAttribute('d','M400 110L'+x+' 240');hn[j].setAttribute('x',x);hn[j].setAttribute('y',232)}}
+ for(var i=0;i<16;i++){var on1=!!set[i];cells[i].setAttribute('fill',on1?'#2a4a7a':'#1b2140');cells[i].setAttribute('stroke','#2a3158');cells[i].setAttribute('stroke-width',1.5);
+  bt[i].textContent=on1?'1':'0';bt[i].setAttribute('fill',on1?'#e8eaf6':MUTE)}
+ for(var j=0;j<shown;j++){var b=bits[j],c=cells[b];
+  if(add){c.setAttribute('stroke',HC[j]);c.setAttribute('stroke-width',4)}
+  else{var one=!!set[b];c.setAttribute('stroke',one?GREEN:'#ff6b6b');c.setAttribute('stroke-width',4)}}
+ var c1='',c2='';
+ if(sc===0){c1=T<1.2?'Add "alice". Three hash functions each pick one bit.':T<2.6?'Hash 1 picks bit 2. Set it to 1.':T<4.0?'Hash 2 picks bit 7. Set it to 1.':'Hash 3 picks bit 12. alice has left three 1s.'}
+ else if(sc===1){c1=T<1.2?'Add "bob". His three bits are 5, 7 and 14.':T<2.6?'Bit 5 was 0. Now it is 1.':T<4.0?'Bit 7 is already 1: alice set it. It stays 1.':'Bit 14 is set. Different values can share bits.'}
+ else if(sc===2){c1=T<1.2?'Check "carol". Hash her, then look at the bits.':T<2.6?'Hash 1 gives bit 3. It is 0.':'A bit is 0, so carol was never added. A certain no.';c2=T>=2.6?'No need to read the table at all.':''}
+ else{c1=T<1.2?'Check "dave". He was never added.':T<2.6?'Hash 1 gives bit 2. It is 1.':T<4.0?'Hash 2 gives bit 5. It is 1.':'All three bits are 1, so the answer is "maybe".';c2=T>=4.0?'dave was never added: a false positive. A "maybe" must be checked in the table.':''}
+ cap.textContent=c1;cap2.textContent=c2;
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

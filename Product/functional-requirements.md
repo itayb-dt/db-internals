@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.5 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.9 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -55,24 +55,26 @@ This document describes what the product must do: the viewer (UI), the articles,
 
 ## 3. Content inventory (snapshot)
 
-As of this version: **41 topics**, **31 articles**, **7 subjects**, **4 tracks**, **11 demos**.
+As of this version: **49 topics**, **42 articles**, **7 subjects**, **6 tracks**, **26 demos**.
 
 | Subject | Topics | Articles |
 |---|---|---|
-| Storage | 11 | 7 |
-| Indexing | 7 | 5 |
+| Storage | 14 | 11 |
+| Indexing | 8 | 6 |
 | Query planning | 4 | 4 |
 | Partitions | 3 | 3 |
 | Concurrency | 3 | 3 |
-| Architecture | 6 | 2 |
+| Architecture | 10 | 8 |
 | Observability | 7 | 7 |
 
 | Track | Steps | Steps with an article |
 |---|---|---|
-| PostgreSQL Storage | 10 | 6 (missing: Page, Tuple, Heap table, Monitoring table size) |
-| Anatomy of PostgreSQL | 10 | 5 (missing: Databases, Files and tablespaces, Heap table, WAL, Server logs) |
+| PostgreSQL Storage | 10 | 7 (missing: Page, Tuple, Heap table) |
+| Anatomy of PostgreSQL | 10 | 7 (missing: Databases, Files and tablespaces, Heap table) |
 | Database Monitoring Overview | 4 | 4 |
 | My query is slow | 7 | 7 |
+| My database is large | 9 | 9 |
+| The DB Instance is running out of disk space | 7 | 7 |
 
 ## 4. User stories
 
@@ -261,7 +263,7 @@ As of this version: **41 topics**, **31 articles**, **7 subjects**, **4 tracks**
 | ART-23 | The article is written in the author's own words and does not copy documentation text. | Built (style guide) | Manual |
 | ART-24 | The article names common mistakes and how to spot them. | Built (style guide) | Manual |
 | ART-25 | A topic is linked on first mention with `[Name](topic:id)`. An unknown id fails the build. | Built | Auto |
-| ART-26 | **High level.** An article explains what the thing is, when to use it and which problem it solves. It does not teach how to build it: no `CREATE`, `ALTER` or `DROP` statements to set up the example. A DDL statement is shown only when the statement is itself the subject, in one short block. | Built (rule, in the style guide). The five index articles follow it. Other articles do not yet (see D-14). | Manual |
+| ART-26 | **High level.** An article explains what the thing is, when to use it and which problem it solves. It does not teach how to build it: no `CREATE`, `ALTER` or `DROP` statements to set up the example. Extensions are described as extensions, installed like any other, with no `CREATE EXTENSION`. Creating an index is a sentence ("create a bloom index on these columns"). A DDL statement or a `SELECT` is shown only for a very good reason, such as when the statement itself is the subject, in one short block. | Built (rule, in the style guide). The five index articles follow it. Other articles do not yet (see D-14). | Manual |
 | ART-27 | A `SELECT`, an `EXPLAIN` or a query on a system view or catalog table (`pg_stat_*`, `pg_stats`, `pg_class`) is welcome when it makes a point, such as "is it used?", "how big is it?" or "is it keeping up?". | Built (rule) | Manual |
 | ART-28 | When advice is to change something, the article names the lever and its downside ("lower `pages_per_range`", "rebuild the index online") and does not paste the full command. | Built (rule) | Manual |
 | ART-29 | Setup that the examples assume (tables, indexes) lives in `tests/sql_setup/<article>.sql`, not in the article. | Built | Manual |
@@ -295,7 +297,7 @@ As of this version: **41 topics**, **31 articles**, **7 subjects**, **4 tracks**
 | VIS-09 | Every demo is reviewed like code, because it is copied as written. | Built (rule) | Manual |
 | VIS-10 | A diagram or a demo is visually checked in a browser before publishing. | Proposed (today the smoke test only checks that a demo loads) | None yet |
 | VIS-11 | Every article in the Indexing subject that explains a mechanism (Index, B-Tree, Hash index, GIN, BRIN) has at least one demo. Other articles get one when the idea happens over time (see D-13). | Built for Indexing, Proposed for the rest | Auto (loads), Manual (content) |
-| VIS-12 | **Pace.** A demo gives each step about 2 seconds, so a reader can follow it. A whole demo is 10 to 20 seconds. A demo shows one idea. If it needs more time, it is split into several demos, each embedded where its idea is explained. An article can embed more than one demo. | Built for the GIN demos (19 s and 17 s). The other index demos are about 10 s with steps of about 1 s (see D-15). | Manual |
+| VIS-12 | **Pace.** A demo gives each step about 2 seconds, so a reader can follow it. A whole demo is 20 to 30 seconds for a process with several steps, and shorter for a simple idea. A demo shows one idea. If it needs more time, it is split into several demos, each embedded where its idea is explained. An article can embed more than one demo. | Built for the GIN demos (19 s and 17 s). The other index demos are about 10 s with steps of about 1 s (see D-15). | Manual |
 
 ### 6.6 Safety of article content
 
@@ -345,6 +347,8 @@ As of this version: **41 topics**, **31 articles**, **7 subjects**, **4 tracks**
 | Anatomy of PostgreSQL | The parts of a server and how they fit together | 2 |
 | Database Monitoring Overview | What database monitoring means, what to expect from it, and how Dynatrace delivers it | 3 |
 | My query is slow | Find why a query is slow, read its plan and choose the fix. Steps: Analyzing slow queries, Common root causes, Query metrics, Execution plan, Actual execution plan, Index, Table partitioning | 4 |
+| My database is large | Why a database is big, why it grows, and how to keep the growth under control. Steps: Why a large database is a problem, Why a database suddenly grows, Monitoring table size, Index, TOAST, Dead rows, Vacuum, Vacuum configuration, Monitoring vacuum | 5 |
+| The DB Instance is running out of disk space | Find what fills the disk of a PostgreSQL instance, and when to hand over to the database track. Steps: The instance is running out of disk space, WAL and checkpoints, Server logs, The error log, The slow query log, Managed or self-managed, Why a database suddenly grows (the hand-over to My database is large) | 6 |
 
 The plan is that later tracks solve specific problems (for example "my query is slow" or "my database is running out of connections"). Those are not defined yet. See section 9.
 
@@ -387,9 +391,10 @@ Please answer or edit these. I have listed my suggestion first.
 | D-9 | **Measurement.** What counts as success? | Pick two numbers, for example Solution Architects who used a track, and links shared. This needs some form of usage data, which the site does not collect today. |
 | D-11 | **Order of topics in a subject list.** Today: by level, then by name. Other options: articles first, newest first, or by the order of a track. | Keep level then name. It matches how a reader learns, and the ring shows which have an article. |
 | D-12 | **"Articles" or "topics".** The lists show all topics and mark those without an article as "soon". Should they show only topics with an article? | Keep all, marked. A reader sees what is coming, and a topic page still explains the idea. |
-| D-13 | **Which other articles need a demo?** Today 11 articles have one. Candidates: Execution plan (reading a plan from the leaves up), Vacuum, MVCC, Statistics, Buffer pool settings. | Add to MVCC, Vacuum and Execution plan first, since they are the hardest to picture. |
+| D-13 | **Which other articles need a demo?** Today 25 articles have one, including every article of the tracks added in October. Candidates still without: Execution plan (reading a plan from the leaves up), Vacuum, MVCC, Statistics, Dead rows, Index scan. | Add to MVCC, Vacuum and Execution plan first, since they are the hardest to picture. |
 | D-14 | **Other articles with setup commands.** Partitioning, TOAST, Vacuum, Dead rows, Visibility map, Buffer pool and others still contain `CREATE`, `ALTER` or `INSERT` blocks. Review them against ART-26? | Yes, one at a time. Partitioning is the one where some DDL may be the point. |
 | D-15 | **Slow down the other index demos?** Index, B-Tree, Hash and BRIN run about 10 seconds with steps of about one second, the same pace as the old GIN demo. | Yes. Review them one at a time, and split where an idea needs more time (for example B-Tree: lookup and range as two demos). |
+| D-16 | **Anatomy of PostgreSQL has 10 steps, the maximum.** The error log and the slow query log are new topics, but the track still lists the single Server logs topic, and the two logs hang under it on the map. Options: raise the limit of a track to 12, replace a step, or merge two. | Raise the limit to 12 for this track only if you want both logs listed. Otherwise keep it as is. |
 | D-10 | **Accessibility level.** Is WCAG AA a requirement for GA? | Yes. The keyboard gap (A11Y-02) is the biggest one. |
 
 ## 10. Not specified yet
@@ -431,3 +436,7 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.9 | 2026-10-31 | 13 new demos of 20 to 30 seconds for the articles of the last four tracks (VIS-12 pace updated, D-13 narrowed). |
+| 0.8 | 2026-10-31 | New track "The DB Instance is running out of disk space" (7 steps). It hands over to "My database is large". New topics The error log and The slow query log; WAL and checkpoints and Server logs now have articles (sections 3 and 7.3). Open point: the Anatomy track is at its 10-step limit (see D-16). |
+| 0.7 | 2026-10-31 | New track "My database is large" with three new topics and the article for Monitoring table size (sections 3 and 7.3). |
+| 0.6 | 2026-10-31 | New advanced topic Bloom filter (Indexing, no track) with a 20-second demo. ART-26 tightened: no CREATE EXTENSION, creating an object is a sentence, a statement needs a very good reason. |

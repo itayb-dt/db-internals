@@ -1,6 +1,6 @@
 ---
 title: "Common root causes of slow queries"
-updated: 2026-10-26
+updated: 2026-10-31
 sources:
   - https://www.postgresql.org/docs/17/using-explain.html
   - https://www.postgresql.org/docs/17/indexes-intro.html
@@ -25,6 +25,12 @@ A query does three things: it finds rows, it combines them, and it returns them.
 4. **It runs too often or too late.** Each run is fine, but there are too many, or they collide with something heavy.
 
 Almost every slow query is one of these. The sections below split each into its usual forms.
+
+The animation shows the four reasons one at a time: too many pages read, a wrong estimate, a wait, and too many calls.
+
+<iframe src="slow-query-causes/demo.html" title="Animation: the four usual reasons a query is slow. It reads far more pages than it needs, it plans for 10 rows and gets 500,000, it waits for a lock, or it is called 400 times" width="800" height="450"></iframe>
+
+*The animation repeats about every 30 seconds.*
 
 ## 1. It reads too much
 

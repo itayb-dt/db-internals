@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Size multiplies demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A database with a replica and seven daily backups makes nine copies. When the data doubles, every copy doubles and the restore time doubles too.">
+ <title>Size multiplies demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=24,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=20;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='Size multiplies: every copy is as big as the data';
+var dbB=box(40,84,140,56,{stroke:'#5b7cff',fill:'#2a4a7a'}),dbT=txt(110,118,'Your database',{b:1,size:14});
+var repB=box(40,166,140,40,{stroke:CY,fill:'#1f3a4a'}),repT=txt(110,191,'Replica',{b:1,size:13});
+var bk=[];for(var i=0;i<7;i++)bk.push([box(40+i*52,236,44,34,{stroke:VIO,fill:'#33284a',rx:5}),txt(62+i*52,258,'d'+(i+1),{size:11,b:1})]);
+var bkl=txt(40,228,'7 daily backups',{a:'start',size:12,fill:MUTE});
+var cn=txt(600,112,'',{b:1,size:22,fill:YEL}),cn2=txt(600,140,'',{size:13,fill:MUTE});
+var rl=txt(60,306,'restore after a failure',{a:'start',size:12,fill:MUTE});
+var r1=box(60,314,160,18,{rx:5,fill:CY,stroke:CY}),r1t=txt(230,328,'before: about 4 hours',{a:'start',size:14,b:1,fill:CY});
+var r2=box(60,340,10,18,{rx:5,fill:'#ff9e7a',stroke:'#ff9e7a'}),r2t=txt(0,354,'now: about 8 hours',{a:'start',size:14,b:1,fill:'#ff9e7a'});
+function render(t){
+ var s=1+ease(prog(t,11,13.5));
+ var showRep=t>=6,nb=Math.max(0,Math.min(7,Math.floor((t-7)/0.5)+1));
+ vis(dbB,t>=0.8);vis(dbT,t>=0.8);dbB.setAttribute('width',140*s);put(dbT,40+70*s,118);
+ vis(repB,showRep);vis(repT,showRep);repB.setAttribute('width',140*s);put(repT,40+70*s,191);
+ for(var i=0;i<7;i++){var b=bk[i],on1=t>=7&&i<nb;vis(b[0],on1);vis(b[1],on1);b[0].setAttribute('x',40+i*52*s);b[0].setAttribute('width',44*s);b[1].setAttribute('x',40+i*52*s+22*s)}
+ vis(bkl,t>=7);
+ var copies=(t>=6?1:0)+nb+1;cn.textContent=t>=7?('copies of the data: '+(1+(t>=6?1:0)+nb)):'';cn2.textContent=t>=7.5?('space used: '+(copies*s).toFixed(0)+' units'):'';
+ vis(rl,t>=16.5);vis(r1,t>=16.5);vis(r1t,t>=16.5);var w2=ease(prog(t,18.5,22.5))*320;vis(r2,t>=18.5);vis(r2t,t>=18.5);wid(r2,w2);put(r2t,60+w2+10,354);
+ if(t<5)say('Size is not bad by itself.','Many healthy databases are very large.');
+ else if(t<11)say('But every copy is as big as the data.','A replica and a week of backups make nine copies.');
+ else if(t<17)say('If the data doubles...','...everything doubles with it: replica, backups and the bill.');
+ else if(t<18.5)say('Restore, new replicas and upgrades take time.','Before the growth, a restore took about 4 hours.');
+ else say('With twice the data, the restore takes twice as long.','That is downtime, and it grows with the size.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

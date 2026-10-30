@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Volume demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="On a managed service almost all storage use is PostgreSQL itself. On a system you run, backups, other logs and snapshots on the same volume add to it. The gap between what PostgreSQL reports and what the volume shows is outside PostgreSQL. Separate volumes keep one from filling another.">
+ <title>Volume demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=28,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=21;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='What fills a volume: managed service against a system you run';
+var T1=txt(60,84,'Managed service: the provider runs the operating system, the volume and the backups',{a:'start',size:13,b:1,fill:'#cfd3f0'});
+var B1=box(60,94,680,40,{rx:6});
+var C1=[['data',50,'#5b7cff'],['WAL',8,'#ff9e7a'],['logs',4,'#c78bff'],['temp',2,'#4dd0e1']],S1=[],acc=0;
+C1.forEach(function(c){S1.push([box(60+680*acc/100,94,0,40,{rx:0,fill:c[2],stroke:'#0f1324'}),acc,c[1]]);acc+=c[1]});
+var N1=txt(60,158,'',{a:'start',size:14,b:1,fill:GREEN});
+var T2=txt(60,214,'A system you run: a virtual machine, or Kubernetes',{a:'start',size:13,b:1,fill:'#cfd3f0'});
+var B2=box(60,224,680,40,{rx:6});
+var C2=[['data',50,'#5b7cff'],['WAL',8,'#ff9e7a'],['logs',4,'#c78bff'],['temp',2,'#4dd0e1'],['backups',20,'#e8d36a'],['other logs',6,'#7a82a8'],['snapshots',8,'#d98cc8']],S2=[];acc=0;
+C2.forEach(function(c){S2.push([box(60+680*acc/100,224,0,40,{rx:0,fill:c[2],stroke:'#0f1324'}),acc,c[1]]);acc+=c[1]});
+var XL=[txt(60+680*(64+10)/100,288,'backups on the same disk',{size:12,b:1,fill:'#e8d36a'}),txt(60+680*(64+23)/100,306,'other logs',{size:12,b:1,fill:'#7a82a8'}),txt(60+680*(64+30)/100,288,'snapshots',{size:12,b:1,fill:'#d98cc8'})];
+var BR1=line(62,296,60+680*0.64-2,296,{stroke:CY,sw:5}),BRt=txt(60+680*0.32,316,'PostgreSQL reports: 64 GB',{b:1,size:14,fill:CY});
+var BR2=line(62,334,60+680*0.98-2,334,{stroke:YEL,sw:5}),BRu=txt(60+680*0.49,354,'the volume says: 98 GB used',{b:1,size:14,fill:YEL});
+var GAP=txt(60+680*0.81,388,'',{b:1,size:15,fill:'#ff6b6b'});
+var V=[];[['data volume',70,'#5b7cff'],['WAL volume',20,'#ff9e7a'],['logs and backups volume',60,'#e8d36a']].forEach(function(v,i){var x=60+i*240;var tt=txt(x+100,150,v[0],{b:1,size:13});var bb=box(x,160,200,44,{rx:6});var ff=box(x,160,2*v[1],44,{rx:6,fill:v[2],stroke:v[2]});V.push(tt,bb,ff)});
+var VN=txt(400,250,'one cannot fill another',{b:1,size:18,fill:GREEN});
+var G12=[T1,B1,N1,T2,B2].concat(XL,[BR1,BRt,BR2,BRu,GAP]),GV=V.concat([VN]);
+S1.forEach(function(s){G12.push(s[0])});S2.forEach(function(s){G12.push(s[0])});
+function render(t){
+ var sep=t>=23;grp(G12,!sep);grp(GV,sep);
+ if(sep){say('Put the data, the log and the backups on separate volumes.','A runaway log then cannot stop the database from writing.');return}
+ for(var i=0;i<4;i++){var f=ease(prog(t,0.8+i*0.7,1.6+i*0.7));wid(S1[i][0],680*S1[i][2]/100*f)}
+ N1.textContent=t>=4.5?'PostgreSQL reports 64 GB, and the volume shows 64 GB used':'';
+ var st=[0,0,0,0,11,13,14.5];
+ for(var i=0;i<7;i++){var f=i<4?ease(prog(t,8+i*0.5,9+i*0.5)):ease(prog(t,st[i],st[i]+1));wid(S2[i][0],680*S2[i][2]/100*f)}
+ vis(XL[0],t>=12);vis(XL[1],t>=14);vis(XL[2],t>=15.5);
+ for(var i=4;i<7;i++){var on1=t>=16&&t<23;S2[i][0].setAttribute('stroke',on1?'#ff6b6b':'#0f1324');S2[i][0].setAttribute('stroke-width',on1?3:1.5)}
+ var cmp=t>=16;vis(BR1,cmp);vis(BRt,cmp);vis(BR2,t>=18);vis(BRu,t>=18);GAP.textContent=t>=20?'the gap, 34 GB, is outside PostgreSQL':'';
+ if(t<7)say('On a managed service, the provider runs the layers under PostgreSQL.','What fills your storage is almost only PostgreSQL itself.');
+ else if(t<16)say('On a system you run, more things share the disk.','Backups kept on the same volume, other logs, snapshots, other software.');
+ else if(t<20)say('Compare two numbers: what PostgreSQL reports, and what the volume says.','Add up the data, the log, the logs and the temporary files.');
+ else say('The gap is disk use that PostgreSQL does not know about.','Use the operating system to find it.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

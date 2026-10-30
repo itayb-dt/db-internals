@@ -53,14 +53,17 @@ topics:
     name: WAL and checkpoints
     domain: Durability
     level: 2
-    description: "The write-ahead log. Every change is recorded in it before the data files, so the instance can recover after a crash. One WAL serves all databases, and replication and backup build on it."
+    description: "The write-ahead log. Every change is recorded in it before the data files, so the instance can recover after a crash. One WAL serves all databases, and replication and backup build on it. Its size normally stays near a limit, and grows when archiving fails, a replication slot holds it, or writes are heavy."
     details: |
       A checkpoint writes the changed pages from memory to the data files, so recovery only has to replay the log after the last checkpoint.
+      If the disk that holds the log fills, PostgreSQL does a PANIC shutdown. No committed transaction is lost, but the instance stays offline until space is freed.
       SQL Server keeps a transaction log per database, and InnoDB has a redo log, which is the closest match.
     evidence:
       - Explain why a commit can return before the data files are written
       - Say what a checkpoint does and what it costs
       - Explain why heavy updates of large values increase WAL volume
+      - Name the common reasons the WAL grows beyond its normal size and how to see each
+      - Say why you should never delete WAL files by hand
     prerequisites:
       - {id: instance, reason: One WAL belongs to the whole instance}
       - {id: buffer, reason: Changes are made in the buffer pool first and the log protects them}
@@ -69,14 +72,14 @@ topics:
     name: Server logs
     domain: Observability
     level: 4
-    description: "Where the instance reports what happens: the error log, and a slow query log that you get by setting a time threshold for statements."
+    description: "What the instance writes to its log, where it goes, how it is rotated and what makes it big. The log holds the error log and, if you set a time threshold, the slow query log. Each has its own topic."
     details: |
-      PostgreSQL has no separate slow query log. Statements slower than `log_min_duration_statement` are written to the same server log.
-      SQL Server has an error log, and MySQL has an error log and a separate slow query log.
+      PostgreSQL has one server log. The error log and the slow query log are two uses of it.
+      PostgreSQL does not remove old log files itself, so someone has to.
     evidence:
       - Find where the server log is written on your instance
-      - Turn on logging of statements slower than a threshold
-      - Say what log_lock_waits and log_autovacuum_min_duration add to the log
+      - Say who removes old log files on your instance
+      - Name the settings that make the log grow
     prerequisites:
       - {id: instance, reason: The log is written by the instance}
 
@@ -96,3 +99,67 @@ topics:
     prerequisites:
       - {id: instance, reason: Each connection is a backend process of the instance}
       - {id: buffer, reason: Shared memory is sized partly by the connection limit, strength: soft}
+
+  - id: instance-disk-space
+    name: The instance is running out of disk space
+    domain: On disk
+    level: 4
+    description: "The disk of a PostgreSQL instance holds more than the databases. The first two checks are the largest database and what changed recently. After that the instance-level consumers are the write-ahead log, the server logs and temporary files, and on a system you manage, anything else on the same disk."
+    details: |
+      If a database is the largest consumer, the track "My database is large" takes over.
+      A full write-ahead log disk makes PostgreSQL shut down, so the warning time matters.
+    evidence:
+      - Name the first two checks when the disk of an instance fills
+      - List what lives on the disk of an instance besides the databases
+      - Say what happens when the disk that holds the write-ahead log fills
+      - Say when to leave this track and continue in My database is large
+    prerequisites:
+      - {id: instance, reason: The disk belongs to the instance and holds its parts}
+      - {id: files-tablespaces, reason: "The data, the write-ahead log and the logs are different directories", strength: soft}
+
+  - id: disk-outside-postgres
+    name: "Managed or self-managed: what else uses the disk"
+    domain: On disk
+    level: 4
+    description: On a managed cloud service the provider runs the operating system, the volume and the backups, so what fills your storage is almost only PostgreSQL itself. On a system you run, a virtual machine or Kubernetes, the disk layout, the backups and other software can fill the disk regardless of the PostgreSQL instance.
+    details: |
+      A useful test is to add up what PostgreSQL reports (data, write-ahead log, logs) and compare it with what the volume reports as used. The gap is outside PostgreSQL.
+    evidence:
+      - Say which part of disk usage you can see and fix on a managed service, and which you own on a system you run
+      - Name four things outside PostgreSQL that fill a volume
+      - Describe how to find disk use that PostgreSQL does not know about
+    prerequisites:
+      - {id: instance-disk-space, reason: This is the last of the checks for what fills an instance disk}
+
+  - id: error-log
+    name: The error log
+    domain: Observability
+    level: 4
+    description: "The part of the server log where the instance reports about itself. Errors and warnings, startup and shutdown, checkpoints and long autovacuum runs. What is written depends on the minimum severity you set."
+    details: |
+      A failing statement is logged with its text, so the error log can hold sensitive values.
+      A repeating error, such as an application retrying in a loop, is the common way for this log to grow.
+    evidence:
+      - Name the severity levels and which ones the default setting writes
+      - Find the cause of a failed archive command or a refused connection in the log
+      - Say why a repeating error makes the log grow
+    prerequisites:
+      - {id: server-logs, reason: The error log is one use of the server log}
+      - {id: wal, reason: Archiving failures and checkpoints are reported here, strength: soft}
+
+  - id: slow-query-log
+    name: The slow query log
+    domain: Observability
+    level: 4
+    description: "The statements that ran longer than a threshold, written to the server log with their duration and text. It shows single executions with their real values, so it can hold personal data."
+    details: |
+      PostgreSQL has no separate slow query log. A threshold in milliseconds decides which statements are written, and sampling can log only a fraction of the borderline ones.
+      Query metrics show totals. The slow query log shows the one slow run.
+    evidence:
+      - Say what an entry in the slow query log contains
+      - Choose a threshold and say what happens if it is too low
+      - Explain how sampling reduces the volume
+      - Say why the log can contain personal data and what to do about it
+    prerequisites:
+      - {id: server-logs, reason: The slow query log is one use of the server log}
+      - {id: query-metrics, reason: The log shows single runs that the metrics hide, strength: soft}

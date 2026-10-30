@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Instance disk demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The disk of an instance holds data, the write-ahead log, logs, temporary files and other things. When it nears full, check the largest database and what changed recently, and then look inside the instance.">
+ <title>Instance disk demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=28,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=26;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+var bx0=60,bw=680,by=130,bh=64;
+var SG=[['data','#5b7cff'],['WAL','#ff9e7a'],['logs','#c78bff'],['temp files','#4dd0e1'],['other','#7a82a8']];
+box(bx0,by,bw,bh,{rx:8});
+var sr=[],sx=[];SG.forEach(function(s){sr.push(box(bx0,by,10,bh,{rx:0,fill:s[1],stroke:'#0f1324'}))});
+var dl=txt(0,by+bh/2+5,'data',{b:1,size:13,fill:'#0f1324'}),wl=txt(0,by+bh/2+5,'WAL',{b:1,size:13,fill:'#0f1324'});
+var us=txt(400,112,'',{b:1,size:19});
+var lg=[];SG.forEach(function(s,i){var x=70+i*135;box(x,226,12,12,{fill:s[1],stroke:s[1],rx:3});txt(x+18,237,s[0],{a:'start',size:12,fill:'#cfd3f0'})});
+var n1=txt(400,276,'',{b:1,size:16}),n2=txt(400,302,'',{size:14,fill:MUTE});
+var tlx=[100,260,420,580],tll=['Mon','Tue','Wed','Thu'];
+var tln=line(80,336,720,336,{stroke:'#3a4270',sw:3}),tlt=[];tll.forEach(function(d,i){tlt.push(txt(tlx[i],358,d,{size:12,fill:MUTE}))});
+var ev=txt(260,318,'archive target unreachable',{size:13,b:1,fill:'#ff6b6b'}),evd=mk('circle',{cx:260,cy:336,r:7,fill:'#ff6b6b'});
+crumb.textContent='An instance disk is filling. Where do you look?';
+function render(t){
+ var wal=6+24*ease(prog(t,6,11)),vals=[50,wal,4,2,8],acc=0;
+ for(var i=0;i<5;i++){var w=bw*vals[i]/100;sr[i].setAttribute('x',bx0+bw*acc/100);wid(sr[i],w);acc+=vals[i]}
+ vis(dl,true);put(dl,bx0+bw*0.25,by+bh/2+5);var ww=bw*vals[1]/100;vis(wl,ww>45);put(wl,bx0+bw*0.5+ww/2,by+bh/2+5);
+ var used=acc;us.textContent='disk used: '+Math.round(used)+'%';us.setAttribute('fill',used>85?'#ff6b6b':'#e8eaf6');
+ for(var i=0;i<5;i++){sr[i].setAttribute('stroke','#0f1324');sr[i].setAttribute('stroke-width',1.5)}
+ var c1=t>=11&&t<17,c2=t>=17&&t<23,c3=t>=23;
+ if(c1){sr[0].setAttribute('stroke','#ffffff');sr[0].setAttribute('stroke-width',4)}
+ if(c3){sr[1].setAttribute('stroke','#ffffff');sr[1].setAttribute('stroke-width',4)}
+ grp([tln,ev,evd].concat(tlt),c2);
+ n1.textContent=c1?'Check 1: which database is the largest?':c2?'Check 2: what changed, and when did it start?':c3?'Found it: the write-ahead log.':'';
+ n2.textContent=c1?'Same size as last week. Not the data, so this is not the database track.':c3?'See WAL and checkpoints.':'';
+ if(c2)n2.textContent='';
+ if(t<5)say('The disk of an instance holds more than the databases.','Data, the write-ahead log, logs, temporary files and other things.');
+ else if(t<11)say('One day the disk is almost full.','Which part grew?');
+ else if(t<17)say('First, find the largest database.','If it were the culprit, the track My database is large takes over.');
+ else if(t<23)say('Second, find what changed recently.','The disk began to fill when the archive target became unreachable.');
+ else say('Now look inside the instance.','A failing archive command keeps WAL segments on disk until it is fixed.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slow query log demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Statements over a threshold are always logged, statements in a sample range are logged for a fraction, and fast statements are ignored. The log contains the statement text with real values, which can be personal data.">
+ <title>Slow query log demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=30,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=13;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='Which statements reach the slow query log?';
+var LG=txt(400,66,'always logged: 2,000 ms or more   |   sampled, 1 in 3: 200 to 2,000 ms   |   ignored: under 200 ms',{size:11,fill:MUTE});
+var ST=[['S1  SELECT ... orders',40],['S2  SELECT ... items',120],['S3  UPDATE stock ...',450],['S4  SELECT ... report',3100],['S5  SELECT ... customers',800],['S6  INSERT INTO log ...',250],['S7  SELECT ... lookup',60],['S8  SELECT ... export',5200]];
+var VD=[['ignored','#8890b5'],['ignored','#8890b5'],['sampled: logged',YEL],['always logged',GREEN],['sampled: skipped','#8890b5'],['sampled: skipped','#8890b5'],['ignored','#8890b5'],['always logged',GREEN]];
+var LOGGED=[2,3,7];
+var rows=[],dur=[],chip=[],chipT=[];
+for(var i=0;i<8;i++){var y=84+i*30;rows.push(txt(24,y+18,ST[i][0],{a:'start',size:12,b:1}));dur.push(txt(330,y+18,fmt(ST[i][1])+' ms',{a:'end',size:12,fill:'#cfd3f0'}));chip.push(box(344,y,136,24,{rx:5,fill:'#1b2140',stroke:VD[i][1]}));chipT.push(txt(412,y+17,VD[i][0],{size:11,b:1,fill:VD[i][1]}))}
+var LP=box(500,76,280,262,{stroke:'#3a4270',rx:8}),LPT=txt(640,96,'the server log',{size:12,b:1,fill:MUTE});
+var LE=[];for(var k=0;k<3;k++)LE.push(txt(512,126+k*28,'',{a:'start',size:12,b:1,fill:GREEN}));
+var PB=box(100,96,600,180,{stroke:'#ff6b6b',rx:10,fill:'#1b1424'});
+var P1=txt(130,136,'duration: 3100 ms   statement:',{a:'start',size:15,fill:'#cfd3f0'}),P2=txt(130,176,'SELECT * FROM users WHERE email = ',{a:'start',size:15,fill:'#e8eaf6'}),P3=txt(436,176,"'ana@example.com'",{a:'start',size:15,b:1,fill:'#ff6b6b'});
+[P1,P2,P3].forEach(function(e){e.setAttribute('font-family','ui-monospace,Menlo,Consolas,monospace')});
+var PU=line(436,184,590,184,{stroke:'#ff6b6b',sw:3}),PL=txt(400,232,'personal data in a file',{b:1,size:18,fill:'#ff6b6b'});
+var AC=[txt(110,152,'1   Limit who can read the log',{a:'start',size:17,b:1}),txt(110,208,'2   Do not log bind parameters if you can avoid it',{a:'start',size:17,b:1}),txt(110,264,'3   Redact before sharing, and check retention rules',{a:'start',size:17,b:1})];
+var G1=rows.concat(dur,chip,chipT,[LG,LP,LPT],LE),GP=[PB,P1,P2,P3,PU,PL];
+function render(t){
+ var sc=t<16?0:t<24?1:2;grp(G1,sc===0);grp(GP,sc===1);grp(AC,false);
+ if(sc===0){var tt=0;
+  for(var i=0;i<8;i++){var a=4+1.5*i,sh=t>=a;vis(rows[i],sh);vis(dur[i],sh);vis(chip[i],t>=a+0.7);vis(chipT[i],t>=a+0.7)}
+  for(var k=0;k<3;k++){var a=4+1.5*LOGGED[k]+1.2;LE[k].textContent=t>=a?'duration: '+fmt(ST[LOGGED[k]][1])+' ms  '+ST[LOGGED[k]][0].slice(0,2):'';vis(LE[k],true)}
+  var cur=Math.min(7,Math.floor((t-4)/1.5));
+  if(t<4)say('Two ideas control the slow query log: a threshold and sampling.','Statements over the threshold are always logged. Some of the rest are sampled.');
+  else{var d=ST[cur][1],v=VD[cur][0];say(ST[cur][0].slice(0,2)+' took '+fmt(d)+' ms: '+(v==='ignored'?'under the sample threshold, not logged.':v==='always logged'?'over the threshold, always logged.':v==='sampled: logged'?'in the sample range, and the sample picked it.':'in the sample range, and the sample skipped it.'),'')}
+ }else if(sc===1){grp(rows,false);vis(PU,t>=18.5);vis(PL,t>=19.5);vis(P3,true);
+  say('The log holds the statement text, with its values.','Emails, names, account numbers and tokens can end up in a file.')}
+ else{for(var i=0;i<3;i++)vis(AC[i],t>=24.3+1.8*i);say('Treat the slow query log as sensitive data.','')}
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

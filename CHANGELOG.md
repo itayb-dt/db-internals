@@ -2,6 +2,23 @@
 
 Notable changes to the Database Internals map. Newest first. Topic names are the ones shown on the map.
 
+## 2026-10-31
+
+### Animations
+- **13 new animations of 20 to 30 seconds**, one for each article of the tracks "My query is slow", "My database is large" and "The DB Instance is running out of disk space", paced at about two seconds a step. Analyzing slow queries (the five-step loop), Common root causes (the four reasons), Query metrics (ranking by total time against mean time), Why a large database is a problem (copies multiply), Why a database suddenly grows (size against rows), Monitoring table size (what each size function counts), Vacuum configuration (when autovacuum starts, and workers sharing a budget), The instance is running out of disk space (the two first checks), WAL and checkpoints (from a change to a log that piles up), Server logs (files and who removes them), The error log (a repeating error), The slow query log (thresholds, sampling and personal data) and Managed or self-managed (the gap between PostgreSQL and the volume).
+- The writing guide now says 20 to 30 seconds for a process with several steps.
+
+### New
+- **Track "The DB Instance is running out of disk space"** (7 steps): The instance is running out of disk space, WAL and checkpoints, Server logs, The error log, The slow query log, Managed or self-managed, and Why a database suddenly grows. It is about the instance. The first article says to check two things first, the largest database and what changed recently, lists the common reasons an instance runs out of space, and hands over to the track "My database is large" (the last step is the hand-over). The last article explains that on a managed cloud service this is almost the whole story, while on a system you run (a VM or Kubernetes) the disk layout, backups and other software can fill the disk regardless of PostgreSQL.
+- **WAL and checkpoints** now has its article. It covers what the log is, checkpoints, and why the log grows (archiving that fails, a replication slot, heavy writes), with how to see each and what to do. The reasons the log grows are part of the WAL topic, not a topic of their own.
+- **Server logs** now has its article (where the log goes, rotation, what makes it big), and the logs are split into two topics with their own articles: **The error log** (what it holds, severity levels, what to look for) and **The slow query log** (what an entry contains, a warning about personal data, thresholds and sampling, and `auto_explain` with a reminder to check extensions with your cloud provider). Server logs, WAL and checkpoints are in the Anatomy of PostgreSQL track.
+- New topic **The instance is running out of disk space** and **Managed or self-managed: what else uses the disk**, each with an article.
+- **Track "My database is large"** (9 steps): Why a large database is a problem, Why a database suddenly grows, Monitoring table size, Index, TOAST, Dead rows, Vacuum, Vacuum configuration and Monitoring vacuum. It is about the data in the database. It starts with why size matters, covers the healthy cause of growth (more inserts) before the others, and ends with vacuum, its settings and how to watch it. Instance-level causes (a full disk, the write-ahead log, temporary files, logs) are left for a separate track.
+- Three new topics in Storage, each with an article: **Why a large database is a problem** (costs, and three questions to ask), **Why a database suddenly grows** (healthy growth against waste, and a symptom table of causes inside the database: dead rows, blocked vacuum, one big update, indexes, large values, data that is never removed) and **Vacuum configuration** (when it starts, how many workers, how fast, and per-table rules).
+- The **Monitoring table size** topic now has its article: what a table is made of, the size functions, and how to look from the database down to the table, large values and indexes. It also closes a "coming soon" step in the PostgreSQL Storage track.
+- **Bloom filter** (new advanced topic in Indexing, not part of any track): what a Bloom filter is, why it gives false positives but never false negatives, when it pays off, real-world uses, and the PostgreSQL `bloom` index (what it is for, what it gives up, the numbers from the documentation). It includes a reminder to check every extension against your cloud provider. A 20-second animation adds two values and checks an absent one and a false positive. The article has no SQL: it says `bloom` is an extension installed like any other, and to create a bloom index on the columns.
+- **Writing guide tightened:** no `CREATE EXTENSION`, creating an object is a sentence, and a statement is shown only for a very good reason.
+
 ## 2026-10-26
 
 ### New

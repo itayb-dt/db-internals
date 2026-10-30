@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Causes of slow queries demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The four usual reasons a query is slow: it reads too much, it picked a poor plan, it waits, or it runs too often.">
+ <title>Causes of slow queries demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=30,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=6.5;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+var CH=['1 Reads too much','2 Poor plan','3 Waits','4 Runs too often'],cb=[];
+for(var i=0;i<4;i++){var x=20+i*195;cb.push(box(x,60,180,38,{stroke:'#3a4270'}));txt(x+90,84,CH[i],{b:1,size:13})}
+crumb.textContent='Why is the query slow? Four usual reasons';
+var pg=[];for(var r=0;r<4;r++)for(var c=0;c<8;c++)pg.push(box(150+c*58,122+r*46,50,38,{rx:4}));
+var NEED=13,s1=txt(400,328,'',{b:1,size:15,fill:YEL});
+var eb=box(150,170,4,34,{rx:3,fill:CY,stroke:CY}),ebl=txt(150,162,'the planner expected: 10 rows',{a:'start',size:13,b:1,fill:CY});
+var ab=box(150,262,2,34,{rx:3,fill:'#ff9e7a',stroke:'#ff9e7a'}),abl=txt(150,254,'what happened: 0 rows',{a:'start',size:13,b:1,fill:'#ff9e7a'});
+var sa=box(110,150,230,80,{stroke:GREEN}),sat=txt(225,182,'Session A',{b:1,size:15}),sat2=txt(225,206,'holds a lock',{size:13,fill:MUTE});
+var sq=box(460,150,230,80,{stroke:YEL}),sqt=txt(575,182,'Your query',{b:1,size:15}),sqt2=txt(575,206,'',{size:13,fill:YEL});
+var arr=line(340,190,460,190,{stroke:'#3a4270',sw:3});
+var cpuL=txt(110,284,'CPU used by your query',{a:'start',size:12,fill:MUTE}),cpuB=box(110,292,400,16,{rx:4}),cpuF=box(110,292,12,16,{rx:4,fill:CY,stroke:CY}),wt=txt(575,300,'',{b:1,size:16,fill:YEL});
+var dots=[];for(var i=0;i<20;i++)dots.push(mk('circle',{cx:130+i*28,cy:170,r:9,fill:CY}));
+var c4=txt(400,240,'',{b:1,size:18}),c4b=txt(400,290,'',{b:1,size:17,fill:YEL});
+var G1=pg.concat([s1]),G2=[eb,ebl,ab,abl],G3=[sa,sat,sat2,sq,sqt,sqt2,arr,cpuL,cpuB,cpuF,wt],G4=dots.concat([c4,c4b]);
+function render(t){
+ var sc=Math.min(3,Math.floor(t/7.5)),T=t-sc*7.5;
+ for(var i=0;i<4;i++)on(cb[i],i===sc,'#2a3158',YEL,3);
+ grp(G1,sc===0);grp(G2,sc===1);grp(G3,sc===2);grp(G4,sc===3);
+ if(sc===0){var n=Math.floor(clamp((T-0.8)/4.6)*32);
+  for(var i=0;i<32;i++){if(i===NEED){pg[i].setAttribute('stroke',GREEN);pg[i].setAttribute('stroke-width',3);pg[i].setAttribute('fill',i<n?'#1f4a38':'#1b2140')}else on(pg[i],i<n,'#3a3358',YEL,2)}
+  s1.textContent=T<0.8?'':'reads 1,000,000 rows to return 30';
+  say('It reads far more than the answer needs.','With no usable index, every page is read to find a few rows.')}
+ else if(sc===1){var u=ease(prog(T,1.2,5.5));wid(ab,2+u*540);abl.textContent='what happened: '+fmt(u*500000)+' rows';
+  say('It chose a poor path.','The planner expected 10 rows and got 500,000, so the plan was wrong.')}
+ else if(sc===2){wt.textContent='waited '+(T*1.65).toFixed(1)+' s';sqt2.textContent='waiting'+'...'.slice(0,1+Math.floor(T*2)%3);
+  say('It waits.','The work is small. It waits for a lock, the disk, the CPU or a free connection.')}
+ else{var calls=Math.floor(clamp((T-0.6)/5.4)*400),nd=Math.min(20,Math.ceil(calls/20));
+  for(var i=0;i<20;i++)vis(dots[i],i<nd);
+  c4.textContent='calls: '+calls+'   ×   2 ms each   =   '+(calls*2)+' ms';c4b.textContent=T>=6.2?'400 × 2 ms = 800 ms. Each run is fine, the sum is not.':'';
+  say('It runs too often.','Each run is cheap. There are far too many, or they collide with a heavy job.')}
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Table size demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A table is made of its rows, large values, small helper files and indexes. Four size functions each cover a different part, and only the total shows the whole cost.">
+ <title>Table size demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=28,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=25;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+var BX=60,BW=680,BY=100,BH=56;
+var SEG=[['table',40,'#5b7cff'],['TOAST',17,'#4dd0e1'],['',3,'#7a82a8'],['indexes',40,'#ff9e7a']];
+var sg=[],sl=[],cx=[],cw=[];
+var acc=0;for(var i=0;i<4;i++){var w=BW*SEG[i][1]/100;cx.push(BX+BW*acc/100);cw.push(w);acc+=SEG[i][1];sg.push(box(cx[i],BY,w,BH,{rx:4,fill:SEG[i][2],stroke:'#0f1324'}));sl.push(txt(cx[i]+w/2,BY+BH/2+5,SEG[i][0]?SEG[i][0]+'  '+SEG[i][1]+' GB':'',{b:1,size:13,fill:'#0f1324'}))}
+var hl=txt(cx[2]+cw[2]/2,BY-12,'helper files 3 GB',{size:11,fill:MUTE});
+var BR=[['pg_relation_size','40 GB: just the rows',0,1,196,YEL],['pg_table_size','60 GB: rows, large values, helper files',0,3,244,CY],['pg_indexes_size','40 GB: all the indexes',3,4,292,'#ff9e7a'],['pg_total_relation_size','100 GB: everything',0,4,340,GREEN]];
+var bl=[],bt=[],bn=[];
+BR.forEach(function(b){var x1=BX+BW*[0,40,57,60,100][b[2]]/100,x2=BX+BW*[0,40,57,60,100][b[3]]/100;
+ bl.push(line(x1+2,b[4],x2-2,b[4],{stroke:b[5],sw:5}));bt.push(txt((x1+x2)/2,b[4]-8,b[0],{b:1,size:13,fill:b[5]}));bn.push(txt((x1+x2)/2,b[4]+19,b[1],{size:12,fill:'#cfd3f0'}))});
+crumb.textContent='One table, and the functions that measure it';
+function render(t){
+ for(var i=0;i<4;i++){var v=t>=0.8+1.2*i;vis(sg[i],v);vis(sl[i],v)}vis(hl,t>=3.2);
+ var st=[6,11,16,21];
+ for(var k=0;k<4;k++){var v=t>=st[k];vis(bl[k],v);vis(bt[k],v);vis(bn[k],v)}
+ var hot=-1;if(t>=21)hot=3;else if(t>=16)hot=2;else if(t>=11)hot=1;else if(t>=6)hot=0;
+ for(var i=0;i<4;i++){var inb=hot>=0&&i>=BR[hot][2]&&i<BR[hot][3];op(sg[i],hot<0||inb?1:0.3);op(sl[i],hot<0||inb?1:0.3)}
+ if(t<6)say('A table is more than its rows.','Rows, large values, small helper files and indexes, all stored separately.');
+ else if(t<11)say('pg_relation_size counts only the rows file.','It misses the large values and the indexes.');
+ else if(t<16)say('pg_table_size adds large values and helper files.','Still no indexes.');
+ else if(t<21)say('pg_indexes_size counts the indexes of the table.','Often as big as the table itself.');
+ else if(t<26)say('pg_total_relation_size is the whole cost.','It is the table size plus the indexes.');
+ else say('Looking only at pg_relation_size says 40 GB.','The real cost is 100 GB. Use the total.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

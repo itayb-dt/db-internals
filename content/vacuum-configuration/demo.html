@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Autovacuum trigger demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Autovacuum starts when dead rows pass 50 plus 20 percent of the table. That is quick for a small table and far too late for a table of a hundred million rows. A lower scale factor for that table starts vacuum ten times earlier. Workers share one speed budget.">
+ <title>Autovacuum trigger demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=30,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=24;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+var gx=80,gw=640;
+var form=txt(400,200,'trigger  =  50  +  0.2  ×  rows',{b:1,size:28,fill:YEL}),form2=txt(400,236,'dead rows needed before autovacuum starts on a table',{size:14,fill:MUTE});
+var gt=txt(400,100,'',{b:1,size:17}),gb=box(gx,140,gw,34,{rx:6}),gf=box(gx,140,2,34,{rx:6,fill:'#ff9e7a',stroke:'#ff9e7a'});
+var mkr=mk('path',{d:'M0 0',stroke:GREEN,'stroke-width':4,fill:'none'}),mkl=txt(0,128,'',{size:13,b:1,fill:GREEN});
+var a0=txt(gx,194,'0 dead rows',{a:'start',size:11,fill:MUTE}),a1=txt(gx+gw,194,'',{a:'end',size:11,fill:MUTE}),tm=txt(400,234,'',{size:14,b:1,fill:MUTE});
+var tl=txt(gx,276,'table size',{a:'start',size:12,fill:MUTE}),tb=box(gx,284,400,30,{rx:6,fill:'#2a4a7a',stroke:'#5b7cff'}),td=box(gx+400,284,0,30,{rx:0,fill:'#ff6b6b',stroke:'#ff6b6b'}),tn=txt(0,305,'',{a:'start',size:14,b:1,fill:'#ff6b6b'});
+var bb=box(gx,140,gw,34,{rx:6}),bt0=txt(400,126,'speed budget (the cost limit, shared by all workers)',{size:13,b:1,fill:MUTE});
+var w1=box(gx,140,gw,34,{rx:6,fill:'#1f4a38',stroke:GREEN}),w1t=txt(400,162,'worker 1',{b:1,size:14});
+var w3=[],w3t=[];for(var i=0;i<3;i++){w3.push(box(gx+i*gw/3,140,gw/3-4,34,{rx:6,fill:'#1f4a38',stroke:GREEN}));w3t.push(txt(gx+i*gw/3+gw/6-2,162,'worker '+(i+1),{b:1,size:13}))}
+var G0=[form,form2],GG=[gt,gb,gf,mkr,mkl,a0,a1,tm],GT=[tl,tb,td,tn],GB=[bb,bt0,w1,w1t].concat(w3,w3t);
+crumb.textContent='When does autovacuum start, and how fast does it go?';
+function setM(f,label){var x=gx+f*gw;mkr.setAttribute('d','M'+x+' 132L'+x+' 182');mkl.textContent=label;put(mkl,x,124);mkl.setAttribute('text-anchor',f<0.2?'start':f>0.8?'end':'middle')}
+function render(t){
+ var sc=t<3?0:t<10?1:t<19?2:t<25?3:4,T=t-[0,3,10,19,25][sc];
+ grp(G0,sc===0);grp(GG,sc>=1&&sc<=3);grp(GT,sc>=2&&sc<=3);grp(GB,sc===4);
+ if(sc===0)say('Autovacuum starts when dead rows pass a trigger.','The defaults are 50 rows plus 20% of the table.');
+ else if(sc===1){gt.textContent='A table of 1,000 rows';a1.textContent='400';setM(250/400,'vacuum starts at 250 dead rows');
+  var f=ease(prog(T,0.8,4.4))*250/400;wid(gf,f*gw);tm.textContent=T>4.6?'quick: the table barely grew':'';
+  say('Small table: 50 + 0.2 × 1,000 = 250 dead rows.','Vacuum starts almost at once.')}
+ else if(sc===2){gt.textContent='A table of 100,000,000 rows';a1.textContent='40 million';setM(0.5,'vacuum starts at about 20 million dead rows');
+  var f=ease(prog(T,1,7))*0.5;wid(gf,f*gw);wid(td,f/0.5*80);tn.textContent=T>7?'the table is 20% bigger':'';put(tn,gx+400+f/0.5*80+10,305);tm.textContent=(T>1&&T<7)?'time passes...':'';
+  say('Big table: 50 + 0.2 × 100 million = about 20 million.','The default is far too lax. The table grows by a fifth first.')}
+ else if(sc===3){gt.textContent='The same table, with its own scale factor of 0.02';a1.textContent='40 million';
+  var fm=0.5-0.45*ease(prog(T,0.6,2.0));setM(fm,T<2.1?'moving the trigger...':'vacuum starts at about 2 million');
+  var f=T<2.2?0:ease(prog(T,2.2,4.2))*0.05;wid(gf,f*gw);wid(td,f/0.05*8);tn.textContent=T>4.4?'the table is 2% bigger':'';put(tn,gx+400+f/0.05*8+10,305);
+  say('Give big, busy tables their own, lower scale factor.','Vacuum now starts ten times earlier, with far less to clean.')}
+ else{if(T<2.5){wid(w1,gw);op(w1,1);w1t.textContent='worker 1 uses the whole budget';grp(w3,false);grp(w3t,false);vis(w1,true);vis(w1t,true);say('One worker can use the whole budget.','The speed limit is shared by all running workers.')}
+  else{vis(w1,false);vis(w1t,false);grp(w3,true);grp(w3t,true);say('Three workers split the same budget.','Each one is slower. To go faster, raise the limit, not the number of workers.')}}
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Error log demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The error log shows entries with severity levels. A repeating error from an application in a retry loop fills the log. The most frequent message is the one to fix.">
+ <title>Error log demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=26,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=12;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='The error log: what the instance says about itself';
+box(30,70,520,280,{stroke:'#3a4270',rx:8});
+var LN=[];for(var i=0;i<11;i++)LN.push(txt(44,96+i*23,'',{a:'start',size:12,b:1}));
+box(570,70,210,200,{stroke:'#3a4270',rx:8});txt(675,90,'severity',{size:12,b:1,fill:MUTE});
+var SV=[['LOG','#8890b5','information for admins'],['WARNING',YEL,'a likely problem'],['ERROR','#ff6b6b','a command failed'],['FATAL','#ff6b6b','a session was lost'],['PANIC','#ff6b6b','all sessions aborted']];
+SV.forEach(function(s,i){box(582,102+i*32,10,10,{fill:s[1],stroke:s[1],rx:2});txt(600,112+i*32,s[0],{a:'start',size:12,b:1,fill:s[1]});txt(600,126+i*32,s[2],{a:'start',size:10,fill:MUTE})});
+var cnt=txt(675,298,'',{b:1,size:14,fill:'#ff6b6b'}),cnt2=txt(675,318,'',{size:11,fill:MUTE});
+var LB=txt(30,368,'log size',{a:'start',size:11,fill:MUTE}),LK=box(90,357,460,12,{rx:4}),LF=box(90,357,20,12,{rx:4,fill:'#ff9e7a',stroke:'#ff9e7a'});
+var RK=[],RB=[],RV=[];
+var RD=[['connection refused',4800,'#ff6b6b'],['deadlock detected',12,YEL],['checkpoint complete',6,'#8890b5']];
+RD.forEach(function(r,i){RK.push(txt(44,120+i*70,r[0],{a:'start',size:14,b:1}));RB.push(box(44,132+i*70,Math.max(6,r[1]/4800*300),26,{rx:4,fill:r[2],stroke:r[2]}));RV.push(txt(44+Math.max(6,r[1]/4800*300)+10,151+i*70,fmt(r[1])+' times',{a:'start',size:13,b:1,fill:r[2]}))});
+var EV=[[1.5,'LOG','checkpoint complete: wrote 1,204 buffers','#8890b5'],[3,'WARNING','there is no transaction in progress',YEL],[4.5,'ERROR','deadlock detected','#ff6b6b'],[6,'LOG','checkpoint complete: wrote 980 buffers','#8890b5'],[7.5,'FATAL','too many connections for role "app"','#ff6b6b']];
+for(var q=0;q<26;q++)EV.push([8.8+q*0.32,'ERROR','connection refused: could not connect to server','#ff6b6b']);
+function render(t){
+ var vs=[];EV.forEach(function(e){if(t>=e[0]&&t<17)vs.push(e)});vs=vs.slice(-11);
+ for(var i=0;i<11;i++){var e=vs[i];LN[i].textContent=e?(e[1]+':  '+e[2]):'';LN[i].setAttribute('fill',e?e[3]:'#fff')}
+ var flood=t>=8.8&&t<17,n=flood?Math.floor(prog(t,8.8,17)*4800):(t>=17?4800:0);
+ cnt.textContent=t>=8.8&&t<22?'same message: '+fmt(n)+' times':'';cnt2.textContent=t>=8.8&&t<17?'an application retrying in a loop':'';
+ var growth=t<8.8?0.05+0.01*t:t<17?0.14+0.7*prog(t,8.8,17):t<22?0.84:0.84;LF.setAttribute('width',460*growth);LF.setAttribute('fill',growth>0.6?'#ff6b6b':'#ff9e7a');
+ var rk=t>=17;grp(LN,!rk);grp(RK.concat(RB,RV),rk);
+ if(rk&&t<21)for(var i=0;i<3;i++){vis(RK[i],i===0||t>=18+i*0.4);vis(RB[i],i===0||t>=18+i*0.4);vis(RV[i],i===0||t>=18+i*0.4)}
+ if(t<8.8)say('Each entry has a severity: LOG, WARNING, ERROR, FATAL, PANIC.','Errors and warnings, checkpoints, startup and shutdown.');
+ else if(t<17)say('A repeating error is the common way the log grows.','The same message, again and again, from one application stuck in a retry loop.');
+ else if(t<22)say('Look for the most frequent message.','One message is almost the whole log.');
+ else say('Fix the cause, and the log stops growing.','Here, the application that cannot connect.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

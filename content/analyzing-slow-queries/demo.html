@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analysis loop demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A loop of five steps: find the costly query, understand its plan, name the cause, fix it and measure again. Then the next query starts the loop again.">
+ <title>Analysis loop demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=28,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=22;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+var NM=['1 Find','2 Understand','3 Name the cause','4 Fix','5 Measure'],SB=['query metrics','execution plan','common root causes','index, rewrite, statistics','the same numbers again'];
+var bx=[],bt=[];
+for(var i=0;i<5;i++){var x=20+i*152;bx.push(box(x,100,140,70,{stroke:'#3a4270'}));bt.push(txt(x+70,130,NM[i],{b:1,size:14}));txt(x+70,155,SB[i],{size:10,fill:MUTE});if(i<4)line(x+140,135,x+152,135,{stroke:'#3a4270'})}
+line(698,170,698,254,{stroke:'#3a4270'});line(698,254,90,254,{stroke:'#3a4270'});line(90,254,90,170,{stroke:'#3a4270'});
+txt(400,274,'then the next query',{size:11,fill:MUTE});
+var tok=mk('circle',{r:10,fill:YEL,cx:-40,cy:204}),tokT=txt(-40,208,'query #1',{a:'start',size:12,b:1,fill:YEL});
+var ba=txt(400,330,'',{b:1,size:22,fill:GREEN});
+crumb.textContent='The analysis loop: find, understand, name the cause, fix, measure';
+function render(t){
+ var k=t<3?-1:Math.min(4,Math.floor((t-3)/4));
+ for(var i=0;i<5;i++){on(bx[i],false);if(t>=23||k>i)on(bx[i],true,'#1f3a2e',GREEN,2);if(i===k&&t<23)on(bx[i],true,'#2a3158',YEL,4)}
+ var px=-40,py=204,lab='query #1';
+ if(t>=3&&t<23){var cx=20+k*152+70,prev=k===0?-60:cx-152,e=ease(prog(t,3+4*k,3+4*k+0.9));px=prev+(cx-prev)*e}
+ else if(t>=23){var u=prog(t,23,26)*3,P=[[698,204],[698,254],[90,254],[90,204]],i2=Math.min(2,Math.floor(u)),f=u-i2;px=P[i2][0]+(P[i2+1][0]-P[i2][0])*f;py=P[i2][1]+(P[i2+1][1]-P[i2][1])*f;if(t>=26){px=90;py=204}lab=t>=24.5?'query #2':'query #1'}
+ tok.setAttribute('cx',px);tok.setAttribute('cy',py);put(tokT,px+16,py+4);tokT.textContent=lab;
+ ba.textContent=(k===4&&t>=21&&t<23)?'mean time: 8.2 s  →  0.4 s':'';
+ if(t<3)say('A slow system needs a method, not a guess.','The same five steps, every time.');
+ else if(t>=23)say('Then start again with the next query.','The next one in line now costs the most.');
+ else if(k===0)say('Find the query that costs the most.','Use numbers such as calls and total time, not a hunch.');
+ else if(k===1)say('Understand how the database ran it.','Read its execution plan.');
+ else if(k===2)say('Name the cause.','Match what you saw to a known root cause.');
+ else if(k===3)say('Fix that cause.','One change at a time, so you know what helped.');
+ else say('Measure again, with the same numbers.','A fix you did not measure is a guess.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

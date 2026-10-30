@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Log files demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="The server writes log files in a log directory. A new file starts every day and old files are not deleted, so the disk fills up. A rotation utility that removes old files keeps the disk use steady.">
+ <title>Log files demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=25,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=14;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='The server log is written to files in a log directory';
+box(60,74,300,270,{stroke:'#3a4270',rx:8});txt(210,94,'log directory',{size:12,b:1,fill:MUTE});
+var FR=[],FT=[];for(var k=0;k<10;k++){FR.push(box(76,106+k*22,268,18,{rx:3,fill:'#33284a',stroke:VIO}));FT.push(txt(86,119+k*22,'',{a:'start',size:11,b:1}))}
+txt(590,128,'disk used by the logs',{size:12,b:1,fill:MUTE});var DK=box(440,138,300,36,{rx:6}),DF=box(440,138,10,36,{rx:6,fill:VIO,stroke:VIO}),dtx=txt(590,196,'',{b:1,size:16});
+var RM=box(440,236,300,70,{stroke:GREEN,rx:8}),RT=txt(590,266,'a rotation utility',{b:1,size:14,fill:GREEN}),RT2=txt(590,288,'removes files older than 5 days',{size:12,fill:'#cfd3f0'});
+function show(list){for(var k=0;k<10;k++){var f=list[k];vis(FR[k],f!=null);vis(FT[k],f!=null);if(f!=null){FT[k].textContent='postgresql-day-'+f+'.log'}}}
+function render(t){
+ var list=[],full=false,fill=0;
+ if(t>=3&&t<15.5){var n=Math.min(10,Math.floor((t-3)/1.2)+1);for(var i=1;i<=n;i++)list.push(i);fill=n/10;full=n>=10}
+ else if(t>=16){var n=Math.min(10,Math.floor((t-16)/0.8)+1);for(var i=Math.max(1,n-4);i<=n;i++)list.push(i);fill=list.length/10}
+ show(list);wid(DF,300*Math.max(0.03,fill));var hot=fill>=0.8;DF.setAttribute('fill',hot?'#ff6b6b':VIO);DF.setAttribute('stroke',hot?'#ff6b6b':VIO);
+ dtx.textContent=full&&t>=13.8?'disk full':'';dtx.setAttribute('fill','#ff6b6b');
+ grp([RM,RT,RT2],t>=16);
+ if(t<3)say('The server writes its log to files in a log directory.','A new file starts after 24 hours or 10 MB.');
+ else if(t<13.2)say('A new file starts every day. Old files are not deleted.','PostgreSQL writes and rotates the log, but it does not remove old files.');
+ else if(t<16)say('Nothing removes them, so the disk fills up.','Who removes old log files on your instance?');
+ else say('Something has to remove the old files.','A rotation utility, or a file name that repeats so old files are overwritten.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

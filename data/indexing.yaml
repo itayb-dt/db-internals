@@ -76,3 +76,21 @@ topics:
     prerequisites:
       - {id: index, reason: A BRIN is a kind of index}
       - {id: heap, reason: Works on physical block ranges of the table}
+
+  - id: bloom-filter
+    name: Bloom filter
+    domain: Specialised indexes
+    level: 3
+    description: A tiny structure that answers "is this value in the set?" with "definitely not" or "maybe". It saves expensive lookups when most answers are no. PostgreSQL offers it as the bloom index for tables with many columns.
+    details: |
+      An advanced topic, not part of any track.
+      The bloom index suits tables with many columns that are queried by equality on arbitrary combinations of them. It is lossy, so matches are rechecked in the table.
+    evidence:
+      - Explain why a Bloom filter can give false positives but never false negatives
+      - Name two real systems that use a Bloom filter to skip work
+      - Say when one bloom index can replace many B-tree indexes, and what you give up
+      - Say why every extension must be checked against your cloud provider before you design around it
+    prerequisites:
+      - {id: index, reason: The bloom index is a kind of index}
+      - {id: hash, reason: A Bloom filter is built from hash functions, strength: soft}
+      - {id: heap, reason: Every match is rechecked in the table, strength: soft}

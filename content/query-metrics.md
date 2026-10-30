@@ -1,6 +1,6 @@
 ---
 title: "Query metrics: the numbers that describe a query"
-updated: 2026-10-26
+updated: 2026-10-31
 sources:
   - https://www.postgresql.org/docs/17/pgstatstatements.html
   - https://www.postgresql.org/docs/17/monitoring-stats.html
@@ -32,6 +32,12 @@ A query costs the database its **time per run** multiplied by **how many runs**.
 | **Waits** | What a running statement is waiting for right now | `wait_event_type`, `wait_event` in `pg_stat_activity` |
 
 The statistics view is the extension `pg_stat_statements`. It needs to be loaded at server start and created in the database. It groups statements by their shape, with constants replaced by parameters, so `WHERE id = 7` and `WHERE id = 9` count as one statement. Waits are different: they are a live snapshot, so you sample them several times.
+
+The animation ranks four statements first by total time and then by mean time, and then checks the cache hit ratio and temporary files.
+
+<iframe src="query-metrics/demo.html" title="Animation: four statements ranked by total time, where a cheap lookup run 90,000 times is first, and then by mean time, where a slow report run 20 times is first. Then cache hits and temporary files are checked" width="800" height="450"></iframe>
+
+*The animation repeats about every 28 seconds.*
 
 ## How to analyse them
 
@@ -103,7 +109,7 @@ The counters only grow. They count from the server start, or from the last reset
 - **Percentiles.** It keeps the mean, the minimum, the maximum and the standard deviation, not the 95th percentile.
 - **Old data.** By default it keeps up to 5,000 distinct statements. Rarely used ones are dropped, and a reset clears everything.
 
-To catch individual slow executions, the server can log every statement slower than a threshold (`log_min_duration_statement`). See [Server logs](topic:server-logs).
+To catch individual slow executions, the server can log every statement slower than a threshold. See [The slow query log](topic:slow-query-log).
 
 ## Built-in monitoring
 

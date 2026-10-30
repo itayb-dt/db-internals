@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Growth comparison demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Three charts of rows and size over time. When the size follows the rows the growth is healthy. When the size grows and the rows do not it is waste. A sudden step in size with no new rows points to a one-off event.">
+ <title>Growth comparison demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=28,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=26;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+var X0=90,X1=720,Y0=330,Y1=110;
+line(X0,Y0,X1,Y0,{stroke:'#3a4270'});line(X0,Y0,X0,Y1,{stroke:'#3a4270'});
+txt(X1,Y0+18,'time',{a:'end',size:11,fill:MUTE});txt(X0-8,Y1-4,'size',{a:'end',size:11,fill:MUTE});
+var pr=mk('path',{stroke:CY,'stroke-width':4,fill:'none'}),ps=mk('path',{stroke:YEL,'stroke-width':4,fill:'none'});
+box(560,70,12,12,{fill:CY,stroke:CY,rx:3});txt(578,81,'rows',{a:'start',size:12,fill:CY,b:1});box(630,70,12,12,{fill:YEL,stroke:YEL,rx:3});txt(648,81,'size',{a:'start',size:12,fill:YEL,b:1});
+var tag=txt(300,81,'',{b:1,size:17}),ratio=txt(400,362,'',{b:1,size:16}),qq=txt(0,0,'what ran here?',{a:'middle',size:14,b:1,fill:'#ff9e7a'});
+crumb.textContent='Compare the size with the number of rows, over time';
+function sm(u,a,b){return clamp((u-a)/(b-a))}
+var F=[[function(u){return 0.1+0.8*u},function(u){return 0.16+0.74*u}],
+       [function(u){return 0.4},function(u){return 0.2+0.65*u}],
+       [function(u){return 0.4},function(u){return 0.3+0.4*ease(sm(u,0.5,0.58))}]];
+function pth(f,r){var d='',n=Math.max(1,Math.floor(60*r));for(var i=0;i<=n;i++){var u=i/60*(r>=1?1:1);u=Math.min(u,r);var x=X0+u*(X1-X0),y=Y0-f(u)*(Y0-Y1);d+=(i?'L':'M')+x+' '+y}return d}
+function render(t){
+ var sc=t<9?0:t<18?1:2,T=t-[0,9,18][sc],r=ease(prog(T,0.8,[7,7,8][sc]));
+ pr.setAttribute('d',pth(F[sc][0],r));ps.setAttribute('d',pth(F[sc][1],r));
+ tag.textContent=['Healthy growth','Waste','A sudden step'][sc];tag.setAttribute('fill',[GREEN,'#ff6b6b','#ff9e7a'][sc]);
+ ratio.textContent=r>0.95?['size per row: steady','size per row: rising','size per row: jumped'][sc]:'';ratio.setAttribute('fill',[GREEN,'#ff6b6b','#ff9e7a'][sc]);
+ var stepx=X0+0.54*(X1-X0);qq.setAttribute('opacity',sc===2&&r>0.6?1:0);put(qq,stepx,Y0-0.74*(Y0-Y1));
+ if(sc===0)say('Healthy: the size follows the rows.','More rows are inserted, so the database grows. Plan capacity.');
+ else if(sc===1)say('Waste: the size grows, the rows do not.','Dead rows, bloat or indexes are taking the space.');
+ else say('A sudden step with no new rows.','A mass update, a rewrite or something that stopped cleanup. Ask what changed.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

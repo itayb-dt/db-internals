@@ -1,6 +1,6 @@
 ---
 title: "Analyzing slow queries: a method"
-updated: 2026-10-26
+updated: 2026-10-31
 sources:
   - https://www.postgresql.org/docs/17/monitoring-stats.html
   - https://www.postgresql.org/docs/17/pgstatstatements.html
@@ -46,6 +46,12 @@ Every successful analysis follows the same steps:
 5. **Measure again** with the same numbers you started with. A fix you did not measure is a guess.
 
 Then go back to step 1. The next query on the list is now the biggest one.
+
+The animation follows one query through the five steps, and then starts again with the next one.
+
+<iframe src="analyzing-slow-queries/demo.html" title="Animation: a query moves through five steps, find, understand, name the cause, fix and measure, and then the loop starts again with the next query" width="800" height="450"></iframe>
+
+*The animation repeats about every 28 seconds.*
 
 ## Why the order matters
 

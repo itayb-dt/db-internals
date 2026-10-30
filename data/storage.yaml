@@ -177,3 +177,48 @@ topics:
       - {id: wal, reason: Checkpoints and WAL size drive how dirty pages are written, strength: soft}
       - {id: statistics, reason: The planner uses a cache size assumption when it estimates costs, strength: soft}
 
+
+  - id: database-size-problem
+    name: Why a large database is a problem
+    domain: Space
+    level: 0
+    description: Size is not bad in itself. It costs money, makes backups, restores and upgrades slow, and pushes data out of the cache. What hurts is growth you did not expect and space that holds nothing useful.
+    details: |
+      Three questions frame it: how big is it, how fast is it growing, and how much of it is useful data.
+    evidence:
+      - List the costs of a large database beyond the price of the disk
+      - Say why restore and upgrade time grow with size
+      - Say the difference between a database that is big and one that is wasteful
+    prerequisites:
+      - {id: instance-disk-space, reason: The instance level points here when a database is the largest consumer of the disk, strength: soft}
+
+  - id: database-growth-causes
+    name: Why a database suddenly grows
+    domain: Space
+    level: 1
+    description: The common reasons a database gets bigger, starting with the healthy one (more rows are inserted) and then the others. Dead rows that vacuum cannot reach, something that blocks vacuum, one big update, indexes, large values and data that is never removed.
+    details: |
+      The first question is whether the size grows in step with the rows. If it does, it is growth. If it grows faster, or without new rows, it is waste.
+    evidence:
+      - Tell healthy growth from waste by comparing size with row counts
+      - List at least five causes of unexpected growth inside the database and how to confirm each
+      - Say why vacuum does not make the files smaller
+    prerequisites:
+      - {id: database-size-problem, reason: The causes matter because of the costs of size}
+      - {id: dead-rows, reason: Dead rows are the most common waste, strength: soft}
+
+  - id: vacuum-configuration
+    name: Vacuum configuration
+    domain: Space
+    level: 4
+    description: The settings that decide when autovacuum starts, how many workers run, how fast they go and which tables need their own settings. The defaults suit small tables, and big busy tables usually need more.
+    details: |
+      The default trigger is 50 rows plus 20% of the table. On a table of 100 million rows that is about 20 million dead rows before vacuum starts.
+      The cost limit is shared by all workers, so more workers alone do not make vacuum faster.
+    evidence:
+      - Calculate when autovacuum starts for a table of a given size
+      - Name the settings for when, how many, and how fast, and what each costs
+      - Say why a big hot table should get its own settings
+    prerequisites:
+      - {id: vacuum, reason: The settings tune the vacuum process}
+      - {id: dead-rows, reason: The goal is to keep dead rows from piling up, strength: soft}

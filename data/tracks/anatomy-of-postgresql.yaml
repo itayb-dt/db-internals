@@ -21,4 +21,4 @@ steps:
   - topic: wal
     why: The log written before the data files. One log serves every database.
   - topic: server-logs
-    why: The error log and the slow query log, where the instance tells you what happened.
+    why: Where the instance tells you what happened. The error log and the slow query log each have their own topic.
