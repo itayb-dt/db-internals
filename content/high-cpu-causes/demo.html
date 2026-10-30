@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hypothesis tree demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A tree of hypotheses for high CPU. One session at a full core is rejected. The host waiting is rejected. Many sessions using a little each is confirmed. Under it costly statements is confirmed and the other causes are rejected.">
+ <title>Hypothesis tree demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=30,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=29;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='A tree of hypotheses: reject branches until one is confirmed';
+function nb(x,y,w,h,label,sz){var b=box(x,y,w,h,{rx:8,stroke:'#3a4270'}),tt=txt(x+w/2,y+h/2+5,label,{b:1,size:sz||13});return {b:b,t:tt,x:x,y:y,w:w,h:h,tag:txt(x+w/2,y+h-7,'',{size:10,b:1,fill:MUTE})}}
+var LN=[];[[400,86,135,112],[400,86,400,112],[400,86,665,112],[135,156,135,186],[665,156,665,186],[665,156,665,246],[400,156,341,186],[400,156,459,186],[400,156,341,250],[400,156,459,250]].forEach(function(l){LN.push(line(l[0],l[1],l[2],l[3],{stroke:'#3a4270',sw:2}))});
+var R=nb(330,52,140,34,'CPU is high',14);
+var A=nb(20,112,230,44,'One session hogs a core'),B=nb(285,112,230,44,'Many sessions, each a little'),C=nb(550,112,230,44,'The host waits or switches');
+var A1=nb(20,186,230,50,'Runaway statement or loop',12),C1=nb(550,186,230,50,'Waiting on disk (iowait)',12),C2=nb(550,246,230,50,'Kernel time, other software',12);
+var B1=nb(285,186,112,56,'More requests',12),B2=nb(403,186,112,56,'Jobs overlap',12),B3=nb(285,250,112,56,'Costly queries',12),B4=nb(403,250,112,56,'Too many sessions',12);
+var ALL=[R,A,B,C,A1,C1,C2,B1,B2,B3,B4];
+function st(n,s){var cols={pending:['#1b2140','#3a4270','',MUTE],test:['#2a3158',YEL,'testing',YEL],rej:['#14182e','#4a5170','rejected','#6a7090'],ok:['#1f4a38',GREEN,'verified',GREEN]}[s];
+ n.b.setAttribute('fill',cols[0]);n.b.setAttribute('stroke',cols[1]);n.b.setAttribute('stroke-width',s==='ok'||s==='test'?3:1.5);n.tag.textContent=cols[2];n.tag.setAttribute('fill',cols[3]);n.t.setAttribute('fill',s==='rej'?'#7a82a8':'#e8eaf6')}
+function show(n,v){vis(n.b,v);vis(n.t,v);vis(n.tag,v)}
+function cs(t,a,b,res){return t<a?'pending':t<b?'test':res}
+function render(t){
+ show(R,true);[A,B,C].forEach(function(n){show(n,t>=3)});
+ show(A1,t>=8.2);show(C1,t>=11.2);show(C2,t>=11.2);[B1,B2,B3,B4].forEach(function(n){show(n,t>=15)});
+ var v=[true,t>=3,t>=3,t>=3,t>=8.2,t>=11.2,t>=11.2,t>=15,t>=15,t>=15,t>=15,t>=15];
+ [LN[0],LN[1],LN[2]].forEach(function(l){vis(l,t>=3)});vis(LN[3],t>=8.2);vis(LN[4],t>=11.2);vis(LN[5],t>=11.2);[6,7,8,9].forEach(function(k){vis(LN[k],t>=15)});
+ st(R,'pending');
+ st(A,cs(t,6,9,'rej'));st(A1,'rej');
+ st(C,cs(t,9,12,'rej'));st(C1,'rej');st(C2,'rej');
+ st(B,cs(t,12,15,'ok'));
+ st(B1,cs(t,16,18.5,'rej'));st(B2,cs(t,18.5,21,'rej'));st(B3,cs(t,21,24,'ok'));st(B4,cs(t,24,26.5,'rej'));
+ if(t>=26.5){st(R,'ok')}R.tag.textContent='';
+ if(t<3)say('The CPU is high. Where do we look first?','Test one branch at a time. Reject it with a check.');
+ else if(t<6)say('Three branches: one session, many sessions, or the host itself.','');
+ else if(t<8.5)say('Check: is one process using most of a core?','');
+ else if(t<9)say('No. Many processes share the load.','Rejected.');
+ else if(t<11.5)say('Check: is the time mostly waiting for disk, or in the kernel?','');
+ else if(t<12)say('No. It is mostly user time: queries are computing.','Rejected.');
+ else if(t<14.5)say('Check: are many sessions running at once?','');
+ else if(t<16)say('Yes. Many sessions, each using a little.','Confirmed. Now find which cause.');
+ else if(t<18)say('Check: are statements per second above a normal day?','');
+ else if(t<18.5)say('No. About the same as usual.','Rejected.');
+ else if(t<20.5)say('Check: did the CPU jump at a fixed time of the day?','');
+ else if(t<21)say('No. It followed the traffic of the day.','Rejected.');
+ else if(t<23.5)say('Check: do a few statements dominate the total time?','');
+ else if(t<24)say('Yes. Three statements use most of it, and they scan whole tables.','Confirmed.');
+ else if(t<26)say('Check: are far more sessions running than there are cores?','');
+ else if(t<26.5)say('No. About as many as the cores.','Rejected.');
+ else say('Confirmed cause: costly statements.','Next: read their plans, then fix them.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>

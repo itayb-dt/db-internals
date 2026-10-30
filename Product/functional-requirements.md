@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.11 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.12 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -55,7 +55,7 @@ This document describes what the product must do: the viewer (UI), the articles,
 
 ## 3. Content inventory (snapshot)
 
-As of this version: **49 topics**, **42 articles**, **7 subjects**, **6 tracks**, **26 demos**.
+As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**, **28 demos**.
 
 | Subject | Topics | Articles |
 |---|---|---|
@@ -75,6 +75,7 @@ As of this version: **49 topics**, **42 articles**, **7 subjects**, **6 tracks**
 | My query is slow | 7 | 7 |
 | My database is large | 9 | 9 |
 | The DB Instance is running out of disk space | 7 | 7 |
+| The DB Instance CPU is high | 5 | 5 |
 
 ## 4. User stories
 
@@ -355,6 +356,7 @@ As of this version: **49 topics**, **42 articles**, **7 subjects**, **6 tracks**
 | My query is slow | Find why a query is slow, read its plan and choose the fix. Steps: Analyzing slow queries, Common root causes, Query metrics, Execution plan, Actual execution plan, Index, Table partitioning | 4 |
 | My database is large | Why a database is big, why it grows, and how to keep the growth under control. Steps: Why a large database is a problem, Why a database suddenly grows, Monitoring table size, Index, TOAST, Dead rows, Vacuum, Vacuum configuration, Monitoring vacuum | 5 |
 | The DB Instance is running out of disk space | Find what fills the disk of a PostgreSQL instance, and when to hand over to the database track. Steps: The instance is running out of disk space, WAL and checkpoints, Server logs, The error log, The slow query log, Managed or self-managed, Why a database suddenly grows (the hand-over to My database is large) | 6 |
+| The DB Instance CPU is high | Find why the CPU of a PostgreSQL instance is high, and what to do about it. Steps: Query metrics, Common root causes of high CPU, Execution plan, Index, Load balancers and connection pooling | 7 |
 
 The plan is that later tracks solve specific problems (for example "my query is slow" or "my database is running out of connections"). Those are not defined yet. See section 9.
 
@@ -442,6 +444,7 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.12 | 2026-11-01 | New problem track "The DB Instance CPU is high" with one new topic and two animations (sections 3 and 7.3). The causes come second, and the first checks are part of the causes article. |
 | 0.11 | 2026-10-31 | Track header redone: icon, large gold name, phase and step, the problem statement, no prerequisite count. Problem tracks get a problem statement and phases now, why and fix (TRK-23 to TRK-25). The tracks My query is slow and My database is large were reordered to follow the phases. |
 | 0.10 | 2026-10-31 | The track header shows step N of M, the track name, a percentage ring, segments for every step and arrows (TRK-12, TRK-20 to TRK-22). |
 | 0.9 | 2026-10-31 | 13 new demos of 20 to 30 seconds for the articles of the last four tracks (VIS-12 pace updated, D-13 narrowed). |

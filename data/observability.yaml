@@ -112,3 +112,21 @@ topics:
       - {id: analyzing-slow-queries, reason: The metrics are how the first step of the loop is done}
       - {id: statistics, reason: Rows read against rows needed is a sign of poor estimates, strength: soft}
       - {id: dt-databases-app, reason: A monitoring product can collect these metrics for you, strength: soft}
+
+  - id: high-cpu-causes
+    name: Common root causes of high CPU
+    domain: High CPU
+    level: 2
+    description: The CPU is high. First look at where it goes (user work, kernel time or waiting for disk), whether one process or many use it, and what changed. Then the common causes. One session hogs a core, many sessions each use a little (more requests, overlapping jobs, costly statements, too many active sessions, parallel queries, background work), or the host waits on disk or has another cause. Each has a check and a fix.
+    details: |
+      A session that is running on the CPU is active and has no wait event. A session that waits, for example on a lock, is not using the CPU.
+      Think of the diagnosis as a tree of hypotheses. Test one branch at a time, and reject it with a check.
+    evidence:
+      - Split a high CPU reading into user time, system time and wait time, and say what each suggests
+      - Tell one process using a core from many processes each using a little
+      - Walk the tree of hypotheses from "CPU is high" to a confirmed cause
+      - Say why a session waiting on a lock does not explain high CPU
+    prerequisites:
+      - {id: db-monitoring, reason: The first checks use the signals that monitoring collects, strength: soft}
+      - {id: query-metrics, reason: Costly statements are found by ranking them}
+      - {id: slow-query-causes, reason: Many of the causes of slow queries also burn CPU, strength: soft}
