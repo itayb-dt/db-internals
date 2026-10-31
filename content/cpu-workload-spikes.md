@@ -19,7 +19,7 @@ This article covers two of the root causes listed in [Common root causes of high
 - **A change that makes more calls.** A new release that runs one query for each row (the "N plus one" pattern).
 - **A cache that empties.** When a cache expires or restarts, every request goes to the database at the same moment.
 
-**How to recognise it.** Statements per second, or transactions per second, are well above a normal day, and the same kinds of statements dominate. The statistics views show the rate: the number of calls of the top statements, and the transactions of the database. The CPU follows the rate.
+**What more data to look at.** Statements per second, or transactions per second, are well above a normal day, and the same kinds of statements dominate. The statistics views show the rate: the number of calls of the top statements, and the transactions of the database. The CPU follows the rate.
 
 **What to do:**
 
@@ -32,7 +32,7 @@ This article covers two of the root causes listed in [Common root causes of high
 
 **What it is.** Reports, imports, exports and scheduled jobs start at the same time, and compete with the normal load and with each other.
 
-**How to recognise it.** The CPU jumps at the **same clock time** every day or week, and the busy sessions belong to the users or applications that run the jobs.
+**What more data to look at.** The CPU jumps at the **same clock time** every day or week, and the busy sessions belong to the users or applications that run the jobs.
 
 **What to do:**
 

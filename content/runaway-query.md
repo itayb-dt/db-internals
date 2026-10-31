@@ -18,7 +18,7 @@ One session runs a statement that uses a full core for a long time. Typical sour
 - **A loop inside a function,** or a recursive query that does not end.
 - **An analytical query** run on the production database by a person or a report.
 
-## How to recognise it
+## What more data to look at
 
 - **One process uses about 100% of a core,** while the others are quiet. PostgreSQL uses one process for each connection, so the operating system shows it as a single process.
 - **In the activity view, one session has been running the same statement for a long time,** and it is active with no wait event, so it is running, not waiting.

@@ -12,7 +12,9 @@ This is one of the root causes listed in [Common root causes of high CPU](topic:
 
 Nothing is wrong with any single statement. The workload simply needs more CPU than the instance has. The instance was sized for last year, or the business grew, or a new feature added load.
 
-## How to recognise it
+## What more data to look at
+
+The first article gave the data that shows the problem. To confirm this cause, look at:
 
 - **The CPU is high during the busy hours, in proportion to the load.** It follows the daily pattern and the traffic, not a single event.
 - **Many sessions each use a little.** No process stands out.

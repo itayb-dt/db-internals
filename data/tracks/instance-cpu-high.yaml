@@ -2,7 +2,7 @@ order: 7
 kind: problem
 name: High CPU
 title: Find why the CPU of a PostgreSQL instance is high, and what to do about it
-problem: The CPU of the database host is far above its usual level. Queries slow down for everyone, and at 100 percent the instance cannot keep up and requests start to time out.
+problem: The CPU of the database instance has been close to 100% for too long.
 steps:
   - topic: high-cpu
     phase: problem

@@ -2,7 +2,7 @@ order: 6
 kind: problem
 name: Low free disk space
 title: Find what fills the disk of a PostgreSQL instance, and when to hand over to the database track
-problem: The disk of the instance is almost full. When the disk under the write-ahead log fills, PostgreSQL shuts down, so the time you have is short.
+problem: The disk of the database instance is almost full.
 steps:
   - topic: instance-disk-space
     phase: problem

@@ -85,7 +85,7 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 .seg{flex:1;height:5px;border-radius:3px;background:#2a3158;cursor:pointer;display:block}.seg:hover{background:#4a5590}.seg.gap{margin-left:8px}
 .seg.done{background:#6f7bb8}.seg.cur{background:#ffd166;height:8px}.seg.soon{opacity:.5}
 #trackintro:empty{display:none}
-.tintro{margin:0 0 14px;font-size:13.5px;line-height:1.5;color:#c9cde8}
+.tintro{margin:0 0 14px;font-size:13.5px;line-height:1.5;color:#c9cde8}.tintro b{color:#ffb38f}
 .trow{display:flex;gap:10px;padding:5px 0;cursor:pointer;font-size:13px;color:#c9cde8}.trow:hover b{text-decoration:underline}
 .trow b{color:#fff;font-weight:600;white-space:nowrap}.trow span{color:#8890b5}
 @media(max-width:900px){.searchbox{top:58px;width:min(340px,calc(100vw - 32px))}.legend{max-width:calc(100vw - 32px)}.head{height:36px}.head img{height:22px;width:22px}.head span{font-size:16px;line-height:22px;height:22px}canvas{width:100%;height:45%}.pane{top:45%;width:100%;height:55%;border-left:0;border-top:1px solid rgba(255,255,255,.1)}.hint{display:none}}
@@ -334,7 +334,7 @@ function trackBar(n){const box=P('trackbar'),intro=P('trackintro');box.innerHTML
   t.steps.forEach((s,k)=>{const m=byId[s.topic],e=mk('a','seg'+(k<i?' done':k===i?' cur':'')+(m.has_content?'':' soon')+(k>0&&s.phase!==t.steps[k-1].phase?' gap':''));
    e.title=(s.phase?PHASE[s.phase]+': ':'')+(k+1)+'. '+m.name+(m.has_content?'':' (coming soon)');e.onclick=()=>{curTrack=t.id;select(m)};segs.appendChild(e)});
   b.append(top,segs);box.appendChild(b);
-  if(t.problem){const p=mk('p','tintro');p.textContent=t.problem;intro.appendChild(p)}});
+  if(t.problem){const p=mk('p','tintro'),b=mk('b');b.textContent='The problem: ';p.append(b,document.createTextNode(t.problem+' In this track we will review the impact, the potential root causes and how to analyze them.'));intro.appendChild(p)}});
  box.style.position='sticky'}
 // home view: the editable intro (content/_home.md), then one card per subject
 let homeTab='home',aboutLoaded=false;

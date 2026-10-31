@@ -8,7 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/storage-file-layout.html
 ---
 
-This article starts the problem track **Low free disk space**. It says what the problem is, how it is detected, and why it matters, and it gives the first two checks. The next article lists the potential root causes, and the rest of the track discusses each one. It is about the **instance**: the disk of one PostgreSQL server, and everything on it.
+This article starts the problem track **Low free disk space**. It explains what the problem is, then the impact and why you should care. Last it explains how to get the data that shows the problem. Later in the track you will see the potential root causes, and what more data is needed to tell whether each one is really the cause. It is about the **instance**: the disk of one PostgreSQL server, and everything on it.
 
 ## What it is
 
@@ -16,7 +16,19 @@ The disk that holds a PostgreSQL instance is almost full, or filling quickly. An
 
 There are two levels. This track is about the **instance**. When a database turns out to be the largest consumer, it hands over to the problem track [Large database](topic:database-size-problem).
 
-## How it is detected
+## The impact: why you should care
+
+- **A full disk stops writes.** When the data disk fills, writes fail with errors, and the application fails with them.
+- **A full disk under the write-ahead log shuts PostgreSQL down.** The documentation says it does a PANIC shutdown. No committed transaction is lost, but the instance stays offline until you free space.
+- **Backups and maintenance fail.** They need free space to work. For example, rewriting a table needs room for a second copy.
+- **Recovery is hard on a full disk.** The usual ways to free space need some space to start.
+- **It is a deadline.** Unlike a slow query, a disk fills at a rate, and there is a day when it ends.
+
+As a rule of thumb, start worrying when less than a few weeks of growth are left, and act when it is days. The disk under the write-ahead log deserves the earliest alert.
+
+Never delete files from `pg_wal` by hand to free space. They may still be needed for recovery, a replica or archiving.
+
+## How to get the data
 
 The signals come from **the operating system or the cloud monitoring**, and from **PostgreSQL functions**.
 
@@ -32,18 +44,6 @@ The signals come from **the operating system or the cloud monitoring**, and from
 On a **managed service** the volume metric comes from the provider, and the PostgreSQL functions are still yours. The operating system's view of other files is usually not available, and usually not needed.
 
 The most useful number is not the percentage but the **time to full**: free space divided by the rate at which it shrinks. Record sizes over time, because the database does not keep that history.
-
-## Why you should care
-
-- **A full disk stops writes.** When the data disk fills, writes fail with errors, and the application fails with them.
-- **A full disk under the write-ahead log shuts PostgreSQL down.** The documentation says it does a PANIC shutdown. No committed transaction is lost, but the instance stays offline until you free space.
-- **Backups and maintenance fail.** They need free space to work. For example, rewriting a table needs room for a second copy.
-- **Recovery is hard on a full disk.** The usual ways to free space need some space to start.
-- **It is a deadline.** Unlike a slow query, a disk fills at a rate, and there is a day when it ends.
-
-As a rule of thumb, start worrying when less than a few weeks of growth are left, and act when it is days. The disk under the write-ahead log deserves the earliest alert.
-
-Never delete files from `pg_wal` by hand to free space. They may still be needed for recovery, a replica or archiving.
 
 ## The first two checks
 

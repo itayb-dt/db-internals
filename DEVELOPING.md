@@ -139,7 +139,7 @@ order: 1                       # position on the home page
 kind: general                  # or problem (default: general)
 name: PostgreSQL Storage
 title: How big tables are stored, grow, get cleaned up and get split
-problem: One or two sentences. What happened and why it matters.   # required for kind: problem
+problem: One sentence that says what the problem is.   # required for kind: problem
 steps:
   - topic: page                # a topic id from data/*.yaml
     phase: problem             # only for kind: problem. problem, causes or cause
@@ -148,7 +148,7 @@ steps:
 
 Each step needs a `topic` and a one-line `why`. The build fails on an unknown topic, a duplicate, or a wrong number of steps. Steps whose topic has no article yet are labelled "coming soon".
 
-A track about a problem ("High CPU") has `kind: problem`, a `problem` of one or two sentences, which the header shows on every step, and a `phase` for each step: `problem` (what it is, how it is detected, why it matters), `causes` (the overview of the potential root causes) or `cause` (one root cause in detail), in that order. It is shown with a warning icon and as "Problem: High CPU". A general track has no phases and a route icon. See `content/_track_prompt.md` for how to write one.
+A track about a problem ("High CPU") has `kind: problem`, a `problem` of one sentence that says what the problem is (the header shows it on every step as "The problem: ...", followed by a fixed sentence about what the track covers), and a `phase` for each step: `problem` (what it is, how it is detected, why it matters), `causes` (the overview of the potential root causes) or `cause` (one root cause in detail), in that order. It is shown with a warning icon and as "Problem: High CPU". A general track has no phases and a route icon. See `content/_track_prompt.md` for how to write one.
 
 Write the steps in block style as above. In the one-line `{...}` style a comma ends the value, so the rest of the sentence would be lost. The build reports this as an unexpected key.
 

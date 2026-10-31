@@ -7,13 +7,27 @@ sources:
   - https://www.postgresql.org/docs/17/tutorial-arch.html
 ---
 
-This article starts the problem track **High CPU**. It says what the problem is, how it is detected, and why it matters. The next article lists the potential root causes, and the rest of the track discusses each one.
+This article starts the problem track **High CPU**. It explains what the problem is, then the impact and why you should care. Last it explains how to get the data that shows the problem. Later in the track you will see the potential root causes, and what more data is needed to tell whether each one is really the cause.
 
 ## What it is
 
-The CPU of the database host is far above its usual level, or close to 100%, for a longer time than a short spike. It can be a sign of a healthy system that is simply busy, or of a problem. This track helps you tell which.
+The CPU of the database instance (the host that runs it) is close to 100%, or far above its usual level, for longer than a short spike. It can be a sign of a healthy system that is simply busy, or of a problem. This track helps you tell which.
 
-## How it is detected
+## The impact: why you should care
+
+When the CPU stays high, bad things follow:
+
+- **Every statement gets slower.** Even cheap statements wait for CPU time, so latency rises for everyone.
+- **Requests queue, then time out.** Clients retry, and the retries add load. Each new connection costs CPU too, so a pile of them makes it worse.
+- **Replication falls behind.** A standby needs CPU to replay changes, so its lag grows.
+- **Maintenance falls behind.** Autovacuum slows down, and dead rows and bloat grow.
+- **You may not be able to get in.** At 100% even an administrator's connection can be slow.
+- **There is no room left.** A traffic spike, a failover or a restart under that load can tip the instance over.
+- **It costs money.** If the answer is more capacity, the bill rises, so it is worth finding out whether the work is wasted first.
+
+As a rule of thumb, a CPU that stays above 80% for long periods needs attention before it reaches 100%.
+
+## How to get the data
 
 Some signals come from the **operating system or the cloud monitoring**, and some from **PostgreSQL system views**. You need both, because they answer different questions.
 
@@ -37,23 +51,9 @@ The animation shows the first two checks: the split of the CPU, and one process 
 
 The CPU split matters most. Mostly **user** time means the database is computing. A large share of **waiting for disk** means the CPU graph misleads, because the processes wait for the disk and compute little. **Stolen** time, on a virtual machine, means another tenant took the CPU.
 
-## Why you should care
-
-When the CPU stays high, bad things follow:
-
-- **Every statement gets slower.** Even cheap statements wait for CPU time, so latency rises for everyone.
-- **Requests queue, then time out.** Clients retry, and the retries add load. Each new connection costs CPU too, so a pile of them makes it worse.
-- **Replication falls behind.** A standby needs CPU to replay changes, so its lag grows.
-- **Maintenance falls behind.** Autovacuum slows down, and dead rows and bloat grow.
-- **You may not be able to get in.** At 100% even an administrator's connection can be slow.
-- **There is no room left.** A traffic spike, a failover or a restart under that load can tip the instance over.
-- **It costs money.** If the answer is more capacity, the bill rises, so it is worth finding out whether the work is wasted first.
-
-As a rule of thumb, a CPU that stays above 80% for long periods needs attention before it reaches 100%.
-
 ## What next
 
-Do not guess the cause. The next article, [Common root causes of high CPU](topic:high-cpu-causes), lists the usual ones with a short explanation of each.
+Do not guess the cause. The next article, [Common root causes of high CPU](topic:high-cpu-causes), lists the usual ones with a short explanation of each. Each root cause then has its own article, which says what more data to look at to tell whether it is really the cause.
 
 ## Checklist
 

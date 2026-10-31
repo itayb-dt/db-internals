@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.18 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.20 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -337,11 +337,11 @@ As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**
 | TRK-10 | The Learning tracks tab lists the tracks by `order`, then by name. Each card shows the route icon, the track name in gold type with its subtitle **under** it (not beside it), a pill with the number of steps, and a chevron. Clicking expands the numbered steps with the reason. | Built | Auto |
 | TRK-11 | Clicking a step opens its topic. | Built | Auto |
 | TRK-12 | A topic in a track shows a **track header** that says where the reader is: a route icon and the track name in large gold type, a line with the phase and "Step N of M", a ring with the percentage of the track (N of M), and **Previous** and **Next** arrows to the neighbouring steps. The first step has a dimmed Previous. The last has a dimmed Next. The next step is not named twice. | Built | Auto |
-| TRK-23 | A problem track has a **problem statement** of one or two sentences: what happened, and briefly why the reader should care. It is shown under the header of every step. The build requires it. | Built | Auto |
+| TRK-23 | A problem track has a **problem statement**: one short sentence that says what the problem is (for example "The CPU of the database instance has been close to 100% for too long."). The header shows it under the track bar of every step as "**The problem:** ...", followed by the fixed sentence "In this track we will review the impact, the potential root causes and how to analyze them." The build requires the field. | Built | Auto |
 | TRK-24 | Every step of a problem track has a **phase**: `problem` (what it is, how it is detected, why it matters), `causes` (the overview of the potential root causes) or `cause` (one root cause in detail), in that order. The first step is `problem` and there is a `causes` step. The header shows the phase of the current step ("The problem", "Potential root causes", "Root cause in detail"), and a wider gap in the segments marks where a phase ends. A general track has no phases. The build rejects anything else. | Built | Auto (unit tests) |
 | TRK-25 | The rules for writing a problem track are in `content/_track_prompt.md`. | Built | Manual |
 | TRK-27 | **Two kinds of track.** A general track shows a route icon and a gold name. A problem track shows a warning icon and an orange name, and its title is prefixed "Problem:" (for example "Problem: High CPU"). This applies to the header and to the Learning tracks list, which has a heading for each kind. | Built | Manual |
-| TRK-28 | **The flow of a problem track:** one or two articles on the problem (what it is, how it is detected, from the operating system or cloud monitoring or from a PostgreSQL system view, and the impact), one overview of the potential root causes, and then one article for each root cause. | Built (rule, in the track guide) | Manual |
+| TRK-28 | **The flow of a problem track:** one or two articles on the problem, in this order: what the problem is, the impact (why you should care), and last how to get the data (from the operating system or cloud monitoring, or from a PostgreSQL system view). Then one overview of the potential root causes, and then one article for each root cause, which says what more data is needed to confirm that it is the cause. | Built (rule, in the track guide) | Manual |
 | TRK-20 | Below the title the header shows one **segment** for each step: steps before this one filled, the current one in gold and taller, the steps still ahead dim. A step whose topic has no article yet is fainter. | Built | Manual |
 | TRK-21 | Clicking a segment opens that step. Hovering shows its number and name, and "coming soon" when it has no article. | Built | Manual |
 | TRK-22 | The header stays at the top of the panel while the article scrolls, so the reader always sees where they are. | Built | Manual |
@@ -452,6 +452,8 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.20 | 2026-11-01 | The problem statement of a track is one sentence, shown as "The problem: ..." with a fixed second sentence (TRK-23). |
+| 0.19 | 2026-11-01 | The first article of a problem track says what the problem is, then the impact, and last how to get the data. Cause articles say what more data confirms the cause (TRK-28). |
 | 0.18 | 2026-11-01 | Articles in problem tracks have two tabs, the article and Metadata (TOP-13 to TOP-16). |
 | 0.17 | 2026-11-01 | The "How this was checked" note is removed from the articles (ACC-04). The notes moved to Product/article-review-notes.md. |
 | 0.16 | 2026-11-01 | No PostgreSQL version in the text of the articles (ART-02, ART-04). Real version differences are named where they apply. |

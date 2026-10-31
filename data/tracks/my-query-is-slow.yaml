@@ -2,7 +2,7 @@ order: 4
 kind: problem
 name: Slow query
 title: Find why a query is slow, read its plan and choose the fix
-problem: A query that used to be fast now takes seconds. People wait for it, and one slow query can hold locks and use resources that slow everything else down.
+problem: A query takes much longer than it should.
 steps:
   - topic: analyzing-slow-queries
     phase: problem

@@ -4,6 +4,10 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-11-01
 
+### Problem articles
+- **The problem statement under the track header has a fixed format.** "**The problem:** The CPU of the database instance has been close to 100% for too long. In this track we will review the impact, the potential root causes and how to analyze them." The data holds only the first sentence for each track; the viewer adds the label and the second sentence. All four problem tracks were updated.
+- **The first article of each problem track now has the same order:** what the problem is, then the impact and why you should care, and last how to get the data that shows the problem (each signal with its source: the operating system or cloud monitoring, or a PostgreSQL system view or function). Its opening sentence says so, and says that the root causes come later, with the data needed to confirm each one. Done for High CPU, Low free disk space, Slow query and Large database. In High CPU the three cause articles now have a section "What more data to look at". The track guide describes the order.
+
 ### Viewer
 - **Articles in problem tracks have two tabs.** The first tab is the article, named after the step ("The Problem", "Root causes" or "Root cause"), and opens first, so you see the title and the content straight away. The second tab, **Metadata**, holds what used to sit above the article: subject and level, description, what it builds on, what it unlocks and what you can do when you understand it. A topic that has no article yet shows its title, its description and "coming soon". Topics in general tracks, or in no track, keep the old layout.
 

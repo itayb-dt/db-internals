@@ -2,7 +2,7 @@ order: 5
 kind: problem
 name: Large database
 title: Why a database is big, why it grows, and how to keep the growth under control
-problem: The database keeps growing, and the disk bill and the time to restore or upgrade grow with it. The growth may be healthy, or it may be waste that you pay for and that slows every query.
+problem: The database is much larger than expected, or it is growing faster than expected.
 steps:
   - topic: database-size-problem
     phase: problem
