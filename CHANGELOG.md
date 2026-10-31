@@ -10,7 +10,7 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ### New
 - **Track "The DB Instance CPU is high"** (5 steps, a problem track with the phases now, why and fix): Query metrics, Common root causes of high CPU, Execution plan, Index, and Load balancers and connection pooling. It reuses topics from other tracks.
-- New topic **Common root causes of high CPU**, with one article and two animations. It starts with three quick checks (where the CPU goes: user, system, waiting for disk or stolen; one process or many; which sessions run on the CPU), and then walks a tree of hypotheses: one session hogs a core, many sessions each use a little (more requests, overlapping jobs, costly statements, too many active sessions, parallel queries, background work), or the host waits on disk or has another cause. Locks are rejected because they do not use CPU. The wording is generic and PostgreSQL specific.
+- New topic **Common root causes of high CPU**, a short article with one animation. It says why a high CPU is a problem, and then lists ten potential root causes with a short explanation of each: not enough resources for the workload, a runaway query, more requests than usual, overlapping jobs, costly statements (including parallel queries), too many active sessions, maintenance work, a replication problem, waiting on disk, and something else on the host. Locks are called out as not a cause, because they do not use CPU. The wording is generic and PostgreSQL specific.
 
 ## 2026-10-31
 

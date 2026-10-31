@@ -55,7 +55,7 @@ This document describes what the product must do: the viewer (UI), the articles,
 
 ## 3. Content inventory (snapshot)
 
-As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**, **28 demos**.
+As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**, **27 demos**.
 
 | Subject | Topics | Articles |
 |---|---|---|
@@ -447,7 +447,7 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
 | 0.14 | 2026-11-01 | The track header shows one track at a time (TRK-26), fixing stacked headers for topics that belong to two tracks. |
 | 0.13 | 2026-11-01 | The Learning tracks cards show the icon, the name with the subtitle under it (TRK-10). |
-| 0.12 | 2026-11-01 | New problem track "The DB Instance CPU is high" with one new topic and two animations (sections 3 and 7.3). The causes come second, and the first checks are part of the causes article. |
+| 0.12 | 2026-11-01 | New problem track "The DB Instance CPU is high" with one new topic and two animations (sections 3 and 7.3). The causes come second. The causes article is short: why a high CPU matters, then a list of ten root causes with a short explanation of each. |
 | 0.11 | 2026-10-31 | Track header redone: icon, large gold name, phase and step, the problem statement, no prerequisite count. Problem tracks get a problem statement and phases now, why and fix (TRK-23 to TRK-25). The tracks My query is slow and My database is large were reordered to follow the phases. |
 | 0.10 | 2026-10-31 | The track header shows step N of M, the track name, a percentage ring, segments for every step and arrows (TRK-12, TRK-20 to TRK-22). |
 | 0.9 | 2026-10-31 | 13 new demos of 20 to 30 seconds for the articles of the last four tracks (VIS-12 pace updated, D-13 narrowed). |

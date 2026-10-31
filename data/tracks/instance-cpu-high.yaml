@@ -8,7 +8,7 @@ steps:
     why: What is happening now. Which statements cost the most time, and so the most CPU.
   - topic: high-cpu-causes
     phase: why
-    why: Why it happened. The first checks, then the common causes, each with a check that confirms or rejects it.
+    why: Why it happened. Why a high CPU matters, then the common root causes, each with a check and a fix.
   - topic: execution-plan
     phase: why
     why: When one statement is the cause. Read its plan and look for scans of too many rows.
