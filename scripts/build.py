@@ -309,6 +309,10 @@ def load_tracks(topics, errors):
         if problem and not isinstance(problem, str):
             errors.append(f"{fname}: 'problem' must be text")
             problem = ""
+        kind = doc.get("kind", "general")
+        if kind not in ("general", "problem"):
+            errors.append(f"{fname}: 'kind' must be general or problem")
+            kind = "general"
         steps = doc.get("steps") or []
         if not isinstance(steps, list):
             errors.append(f"{fname}: 'steps' must be a list")
@@ -335,18 +339,25 @@ def load_tracks(topics, errors):
                     step["phase"] = st["phase"]
                 ok.append(step)
         phases = [s.get("phase") for s in ok]
-        if any(phases):
-            order = {"now": 0, "why": 1, "fix": 2}
+        if kind == "general":
+            if any(phases):
+                errors.append(f"{fname}: a general track has no phases. Use kind: problem for a track about a problem")
+        else:
+            order = {"problem": 0, "causes": 1, "cause": 2}
+            if not problem:
+                errors.append(f"{fname}: a problem track needs a 'problem' of one or two sentences")
             if not all(phases):
-                errors.append(f"{fname}: if one step has a 'phase', every step needs one")
+                errors.append(f"{fname}: in a problem track every step needs a 'phase': problem, causes or cause")
             elif any(p not in order for p in phases):
-                errors.append(f"{fname}: 'phase' must be now, why or fix")
+                errors.append(f"{fname}: 'phase' must be problem, causes or cause")
             elif phases != sorted(phases, key=order.get):
-                errors.append(f"{fname}: phases must go in order: now, then why, then fix")
+                errors.append(f"{fname}: phases must go in order: problem, then causes, then cause")
+            elif phases[0] != "problem" or "causes" not in phases:
+                errors.append(f"{fname}: a problem track starts with a step of phase 'problem' and has a step of phase 'causes' (the overview of the root causes)")
         if tid in seen:
             errors.append(f"{fname}: duplicate track id")
         seen.add(tid)
-        tracks.append({"id": tid, "order": doc.get("order", 100), "name": doc.get("name", tid),
+        tracks.append({"id": tid, "order": doc.get("order", 100), "name": doc.get("name", tid), "kind": kind,
                        "title": doc.get("title", ""), "problem": problem.strip(), "steps": ok})
     tracks.sort(key=lambda t: (t["order"], t["name"]))
     for t in tracks:

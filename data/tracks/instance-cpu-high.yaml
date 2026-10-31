@@ -1,20 +1,36 @@
 order: 7
-name: The DB Instance CPU is high
+kind: problem
+name: High CPU
 title: Find why the CPU of a PostgreSQL instance is high, and what to do about it
 problem: The CPU of the database host is far above its usual level. Queries slow down for everyone, and at 100 percent the instance cannot keep up and requests start to time out.
 steps:
-  - topic: query-metrics
-    phase: now
-    why: What is happening now. Which statements cost the most time, and so the most CPU.
+  - topic: high-cpu
+    phase: problem
+    why: The problem. How it is detected, and what bad things happen when the CPU is high.
   - topic: high-cpu-causes
-    phase: why
-    why: Why it happened. Why a high CPU matters, then the common root causes, each with a check and a fix.
-  - topic: execution-plan
-    phase: why
-    why: When one statement is the cause. Read its plan and look for scans of too many rows.
-  - topic: index
-    phase: fix
-    why: The most common fix for costly statements. Turn a scan into a lookup.
+    phase: causes
+    why: The potential root causes, with a quick overview of each.
+  - topic: cpu-capacity
+    phase: cause
+    why: Not enough resources for the workload. Add capacity, but first make sure the work is not wasted.
+  - topic: runaway-query
+    phase: cause
+    why: One session at a full core. Find it, cancel it and prevent the next one.
+  - topic: cpu-workload-spikes
+    phase: cause
+    why: More requests than usual, or jobs that overlap.
+  - topic: slow-query-causes
+    phase: cause
+    why: Costly statements. Why a statement uses a lot of CPU, and how to confirm it.
   - topic: load-balancer
-    phase: fix
-    why: The fix for too many sessions and connection storms. A pooler keeps the active ones near the cores.
+    phase: cause
+    why: Too many active sessions. A pooler keeps the running ones near the cores.
+  - topic: vacuum-configuration
+    phase: cause
+    why: Maintenance work. How autovacuum is tuned so that it does not collide with the workload.
+  - topic: cpu-replication
+    phase: cause
+    why: A replication problem.
+  - topic: cpu-host
+    phase: cause
+    why: Waiting on disk, or something else on the host.

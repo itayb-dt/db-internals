@@ -4,50 +4,44 @@ Use this when an AI (or a person) writes a track in `data/tracks/<name>.yaml`. F
 
 ## Two kinds of track
 
-- **A problem track** starts from something that went wrong ("My query is slow", "My database is large", "The DB instance is running out of disk space"). Write it with the structure below.
-- **A learning track** teaches a subject from basic to advanced ("PostgreSQL Storage", "Anatomy of PostgreSQL"). It has no `problem` and no `phase`. Its header only shows the step.
+| Kind | `kind:` | For | Looks like |
+|---|---|---|---|
+| **General** | `general` (the default) | Teaching a subject from basic to advanced: "PostgreSQL Storage", "Anatomy of PostgreSQL" | A route icon, a gold name, only "Step N of M" |
+| **Problem** | `problem` | Something that goes wrong: "High CPU", "Low free disk space", "Slow query", "Large database" | A warning icon, an orange name, shown as **Problem: High CPU**, with the phase of each step |
 
-## The problem statement
+Name a problem track with the symptom alone ("High CPU", "Low free disk space"). The viewer adds the word "Problem". Put the problem tracks after the general ones.
 
-A problem track has a `problem` field. It is shown in the header of every step, so the reader always knows why they are here.
+## The flow of a problem track
 
-- One or two sentences, plain words.
-- **What happened,** in the reader's words: "A query that used to be fast now takes seconds."
-- **Why they should care,** briefly: what it costs, or what breaks if they ignore it.
-- No advice, no jargon, no product names, no numbers you cannot defend.
+A problem track always has the same three parts, in this order:
 
-## The three questions
+1. **The problem** (`phase: problem`). One or two articles about the problem itself:
+   - **What it is.**
+   - **How it is detected.** Say where each signal comes from: the **operating system or the cloud monitoring** (for example CPU use, free space, the CPU split), or a **PostgreSQL system view or function** (for example `pg_stat_activity`, `pg_stat_statements`, `pg_database_size`). On a managed service, say what you can and cannot see.
+   - **The impact.** Why the reader should care, and what bad things can happen when the problem happens.
+2. **The potential root causes** (`phase: causes`). Exactly one article, a **quick overview** of every potential root cause, one or two sentences each, with a link to the article that discusses it. Add the tell-tale sign of each cause when it is short. Do not discuss the fixes here.
+3. **Each root cause in detail** (`phase: cause`). The rest of the track: one article for each cause, or for two causes that go together. Each answers: what it is, how to recognise it, what to do, with the cost and the downside of each fix, and the common mistakes.
 
-Every step of a problem track belongs to one phase, and the phases go in this order:
+The `problem` field of the track is one or two sentences, shown under the header of every step: **what happened**, in the reader's words, and **briefly why they should care**. No advice and no jargon.
 
-| Phase (`phase:`) | The question | What the steps give the reader |
-|---|---|---|
-| `now` | **What is happening now?** | The relevant metrics and events, and the recent trends. How to see the size of the problem and when it began. |
-| `why` | **Why did it happen?** | The potential root causes. Help the reader weigh the explanations and find the most reasonable one. Explain the cause in plain words before the technical detail. |
-| `fix` | **How to fix it?** | The fixes, with their cost and downside, and how to check that the fix worked. |
+## Rules
 
-Rules:
-
-- Order the steps `now`, then `why`, then `fix`. The build fails on a different order, and on a track where only some steps have a phase.
-- A phase may have several steps, and a phase may be empty. A track that only points elsewhere for the fix can end with a hand-over step.
-- A step that belongs to two phases is two ideas. Split the topic, or choose the phase of its main idea.
-- Start with the cheapest checks. The first step should say what to look at first and what to rule out.
-
-## The steps
-
-- 3 to 10 steps. One topic per step. Use topics that already have an article, and add the missing articles in track order.
-- The `why` line of a step says why it is in the track, in one sentence. If the sentence needs "and", the step is doing too much.
-- Reuse topics from other tracks. A topic can be in several tracks. When one track hands over to another, make the hand-over the last step, and say so in its `why`.
-- Keep vendor material short. A product appears as one step at most, and only if it answers one of the three questions.
+- The build checks the phases: every step has one, the first step is `problem`, the order is problem, then causes, then cause, and there is a `causes` step. A general track must not have phases.
+- 3 to 10 steps. Reuse topics from other tracks as root-cause articles when one exists (for example the article on connection pooling is the root-cause article for "too many active sessions"). A topic may be in several tracks.
+- A cause that has no article yet can be a topic with no article. It shows as "coming soon". Plan the article before you list it.
+- When one track hands over to another (for example from disk space to a large database), make the hand-over the last step and say so in its `why`.
+- The `why` line of a step says why it is in the track, in one sentence.
+- Keep vendor material short. A product appears as one step at most, and only if it helps with the problem.
+- A list of causes is not a tree. Do not call it a tree, a branch or a hypothesis. Say "potential root causes".
 
 ## The header the reader sees
 
-The header is short on purpose. It shows the name of the track with an icon, the phase and the step ("Why did it happen, step 3 of 9"), a ring with the percentage, Previous and Next, one segment for each step, and then the problem statement. It does not show how many prerequisites a topic has, or the next step twice.
+The name with its icon, then the phase and the step ("The problem, Step 1 of 10"), a ring with the percentage, Previous and Next, one segment for each step, and the problem statement. It does not show how many prerequisites a topic has.
 
 ## Checklist
 
-- Is the problem written as what happened and why it matters, in one or two sentences?
-- Does every step have a phase, in the order now, why, fix?
-- Does the first step tell the reader what to check first?
-- Does every step have an article, or a plan for one?
-- Does the last step hand over, if the fix belongs to another track?
+- Is the track named with the symptom, and is `kind: problem` set?
+- Is `problem` one or two sentences: what happened, and why it matters?
+- Does the first article say what the problem is, how it is detected (and from which source), and what can go wrong?
+- Is there one overview of the potential root causes, and does it link to a detailed article for each?
+- Does every cause that is listed have an article, or a plan for one?

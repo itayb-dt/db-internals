@@ -6,7 +6,7 @@ sources:
   - https://www.postgresql.org/docs/17/functions-admin.html
 ---
 
-This article is the start of the "My database is large" track. It explains why the size of the data in a database matters, and what to ask before you act. It is about **PostgreSQL 17**, but the costs are the same for most databases.
+This article starts the problem track **Large database**. It explains why the size of the data in a database matters, and what to ask before you act. It is about **PostgreSQL 17**, but the costs are the same for most databases.
 
 The track is about the **database**: its tables, indexes and the space they use. A server that is running out of disk is a different problem, about the instance, and is not covered here.
 

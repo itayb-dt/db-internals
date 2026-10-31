@@ -104,4 +104,4 @@ If the second is much larger than the first, the **gap** is outside PostgreSQL. 
 - Are the data, the log and the backups on separate volumes?
 - Are backups kept off the host?
 - Is anything on the volume rotated and removed?
-- If the largest consumer is a database, go to [My database is large](topic:database-size-problem).
+- If the largest consumer is a database, go to [Large database](topic:database-size-problem).

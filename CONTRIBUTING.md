@@ -29,7 +29,7 @@ Do not commit `_site/` or generated JSON.
 
 ## Learning tracks
 
-A track is a file in `data/tracks/` (see [DEVELOPING.md](DEVELOPING.md), and `content/_track_prompt.md` for how to write one). A track about a problem states it in one or two sentences and sorts its steps into what is happening now, why it happened and how to fix it. Keep it to one goal, 3 to 10 steps, ordered from basic to advanced, and give every step a one-line reason. Prefer topics that already have an article, and add the missing articles in the order of the track.
+A track is a file in `data/tracks/` (see [DEVELOPING.md](DEVELOPING.md), and `content/_track_prompt.md` for how to write one). A track about a problem has the same shape every time: one or two articles on the problem (what it is, how it is detected, why it matters), one overview of the potential root causes, and then one article for each cause. Keep it to one goal, 3 to 10 steps, ordered from basic to advanced, and give every step a one-line reason. Prefer topics that already have an article, and add the missing articles in the order of the track.
 
 ## Topic rules
 

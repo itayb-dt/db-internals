@@ -136,18 +136,19 @@ A learning track is an ordered path of 3 to 10 topics, from basic to advanced. I
 
 ```yaml
 order: 1                       # position on the home page
+kind: general                  # or problem (default: general)
 name: PostgreSQL Storage
 title: How big tables are stored, grow, get cleaned up and get split
-problem: One or two sentences. What happened and why it matters.   # optional, for problem tracks
+problem: One or two sentences. What happened and why it matters.   # required for kind: problem
 steps:
   - topic: page                # a topic id from data/*.yaml
-    phase: now                 # optional: now, why or fix
+    phase: problem             # only for kind: problem. problem, causes or cause
     why: The unit of disk I/O and caching.
 ```
 
 Each step needs a `topic` and a one-line `why`. The build fails on an unknown topic, a duplicate, or a wrong number of steps. Steps whose topic has no article yet are labelled "coming soon".
 
-A track that starts from a problem ("My query is slow") also has a `problem` of one or two sentences, which the header shows on every step, and a `phase` for each step: `now` (what is happening now), `why` (why did it happen) or `fix` (how to fix it), in that order. The header shows the name of the track with an icon, the phase, the step, a percentage ring, a segment for every step and the problem statement. See `content/_track_prompt.md` for how to write one.
+A track about a problem ("High CPU") has `kind: problem`, a `problem` of one or two sentences, which the header shows on every step, and a `phase` for each step: `problem` (what it is, how it is detected, why it matters), `causes` (the overview of the potential root causes) or `cause` (one root cause in detail), in that order. It is shown with a warning icon and as "Problem: High CPU". A general track has no phases and a route icon. See `content/_track_prompt.md` for how to write one.
 
 Write the steps in block style as above. In the one-line `{...}` style a comma ends the value, so the rest of the sentence would be lost. The build reports this as an unexpected key.
 

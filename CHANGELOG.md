@@ -4,6 +4,12 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-11-01
 
+### A new flow for problem tracks
+- **Two kinds of track.** General tracks (PostgreSQL Storage, Anatomy of PostgreSQL, Database Monitoring Overview) keep the route icon and the gold name. Problem tracks have a warning icon and an orange name, and are titled **Problem: ...**. The Learning tracks list has a heading for each kind. The four problem tracks are renamed: **Problem: Slow query**, **Problem: Large database**, **Problem: Low free disk space** and **Problem: High CPU**.
+- **The same shape every time.** The first article is about the problem: what it is, how it is detected (and whether the source is the operating system or cloud monitoring, or a PostgreSQL system view), and why it matters. The next article is a quick overview of the potential root causes. The rest of the track discusses each root cause. The step phases are now "The problem", "Potential root causes" and "Root cause in detail". The build checks the shape. `content/_track_prompt.md` describes it.
+- **Problem: High CPU** was rebuilt in this flow, with new articles: **High CPU: the problem**, and one article for each cause: **not enough resources**, **a runaway query**, and **more requests and overlapping jobs**. Costly statements, too many active sessions and maintenance work reuse the existing articles. Two causes (a replication problem, and waiting on disk or something else on the host) are listed as planned, so they show as "coming soon".
+- **Problem: Low free disk space** was split in two: **Low free disk space: the problem** (detection and impact) and **Common root causes of low free disk space** (the overview).
+
 ### Viewer
 - **Fix: one track header at a time.** A topic that is in two tracks, such as Monitoring table size, showed two stacked headers, and the second one hid where you were in the track you were following. The header now shows only the track you came from. A topic opened from the map, search or a link shows the first track that contains it.
 - **The Learning tracks list looks like the track header.** Each track shows the route icon, the name in gold type with the subtitle under it, a pill with the number of steps, and a chevron at the end.

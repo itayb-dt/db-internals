@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.14 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.15 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -55,7 +55,7 @@ This document describes what the product must do: the viewer (UI), the articles,
 
 ## 3. Content inventory (snapshot)
 
-As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**, **27 demos**.
+As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**, **28 demos**.
 
 | Subject | Topics | Articles |
 |---|---|---|
@@ -72,10 +72,10 @@ As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**
 | PostgreSQL Storage | 10 | 7 (missing: Page, Tuple, Heap table) |
 | Anatomy of PostgreSQL | 10 | 7 (missing: Databases, Files and tablespaces, Heap table) |
 | Database Monitoring Overview | 4 | 4 |
-| My query is slow | 7 | 7 |
-| My database is large | 9 | 9 |
-| The DB Instance is running out of disk space | 7 | 7 |
-| The DB Instance CPU is high | 5 | 5 |
+| Problem: Slow query | 7 | 7 |
+| Problem: Large database | 9 | 9 |
+| Problem: Low free disk space | 8 | 8 |
+| Problem: High CPU | 10 | 8 (replication and the host are planned) |
 
 ## 4. User stories
 
@@ -317,7 +317,7 @@ As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**
 | ID | Requirement | Status | Check |
 |---|---|---|---|
 | TRK-01 | A track is a file `data/tracks/<id>.yaml`. The id is the file name and does not change. | Built | Auto |
-| TRK-02 | A track has: `order` (position on the home page), `name`, `title` (one line saying what you learn), 3 to 10 `steps`, and for a problem track a `problem` of one or two sentences. | Built | Auto |
+| TRK-02 | A track has: `order` (position on the home page), `kind` (`general`, the default, or `problem`), `name`, `title` (one line saying what you learn) and 3 to 10 `steps`. A problem track also has a `problem` of one or two sentences. | Built | Auto |
 | TRK-03 | A step has a `topic` (an existing topic id) and a one-line `why`. A topic cannot appear twice in a track. | Built | Auto |
 | TRK-04 | A track has one goal and is ordered from basic to advanced. | Built (rule) | Manual |
 | TRK-05 | A topic may be in several tracks. | Built | Auto |
@@ -332,9 +332,11 @@ As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**
 | TRK-10 | The Learning tracks tab lists the tracks by `order`, then by name. Each card shows the route icon, the track name in gold type with its subtitle **under** it (not beside it), a pill with the number of steps, and a chevron. Clicking expands the numbered steps with the reason. | Built | Auto |
 | TRK-11 | Clicking a step opens its topic. | Built | Auto |
 | TRK-12 | A topic in a track shows a **track header** that says where the reader is: a route icon and the track name in large gold type, a line with the phase and "Step N of M", a ring with the percentage of the track (N of M), and **Previous** and **Next** arrows to the neighbouring steps. The first step has a dimmed Previous. The last has a dimmed Next. The next step is not named twice. | Built | Auto |
-| TRK-23 | A problem track has a **problem statement** of one or two sentences: what happened, and briefly why the reader should care. It is shown under the header of every step. | Built | Manual |
-| TRK-24 | In a problem track every step has a **phase**: `now` (what is happening now: the relevant metrics, events and recent trends), `why` (why did it happen: the potential root causes) or `fix` (how to fix it). The phases go in that order. The header shows the phase of the current step, and a wider gap in the segments marks where a phase ends. The build rejects a track with a missing, unknown or out-of-order phase. | Built | Auto (unit tests) |
+| TRK-23 | A problem track has a **problem statement** of one or two sentences: what happened, and briefly why the reader should care. It is shown under the header of every step. The build requires it. | Built | Auto |
+| TRK-24 | Every step of a problem track has a **phase**: `problem` (what it is, how it is detected, why it matters), `causes` (the overview of the potential root causes) or `cause` (one root cause in detail), in that order. The first step is `problem` and there is a `causes` step. The header shows the phase of the current step ("The problem", "Potential root causes", "Root cause in detail"), and a wider gap in the segments marks where a phase ends. A general track has no phases. The build rejects anything else. | Built | Auto (unit tests) |
 | TRK-25 | The rules for writing a problem track are in `content/_track_prompt.md`. | Built | Manual |
+| TRK-27 | **Two kinds of track.** A general track shows a route icon and a gold name. A problem track shows a warning icon and an orange name, and its title is prefixed "Problem:" (for example "Problem: High CPU"). This applies to the header and to the Learning tracks list, which has a heading for each kind. | Built | Manual |
+| TRK-28 | **The flow of a problem track:** one or two articles on the problem (what it is, how it is detected, from the operating system or cloud monitoring or from a PostgreSQL system view, and the impact), one overview of the potential root causes, and then one article for each root cause. | Built (rule, in the track guide) | Manual |
 | TRK-20 | Below the title the header shows one **segment** for each step: steps before this one filled, the current one in gold and taller, the steps still ahead dim. A step whose topic has no article yet is fainter. | Built | Manual |
 | TRK-21 | Clicking a segment opens that step. Hovering shows its number and name, and "coming soon" when it has no article. | Built | Manual |
 | TRK-22 | The header stays at the top of the panel while the article scrolls, so the reader always sees where they are. | Built | Manual |
@@ -354,10 +356,10 @@ As of this version: **50 topics**, **43 articles**, **7 subjects**, **7 tracks**
 | PostgreSQL Storage | How PostgreSQL stores tables on disk, how they grow, get cleaned up and get split | 1 |
 | Anatomy of PostgreSQL | The parts of a server and how they fit together | 2 |
 | Database Monitoring Overview | What database monitoring means, what to expect from it, and how Dynatrace delivers it | 3 |
-| My query is slow | Find why a query is slow, read its plan and choose the fix. Steps: Analyzing slow queries, Common root causes, Query metrics, Execution plan, Actual execution plan, Index, Table partitioning | 4 |
-| My database is large | Why a database is big, why it grows, and how to keep the growth under control. Steps: Why a large database is a problem, Why a database suddenly grows, Monitoring table size, Index, TOAST, Dead rows, Vacuum, Vacuum configuration, Monitoring vacuum | 5 |
-| The DB Instance is running out of disk space | Find what fills the disk of a PostgreSQL instance, and when to hand over to the database track. Steps: The instance is running out of disk space, WAL and checkpoints, Server logs, The error log, The slow query log, Managed or self-managed, Why a database suddenly grows (the hand-over to My database is large) | 6 |
-| The DB Instance CPU is high | Find why the CPU of a PostgreSQL instance is high, and what to do about it. Steps: Query metrics, Common root causes of high CPU, Execution plan, Index, Load balancers and connection pooling | 7 |
+| Problem: Slow query | Find why a query is slow, read its plan and choose the fix. Steps: Analyzing slow queries, Query metrics (the problem), Common root causes of slow queries (the overview), Execution plan, Actual execution plan, Index, Table partitioning | 4 |
+| Problem: Large database | Why a database is big, why it grows, and how to keep the growth under control. Steps: Why a large database is a problem, Monitoring table size (the problem), Why a database suddenly grows (the overview), Index, TOAST, Dead rows, Vacuum, Vacuum configuration, Monitoring vacuum | 5 |
+| Problem: Low free disk space | Find what fills the disk of a PostgreSQL instance, and when to hand over to the database track. Steps: Low free disk space (the problem), Common root causes (the overview), WAL and checkpoints, Server logs, The error log, The slow query log, Managed or self-managed, Why a database suddenly grows (the hand-over to Large database) | 6 |
+| Problem: High CPU | Find why the CPU of a PostgreSQL instance is high, and what to do about it. Steps: High CPU (the problem), Common root causes (the overview), then one article for each cause: not enough resources, a runaway query, more requests and overlapping jobs, costly statements, too many active sessions, maintenance work, a replication problem (planned), waiting on disk or something else on the host (planned) | 7 |
 
 The plan is that later tracks solve specific problems (for example "my query is slow" or "my database is running out of connections"). Those are not defined yet. See section 9.
 
@@ -445,6 +447,7 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.15 | 2026-11-01 | Two kinds of track, general and problem, with different icons and the title "Problem: ..." (TRK-27). The new flow of a problem track: the problem, an overview of the potential root causes, then each cause (TRK-24, TRK-28). The phases are now problem, causes and cause. The four problem tracks were renamed and restructured, and High CPU and Low free disk space got new articles. |
 | 0.14 | 2026-11-01 | The track header shows one track at a time (TRK-26), fixing stacked headers for topics that belong to two tracks. |
 | 0.13 | 2026-11-01 | The Learning tracks cards show the icon, the name with the subtitle under it (TRK-10). |
 | 0.12 | 2026-11-01 | New problem track "The DB Instance CPU is high" with one new topic and two animations (sections 3 and 7.3). The causes come second. The causes article is short: why a high CPU matters, then a list of ten root causes with a short explanation of each. |

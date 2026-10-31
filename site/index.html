@@ -60,7 +60,7 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 .track summary{cursor:pointer;padding:14px 16px;list-style:none;display:flex;gap:14px;align-items:center}.track summary:hover{background:rgba(255,255,255,.03)}
 .track summary::-webkit-details-marker{display:none}
 .track summary::after{content:"\25B8";color:#8890b5;font-size:12px;flex:none}.track[open] summary::after{content:"\25BE"}
-.ti{color:#ffd166;flex:none;display:flex}.ti svg{width:26px;height:26px}.tx{flex:1;min-width:0}
+.ti{color:#ffd166;flex:none;display:flex}.ti.prob,.tn.prob,.tb-name.prob{color:#ff9e7a}.ti svg{width:26px;height:26px}.tx{flex:1;min-width:0}
 .tn{display:block;font-size:18px;font-weight:800;color:#ffd166;line-height:1.3;letter-spacing:-.01em}.tt{display:block;color:#aeb4d6;font-size:13px;line-height:1.45;margin-top:3px}
 .tc{flex:none;background:rgba(255,255,255,.07);border-radius:999px;padding:3px 10px;color:#cfd3f0;font-size:11.5px;white-space:nowrap}
 .tsteps{margin:0;padding:0 14px 8px;list-style:none}
@@ -282,11 +282,16 @@ for(let i=0;i<250;i++)step();
 // learning tracks: ordered paths through the topics
 const TRACKS=(G.tracks||[]).map(t=>({...t,steps:t.steps.filter(x=>byId[x.topic])})).filter(t=>t.steps.length);
 const ROUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="6" r="2.6"/><path d="M8.6 18H14a3.2 3.2 0 0 0 0-6.4h-4a3.2 3.2 0 0 1 0-6.4h5.4"/></svg>';
+const ALERT='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6 2.9 19.4h18.2z"/><path d="M12 10v4.4"/><circle cx="12" cy="17.1" r=".7" fill="currentColor"/></svg>';
+const PHASE={problem:'The problem',causes:'Potential root causes',cause:'Root cause in detail'};
+const isProb=t=>t.kind==='problem',tname=t=>(isProb(t)?'Problem: ':'')+t.name,ticon=t=>isProb(t)?ALERT:ROUTE;
 (function buildTracks(){
  if(!TRACKS.length){P('tabTracksBtn').style.display='none';return}const box=P('tracks'),mk=(t,c)=>{const e=document.createElement(t);if(c)e.className=c;return e};
-  TRACKS.forEach(t=>{const d=mk('details','track'),sm=mk('summary');
-  const ic=mk('span','ti');ic.innerHTML=ROUTE;const tx=mk('div','tx');
-  const n=mk('span','tn');n.textContent=t.name;const ti=mk('span','tt');ti.textContent=t.title;tx.append(n,ti);
+  let lastKind=null;
+  TRACKS.forEach(t=>{if(t.kind!==lastKind){const h=mk('h4','sub-h');h.textContent=isProb(t)?'Problems: find the cause and fix it':'General: learn how it works';box.appendChild(h);lastKind=t.kind}
+  const d=mk('details','track'),sm=mk('summary');
+  const ic=mk('span','ti'+(isProb(t)?' prob':''));ic.innerHTML=ticon(t);const tx=mk('div','tx');
+  const n=mk('span','tn'+(isProb(t)?' prob':''));n.textContent=tname(t);const ti=mk('span','tt');ti.textContent=t.title;tx.append(n,ti);
   const c=mk('span','tc');c.textContent=t.steps.length+' steps';sm.append(ic,tx,c);d.appendChild(sm);
   const ol=mk('ol','tsteps');
   t.steps.forEach((st,i)=>{const m=byId[st.topic],li=mk('li','tstep');
@@ -294,7 +299,6 @@ const ROUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
    const l=mk('span','tl');l.textContent=m.name;const bd=mk('span','badge '+(m.has_content?'ok':'soon'));bd.textContent=m.has_content?'article':'coming soon';
    const w=mk('span','why');w.textContent=st.why;body.append(l,bd,w);li.append(num,body);li.onclick=()=>{curTrack=t.id;select(m)};ol.appendChild(li)});
   d.appendChild(ol);box.appendChild(d)})})();
-const PHASE={now:'What is happening now',why:'Why did it happen',fix:'How to fix it'};
 function trackBar(n){const box=P('trackbar'),intro=P('trackintro');box.innerHTML='';intro.innerHTML='';box.style.top=P('bar').offsetHeight+'px';
  const mk=(tag,c)=>{const e=document.createElement(tag);if(c)e.className=c;return e};
  // one track at a time: the one the reader is following, or else the first track that has this topic
@@ -302,7 +306,7 @@ function trackBar(n){const box=P('trackbar'),intro=P('trackintro');box.innerHTML
  const cur=here.find(t=>t.id===curTrack)||here[0];curTrack=cur?cur.id:null;
  (cur?[cur]:[]).forEach(t=>{const i=t.steps.findIndex(x=>x.topic===n.id);const M=t.steps.length,pct=Math.round((i+1)/M*100);
   const b=mk('div','tbar'),top=mk('div','tb-top'),txt=mk('div','tb-txt'),nm=mk('div','tb-name'),st=mk('div','tb-step');
-  nm.innerHTML=ROUTE;const nt=mk('span');nt.textContent=t.name;nt.title=t.title;nm.appendChild(nt);
+  nm.className='tb-name'+(isProb(t)?' prob':'');nm.innerHTML=ticon(t);const nt=mk('span');nt.textContent=tname(t);nt.title=t.title;nm.appendChild(nt);
   const ph=t.steps[i].phase;
   if(ph){const bb=mk('b');bb.textContent=PHASE[ph];st.append(bb,document.createTextNode(' \u00B7 '))}
   st.append(document.createTextNode('Step '+(i+1)+' of '+M));txt.append(nm,st);

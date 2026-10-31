@@ -101,21 +101,33 @@ topics:
       - {id: buffer, reason: Shared memory is sized partly by the connection limit, strength: soft}
 
   - id: instance-disk-space
-    name: The instance is running out of disk space
+    name: "Low free disk space: the problem"
     domain: On disk
     level: 4
-    description: "The disk of a PostgreSQL instance holds more than the databases. The first two checks are the largest database and what changed recently. After that the instance-level consumers are the write-ahead log, the server logs and temporary files, and on a system you manage, anything else on the same disk."
+    description: "The disk of a PostgreSQL instance is almost full. How it is detected (the operating system or the cloud monitoring for the volume, the PostgreSQL system functions for the sizes of the databases and the write-ahead log), why it matters, and the first two checks: the largest database and what changed recently."
     details: |
-      If a database is the largest consumer, the track "My database is large" takes over.
-      A full write-ahead log disk makes PostgreSQL shut down, so the warning time matters.
+      A full disk under the write-ahead log makes PostgreSQL shut down. No committed transaction is lost, but the instance stays offline until space is freed.
+      If a database is the largest consumer, the problem track Large database takes over.
     evidence:
+      - Name where each disk signal comes from, the operating system or cloud monitoring, or a PostgreSQL function
       - Name the first two checks when the disk of an instance fills
-      - List what lives on the disk of an instance besides the databases
       - Say what happens when the disk that holds the write-ahead log fills
-      - Say when to leave this track and continue in My database is large
     prerequisites:
       - {id: instance, reason: The disk belongs to the instance and holds its parts}
       - {id: files-tablespaces, reason: "The data, the write-ahead log and the logs are different directories", strength: soft}
+
+  - id: disk-space-causes
+    name: Common root causes of low free disk space
+    domain: On disk
+    level: 4
+    description: "A quick overview of why an instance runs out of disk space. The databases grew, the write-ahead log piled up, the logs grew, temporary files, something outside PostgreSQL, or capacity was never planned. Each cause has its own topic in the track."
+    details: |
+      The data directory is the largest part of most instances. The write-ahead log is the dangerous one.
+    evidence:
+      - List what lives on the disk of an instance besides the databases
+      - Match a symptom, such as a large pg_wal, to the cause
+    prerequisites:
+      - {id: instance-disk-space, reason: The causes explain the problem described there}
 
   - id: disk-outside-postgres
     name: "Managed or self-managed: what else uses the disk"
@@ -129,7 +141,7 @@ topics:
       - Name four things outside PostgreSQL that fill a volume
       - Describe how to find disk use that PostgreSQL does not know about
     prerequisites:
-      - {id: instance-disk-space, reason: This is the last of the checks for what fills an instance disk}
+      - {id: disk-space-causes, reason: This is one of the causes in the overview}
 
   - id: error-log
     name: The error log

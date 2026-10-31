@@ -113,20 +113,97 @@ topics:
       - {id: statistics, reason: Rows read against rows needed is a sign of poor estimates, strength: soft}
       - {id: dt-databases-app, reason: A monitoring product can collect these metrics for you, strength: soft}
 
+  - id: high-cpu
+    name: "High CPU: the problem"
+    domain: High CPU
+    level: 1
+    description: What high CPU means for a database host, how it is detected (the operating system or the cloud monitoring for the CPU, the PostgreSQL system views for the sessions and statements behind it), and why it matters. What bad things happen when the CPU is high.
+    details: |
+      Some signals come from the operating system or the cloud provider, such as the CPU and its split. Others come from system views, such as the sessions that are running.
+      Near 100 percent every statement slows down, requests time out, and there is no room for a spike.
+    evidence:
+      - Name where each signal comes from, the operating system or cloud monitoring, or a PostgreSQL system view
+      - Split a high CPU reading into user, system, waiting for disk and stolen time
+      - Say what bad things can happen when the CPU stays high
+    prerequisites:
+      - {id: db-monitoring, reason: The detection uses the signals that monitoring collects, strength: soft}
+
   - id: high-cpu-causes
     name: Common root causes of high CPU
     domain: High CPU
     level: 2
-    description: Why a high CPU matters, and the common root causes with a short explanation of each. Not enough resources for the workload, a runaway query, more requests, overlapping jobs, costly statements, too many active sessions, maintenance work, a replication problem, waiting on disk, or something else on the host.
+    description: A quick overview of the potential root causes of high CPU, with one or two sentences on each. Not enough resources for the workload, a runaway query, more requests, overlapping jobs, costly statements, too many active sessions, maintenance work, a replication problem, waiting on disk, or something else on the host.
     details: |
       Two questions narrow the list: is the CPU used by one process or many, and are the sessions running or waiting.
-      A session that is active with no wait event is running on the CPU. A session that waits, for example on a lock, is not.
+      The rest of the track discusses each cause.
     evidence:
-      - Say why a high CPU is a problem before it reaches 100 percent
       - List ten common root causes of high CPU with a short explanation of each
       - Tell one process using a core from many processes each using a little
       - Say why a session waiting on a lock does not explain high CPU
     prerequisites:
-      - {id: db-monitoring, reason: The checks use the signals that monitoring collects, strength: soft}
-      - {id: query-metrics, reason: Costly statements are found by ranking them}
-      - {id: slow-query-causes, reason: Many of the causes of slow queries also burn CPU, strength: soft}
+      - {id: high-cpu, reason: The causes explain the problem described there}
+
+  - id: cpu-capacity
+    name: "High CPU cause: not enough resources"
+    domain: High CPU
+    level: 3
+    description: The workload simply needs more CPU than the instance has. Nothing is wrong with any statement. The CPU is high during the busy hours in proportion to the load, and the trend rises with the business.
+    details: |
+      First make sure the work is not wasted. Then add capacity, with headroom for a spike or a failover.
+    evidence:
+      - Tell a capacity problem from costly statements by the CPU needed for each request
+      - List the ways to add capacity and the cost of each
+      - Say how much headroom to keep
+    prerequisites:
+      - {id: high-cpu-causes, reason: This is one of the causes in the overview}
+
+  - id: runaway-query
+    name: "High CPU cause: a runaway query"
+    domain: High CPU
+    level: 3
+    description: One session uses a full core for a long time, for example a join that multiplies rows, a huge sort or a loop in a function. One process sits at about 100 percent of a core. Find the statement, then cancel it and prevent the next one.
+    details: |
+      PostgreSQL can cancel a statement or end a session. A timeout on statements stops runaways for the users who run reports.
+    evidence:
+      - Recognise a runaway query from the process list and the activity view
+      - Say the difference between cancelling a statement and ending a session
+      - Name two ways to prevent runaway queries
+    prerequisites:
+      - {id: high-cpu-causes, reason: This is one of the causes in the overview}
+      - {id: execution-plan, reason: The plan shows why the statement is expensive, strength: soft}
+
+  - id: cpu-workload-spikes
+    name: "High CPU cause: more requests and overlapping jobs"
+    domain: High CPU
+    level: 3
+    description: The workload jumps. Either more requests arrive than usual (a campaign, a busy hour, a retry storm), or scheduled jobs and reports start at the same time. The CPU rises with the number of statements, or at a fixed clock time.
+    details: |
+      Look at statements per second against a normal day, and at the clock time of the jump.
+    evidence:
+      - Tell more requests from overlapping jobs by the time pattern
+      - Name three reasons for a sudden rise in requests
+      - Name two ways to keep jobs from overlapping
+    prerequisites:
+      - {id: high-cpu-causes, reason: These are two of the causes in the overview}
+
+  - id: cpu-replication
+    name: "High CPU cause: a replication problem"
+    domain: High CPU
+    level: 3
+    description: Replication keeps processes busy. A replica that fell behind or was rebuilt, many replicas, or logical decoding spend CPU sending and replaying changes.
+    evidence:
+      - Recognise busy sender or replay processes
+      - Name two reasons a replica falls behind
+    prerequisites:
+      - {id: high-cpu-causes, reason: This is one of the causes in the overview}
+
+  - id: cpu-host
+    name: "High CPU cause: waiting on disk, or something else on the host"
+    domain: High CPU
+    level: 3
+    description: The CPU graph is high, but little of it is database work. The processes wait for disk, the kernel is busy, another program uses the CPU, other tenants take it on a virtual machine, or a container limit throttles the database.
+    evidence:
+      - Tell waiting for disk from computation in the CPU split
+      - Name three things on a host that can use CPU besides PostgreSQL
+    prerequisites:
+      - {id: high-cpu-causes, reason: These are two of the causes in the overview}
