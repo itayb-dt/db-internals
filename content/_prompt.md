@@ -47,8 +47,8 @@ Every article must answer, for its topic:
 
 ## Structure
 
-- Frontmatter: `title`, `updated`, `sources` (URLs), optional `reviewed_by`.
-- Open with a scope line: which engine, which version, and how other engines differ in one or two sentences.
+- Frontmatter: `title`, `updated`, `sources` (URLs), optional `reviewed_by`. No "How this was checked" note in the text.
+- Open with a scope line: which engine, and how other engines differ in one or two sentences. **Do not name a version** ("PostgreSQL 17") in the scope line or the introduction. Name a version only for a real difference, and say it where it applies: "from PostgreSQL 13", "in 16 and earlier this view is called ...". See "Versions" below.
 - Use `##` headings, short paragraphs, fenced code blocks with a language, and at most one comparison table.
 - End with a short practical checklist. The build adds the Sources list from the frontmatter.
 - Target 900-1400 words plus small code blocks.
@@ -66,11 +66,20 @@ Hard ideas need a picture. Add one when the text alone makes the reader work too
 
 ## Accuracy
 
-- Verify every claim against the official documentation for the stated version. Put the pages in `sources`.
+- Verify every claim against the official PostgreSQL documentation for a recent version. Put the pages in `sources`. Do not repeat the version of the documentation in the text.
 - Do not invent numbers, parameter names or catalog columns.
-- Run every SQL snippet with `python3 scripts/verify_sql.py`. Add sample tables in `tests/sql_setup/<article>.sql`. Mark any block that cannot run with `-- not run: <reason>`, and start the article with a "How this was checked" line that says what was run and on which version.
+- Run every SQL snippet with `python3 scripts/verify_sql.py`. Add sample tables in `tests/sql_setup/<article>.sql`. Mark any block that cannot run with `-- not run: <reason>`. Do **not** put a "How this was checked" note in the article: the reader does not need it. Record what was run and on which version, which claims come from the documentation or from general practice, and what could not be checked, in `Product/article-review-notes.md`.
 - Mark rules of thumb as rules of thumb.
 - Say what you are not sure about.
+
+## Versions
+
+These articles are about basic, common problems and mechanisms. Write them so they hold for all recent PostgreSQL versions, and **do not mention a version** unless there is a real difference.
+
+- Do not write "This article is about PostgreSQL 17" or "the PostgreSQL 17 documentation". It suggests that 16 or 18 behave differently, and usually they do not.
+- When a feature, a setting, a column, a view or a default **changed between versions**, say so where it applies, in a few words: "from PostgreSQL 13", "in PostgreSQL 15 and later", "before PostgreSQL 10". Check the release notes before you write it.
+- If a command or view is different in older versions, name the old form once, and then use the current one.
+- Links in `sources` may point to a specific version of the documentation. That is a reference, not a claim about the article.
 
 ## Files
 

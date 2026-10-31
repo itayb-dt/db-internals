@@ -9,8 +9,6 @@ sources:
 
 This article continues from [the Dynatrace Observability Platform](topic:dt-platform). There the database sat in the context of the whole stack. Here we zoom in on the view built for the database itself, and check it against the [expectations](topic:db-observability-expectations) of a good observability system.
 
-> **How this was checked:** Everything about the app comes from the Dynatrace documentation listed in the sources. The app changes often, so confirm details in the current documentation.
-
 ## What the app is
 
 The Databases app is where you monitor, analyse and optimise your databases: their performance, health and configuration. According to its documentation it supports engines including PostgreSQL, MySQL, Microsoft SQL Server, Oracle, MariaDB and SAP HANA.

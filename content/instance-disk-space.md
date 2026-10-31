@@ -8,9 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/storage-file-layout.html
 ---
 
-This article starts the problem track **Low free disk space**. It says what the problem is, how it is detected, and why it matters, and it gives the first two checks. The next article lists the potential root causes, and the rest of the track discusses each one. It is about the **instance**: the disk of one PostgreSQL server, and everything on it. It is about **PostgreSQL 17**.
-
-> **How this was checked:** The facts about the write-ahead log and the size functions come from the PostgreSQL 17 documentation, listed in the sources. The page on the size functions was partly summarised, so please confirm those against the live page. The description of monitoring, and the advice on order, are common operating practice. The article has no SQL, and the thresholds are rules of thumb.
+This article starts the problem track **Low free disk space**. It says what the problem is, how it is detected, and why it matters, and it gives the first two checks. The next article lists the potential root causes, and the rest of the track discusses each one. It is about the **instance**: the disk of one PostgreSQL server, and everything on it.
 
 ## What it is
 

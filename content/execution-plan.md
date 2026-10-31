@@ -10,9 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/ddl-rowsecurity.html
 ---
 
-This article is about **PostgreSQL 17**. All relational databases have an optimizer and a plan: SQL Server has the estimated and actual execution plan, Oracle has `EXPLAIN PLAN`, MySQL has `EXPLAIN`. The node names differ, the idea is the same. SQL does not say *how* to get the rows. The plan is the "how".
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. Sample plan output is illustrative.
+This article is about PostgreSQL. All relational databases have an optimizer and a plan: SQL Server has the estimated and actual execution plan, Oracle has `EXPLAIN PLAN`, MySQL has `EXPLAIN`. The node names differ, the idea is the same. SQL does not say *how* to get the rows. The plan is the "how".
 
 ## The path of a query
 

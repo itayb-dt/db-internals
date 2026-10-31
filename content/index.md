@@ -8,9 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/monitoring-stats.html
 ---
 
-This article explains the idea of an index in general. The syntax and details are checked against the **PostgreSQL 17** documentation. Other relational engines use the same idea, mostly with B-trees by default, and differ in details such as clustered indexes (SQL Server, InnoDB), where the table itself is stored in index order.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2.
+This article explains the idea of an index in general. The syntax and details are checked against the PostgreSQL documentation. Other relational engines use the same idea, mostly with B-trees by default, and differ in details such as clustered indexes (SQL Server, InnoDB), where the table itself is stored in index order.
 
 ## The problem: finding one row among millions
 

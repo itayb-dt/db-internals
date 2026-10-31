@@ -10,9 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/sql-createtable.html
 ---
 
-This article is about **PostgreSQL 17** and continues from [Vacuum](topic:vacuum). It answers one question: is vacuum keeping up with the dead rows your workload creates, and if not, why?
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The progress table and the log excerpt come from real runs on that server. The progress view has more columns in 17 than in 16, so the queries here use only columns that exist in both.
+This article continues from [Vacuum](topic:vacuum). It answers one question: is vacuum keeping up with the dead rows your workload creates, and if not, why?
 
 ## 1. Which tables need attention
 

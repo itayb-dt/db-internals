@@ -10,9 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/catalog-pg-class.html
 ---
 
-This article is about **PostgreSQL 17**. Other engines solve "is this row visible to me?" differently, mostly with undo information or by locking, so they have nothing exactly like this file. PostgreSQL needs it because its index entries carry no visibility information at all.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The plans and sizes shown come from that run. The `pg_visibility` extension was not available on the test server, so its example is marked `-- not run`.
+This article is about PostgreSQL. Other engines solve "is this row visible to me?" differently, mostly with undo information or by locking, so they have nothing exactly like this file. PostgreSQL needs it because its index entries carry no visibility information at all.
 
 ## What it is
 

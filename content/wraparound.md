@@ -10,9 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/view-pg-prepared-xacts.html
 ---
 
-This article is about **PostgreSQL 17**. It is a PostgreSQL-specific problem. SQL Server and MySQL/InnoDB use wider counters and have no equivalent warning. PostgreSQL uses a 32-bit transaction ID, which is small enough to wrap around on a busy server, so it has to defend against that. The defense is [vacuum](topic:vacuum).
-
-> **How this was checked:** The facts come from the PostgreSQL 17 documentation. The SQL was run on PostgreSQL 16.2, and the forced-vacuum demonstration below was run on that server, with deliberately low settings so it takes seconds instead of days.
+This article is about PostgreSQL. It is a PostgreSQL-specific problem. SQL Server and MySQL/InnoDB use wider counters and have no equivalent warning. PostgreSQL uses a 32-bit transaction ID, which is small enough to wrap around on a busy server, so it has to defend against that. The defense is [vacuum](topic:vacuum).
 
 ## What it is
 

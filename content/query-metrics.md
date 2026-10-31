@@ -9,9 +9,7 @@ sources:
   - https://docs.dynatrace.com/docs/observe/infrastructure-observability/databases
 ---
 
-This article continues from [Analyzing slow queries](topic:analyzing-slow-queries). It covers the main numbers that describe a query, and how to read them to find the one that costs the most. It uses **PostgreSQL 17**. Other databases keep similar numbers under other names.
-
-> **How this was checked:** The column names and settings come from the PostgreSQL 17 documentation. The SQL below was **not run**, because it needs a live server with the `pg_stat_statements` extension. Each block is marked. Thresholds are rules of thumb.
+This article continues from [Analyzing slow queries](topic:analyzing-slow-queries). It covers the main numbers that describe a query, and how to read them to find the one that costs the most. Other databases keep similar numbers under other names.
 
 ## Two questions: how long, and how often
 
@@ -23,7 +21,7 @@ A query costs the database its **time per run** multiplied by **how many runs**.
 |---|---|---|
 | **Calls** | How often the statement ran | `calls` in `pg_stat_statements` |
 | **Total time** | The overall cost: calls times mean | `total_exec_time` |
-| **Mean time** | A typical run | `mean_exec_time` |
+| **Mean time** | A typical run | `mean_exec_time` (PostgreSQL 13 and later. Older versions call these columns `total_time` and `mean_time`) |
 | **Spread** | Whether runs differ a lot: the fastest, the slowest and the standard deviation | `min_exec_time`, `max_exec_time`, `stddev_exec_time` |
 | **Rows** | Rows returned or changed. Divide by calls for rows per call | `rows` |
 | **Cache hits and reads** | How much came from memory and how much from disk | `shared_blks_hit`, `shared_blks_read` |
@@ -100,7 +98,7 @@ A session that is `active` with no wait event is working, using CPU.
 
 ## Compare two samples, not one
 
-The counters only grow. They count from the server start, or from the last reset. One reading mixes today with last month. To see a trend, take a sample, wait, take another, and subtract. The view also records when its statistics started, so you know what period they cover.
+The counters only grow. They count from the server start, or from the last reset. One reading mixes today with last month. To see a trend, take a sample, wait, take another, and subtract. In PostgreSQL 17 and later the view also records when its statistics started, so you know what period they cover.
 
 ## What `pg_stat_statements` cannot show
 

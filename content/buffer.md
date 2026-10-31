@@ -10,9 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/pgbuffercache.html
 ---
 
-This article is about **PostgreSQL 17**. Every database engine has a cache like this: SQL Server calls it the buffer pool, and MySQL/InnoDB calls it the buffer pool as well. The names match, and so does the idea. The details of the settings are in [Buffer pool settings](topic:buffer-settings).
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The numbers shown come from those runs. The `pg_buffercache` example is marked `-- not run`, because that extension was not available on the test server.
+This article is about PostgreSQL. Every database engine has a cache like this: SQL Server calls it the buffer pool, and MySQL/InnoDB calls it the buffer pool as well. The names match, and so does the idea. The details of the settings are in [Buffer pool settings](topic:buffer-settings).
 
 ## What it is
 

@@ -8,9 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/runtime-config-logging.html
 ---
 
-This article starts the problem track **Slow query**. It describes a method, not a tool, so it applies to any relational database. The examples use **PostgreSQL 17**.
-
-> **How this was checked:** The facts come from the PostgreSQL 17 documentation, listed in the sources. The article has no SQL of its own. The queries are in [Query metrics](topic:query-metrics).
+This article starts the problem track **Slow query**. It describes a method, not a tool, so it applies to any relational database.
 
 ## Start with the complaint
 

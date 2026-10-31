@@ -11,9 +11,7 @@ sources:
   - https://www.citusdata.com/blog/2020/10/08/analyzing-connection-scalability/
 ---
 
-This article is about **PostgreSQL 17** and the software that sits between the application and the server. It starts from a problem you may have met: the application grows, you add servers, and the database falls over under connections, not under queries.
-
-> **How this was checked:** The facts come from the PostgreSQL, PgBouncer and Pgpool-II documentation and one published analysis, listed in the sources. The SQL below was not run against a server for this article, and is marked so. Product features change, so check the current documentation of the tool you choose.
+This article is about the software that sits between the application and PostgreSQL. It starts from a problem you may have met: the application grows, you add servers, and the database falls over under connections, not under queries.
 
 ## Two jobs, often mixed up
 

@@ -6,11 +6,9 @@ sources:
   - https://www.postgresql.org/docs/17/functions-admin.html
 ---
 
-This article starts the problem track **Large database**. It explains why the size of the data in a database matters, and what to ask before you act. It is about **PostgreSQL 17**, but the costs are the same for most databases.
+This article starts the problem track **Large database**. It explains why the size of the data in a database matters, and what to ask before you act. The costs are the same for most databases.
 
 The track is about the **database**: its tables, indexes and the space they use. A server that is running out of disk is a different problem, about the instance, and is not covered here.
-
-> **How this was checked:** The facts about vacuum come from the PostgreSQL 17 documentation, listed in the sources. The rest is general operating practice. The article has no SQL, and the thresholds are rules of thumb.
 
 ## Big is not the problem
 

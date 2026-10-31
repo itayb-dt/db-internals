@@ -9,9 +9,7 @@ sources:
   - https://www.postgresql.org/docs/17/storage-file-layout.html
 ---
 
-This article continues from [Low free disk space: the problem](topic:instance-disk-space). It is a quick overview of the potential root causes, with a short explanation of each. The rest of the track discusses the causes one by one. It is about **PostgreSQL 17**.
-
-> **How this was checked:** The facts about the write-ahead log, logging and temporary files come from the PostgreSQL 17 documentation, listed in the sources. The remarks about managed services, backups and snapshots are common operating practice. The article has no SQL.
+This article continues from [Low free disk space: the problem](topic:instance-disk-space). It is a quick overview of the potential root causes, with a short explanation of each. The rest of the track discusses the causes one by one.
 
 ## What lives on the disk of an instance
 

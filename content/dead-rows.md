@@ -11,9 +11,7 @@ sources:
   - https://www.postgresql.org/docs/17/runtime-config-client.html
 ---
 
-This article is about **PostgreSQL 17**. Other engines also leave old versions behind after changes, but they keep them elsewhere (undo or rollback space), so the table itself does not grow the same way. In PostgreSQL the old versions stay in the table. Read [MVCC](topic:mvcc) first if "row version" is new to you.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The long-transaction example was run with two real sessions. Output shown is from those runs.
+This article is about PostgreSQL. Other engines also leave old versions behind after changes, but they keep them elsewhere (undo or rollback space), so the table itself does not grow the same way. In PostgreSQL the old versions stay in the table. Read [MVCC](topic:mvcc) first if "row version" is new to you.
 
 ## What a dead row is
 

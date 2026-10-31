@@ -7,9 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/tutorial-arch.html
 ---
 
-This article starts the problem track **High CPU**. It says what the problem is, how it is detected, and why it matters. The next article lists the potential root causes, and the rest of the track discusses each one. It is about **PostgreSQL 17**.
-
-> **How this was checked:** The facts about the activity view and the statistics come from the PostgreSQL 17 documentation, listed in the sources. The description of CPU time on a host, and of cloud monitoring, is general operating knowledge. The article has no SQL, and the thresholds are rules of thumb.
+This article starts the problem track **High CPU**. It says what the problem is, how it is detected, and why it matters. The next article lists the potential root causes, and the rest of the track discusses each one.
 
 ## What it is
 

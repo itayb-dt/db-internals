@@ -156,7 +156,7 @@ Write the steps in block style as above. In the one-line `{...}` style a comma e
 
 `python3 scripts/verify_sql.py` runs every `sql` block from `content/*.md` against a real PostgreSQL, one throwaway database per article, with sample tables, and any indexes the examples assume, from `tests/sql_setup/<article>.sql`. The examples that need two sessions (deadlock, MVCC visibility, vacuum held back by an old snapshot) are run with two real sessions. Point it at a throwaway server with the usual `PGHOST`, `PGPORT` and `PGUSER` variables. It needs `psql`. It is not part of CI.
 
-If a block cannot run, because it needs a contrib extension, two sessions or a shell, start it with `-- not run: <reason>` and say so in the article's "How this was checked" line.
+If a block cannot run, because it needs a contrib extension, two sessions or a shell, start it with `-- not run: <reason>` and record it in `Product/article-review-notes.md`. The articles have no "How this was checked" note.
 
 ## Checks and deployment
 

@@ -8,9 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/monitoring-stats.html
 ---
 
-This article is about the **PostgreSQL 17** B-tree index. B-trees are also the default or main index type in MySQL/InnoDB, SQL Server and Oracle. They differ in details, for example InnoDB stores the whole table as a B-tree on the primary key.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The `pgstatindex` function mentioned in the text comes from the `pgstattuple` extension and was not run.
+This article is about the PostgreSQL B-tree index. B-trees are also the default or main index type in MySQL/InnoDB, SQL Server and Oracle. They differ in details, for example InnoDB stores the whole table as a B-tree on the primary key.
 
 ## What a B-tree is
 
@@ -67,7 +65,7 @@ An insert goes to the correct leaf page. If the page is full, it splits into two
 Two details keep the index healthy:
 
 - **Fillfactor.** Leaf pages are filled to 90% by default, leaving space for later inserts. Lowering it leaves more room but makes the index larger.
-- **Deduplication.** When many entries have the same key, the index stores the key once with a list of row pointers. It is on by default (`deduplicate_items`) and can shrink indexes on low-cardinality columns significantly.
+- **Deduplication.** When many entries have the same key, the index stores the key once with a list of row pointers. From PostgreSQL 13 it is on by default (`deduplicate_items`) and can shrink indexes on low-cardinality columns significantly.
 
 PostgreSQL also removes some obsolete entries during normal work (bottom-up deletion), and vacuum removes the rest. An `UPDATE` creates a new row version, and any index on a changed column gets a new entry.
 

@@ -7,9 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/using-explain.html
 ---
 
-This article continues from [High CPU: the problem](topic:high-cpu). It is a quick overview of the potential root causes, with a short explanation of each. The rest of the track discusses the causes one by one. It is about **PostgreSQL 17**.
-
-> **How this was checked:** The facts about the activity view, statistics and plans come from the PostgreSQL 17 documentation, listed in the sources. The causes themselves, and the remarks about hosts, virtual machines and containers, are common operating practice. The article has no SQL.
+This article continues from [High CPU: the problem](topic:high-cpu). It is a quick overview of the potential root causes, with a short explanation of each. The rest of the track discusses the causes one by one.
 
 ## Potential root causes
 

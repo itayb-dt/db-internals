@@ -12,9 +12,7 @@ sources:
   - https://www.postgresql.org/docs/17/errcodes-appendix.html
 ---
 
-This article is about **PostgreSQL 17**. Every database with locks can deadlock. SQL Server picks a "deadlock victim" and rolls it back with error 1205, Oracle raises ORA-00060, and MySQL/InnoDB returns error 1213. PostgreSQL's behaviour and tools are described below.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The deadlock example was run with two real sessions, and the ordered-locking version was run to confirm it does not deadlock.
+This article is about PostgreSQL. Every database with locks can deadlock. SQL Server picks a "deadlock victim" and rolls it back with error 1205, Oracle raises ORA-00060, and MySQL/InnoDB returns error 1213. PostgreSQL's behaviour and tools are described below.
 
 ## What a deadlock is
 

@@ -10,8 +10,6 @@ sources:
 
 Sharding is **not a database internal**. You will not find it in the PostgreSQL storage code, and the server itself does not know it is being used. We include it because it decides how the database layer behaves as a whole once one server is no longer enough. It changes what a query costs, which transactions are possible and how you operate the system, so anyone who monitors or tunes databases should understand it.
 
-> **How this was checked:** The facts come from the PostgreSQL 17 and Citus documentation, and from general knowledge where marked. The one SQL example was not run, because it needs several servers.
-
 ## The problem it solves
 
 You can make one server bigger for a long time: more memory, faster disks, more cores. Sooner or later one of these happens:
@@ -72,7 +70,7 @@ Sharding trades simplicity for scale. After you shard:
 
 PostgreSQL has **no built-in sharding**. It offers pieces:
 
-- **Partitioning with foreign tables.** A partition can be a table on another server through `postgres_fdw`, which lets a local server read and write tables on remote PostgreSQL servers. This works as a basic form of sharding, but it has limits: for example, some conditions are only pushed down to the remote server under certain rules, so some queries move more data than expected. (This SQL was not run.)
+- **Partitioning with foreign tables.** A partition can be a table on another server through `postgres_fdw`, which lets a local server read and write tables on remote PostgreSQL servers. This works as a basic form of sharding, but it has limits: for example, some conditions are only pushed down to the remote server under certain rules, so some queries move more data than expected.
 
 ```sql
 -- not run: needs two servers and credentials

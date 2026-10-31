@@ -6,9 +6,7 @@ sources:
   - https://www.postgresql.org/docs/17/auto-explain.html
 ---
 
-This article continues from [The error log](topic:error-log). It covers the slow query log: what it is, what an entry contains, the risk of personal data, and the two ideas that matter most in its configuration, thresholds and sampling. It is about **PostgreSQL 17**.
-
-> **How this was checked:** The settings, defaults and warnings come from the PostgreSQL 17 documentation, listed in the sources. The article has no SQL. Example thresholds are rules of thumb. The mention of a log analysis tool is general knowledge.
+This article continues from [The error log](topic:error-log). It covers the slow query log: what it is, what an entry contains, the risk of personal data, and the two ideas that matter most in its configuration, thresholds and sampling.
 
 ## What it is
 
@@ -34,7 +32,7 @@ The log holds the **text of statements with their values**. A query such as `WHE
 Treat the slow query log as sensitive data:
 
 - **Limit who can read it.** Developers and support often get access to logs more freely than to the database. Do not allow that by default.
-- **Do not log bind parameters** if you can avoid it. A setting limits the length of each logged parameter, and zero turns parameter logging off for ordinary statement messages. Its default logs them in full.
+- **Do not log bind parameters** if you can avoid it. From PostgreSQL 13, a setting limits the length of each logged parameter, and zero turns parameter logging off for ordinary statement messages. Its default logs them in full.
 - **Remember where the log goes.** Log shippers and monitoring tools copy it to other systems, with their own access and retention.
 - **Check the rules that apply to you,** such as privacy regulations. A log with personal data may need the same retention limits as the data itself.
 - **Redact before sharing.** Never paste log entries into a ticket or chat without removing the values.
@@ -63,7 +61,7 @@ Choose the threshold from what "slow" means for **your** application:
 
 ### Sampling
 
-Sampling reduces the volume when you want to see **borderline** statements without logging all of them. Three settings work together:
+Sampling reduces the volume when you want to see **borderline** statements without logging all of them. It is available from PostgreSQL 13. Three settings work together:
 
 - **`log_min_duration_statement`:** statements slower than this are **always** logged.
 - **`log_min_duration_sample`:** statements slower than this, but under the first threshold, are logged **only for a fraction** of them.

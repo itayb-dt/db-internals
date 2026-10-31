@@ -31,6 +31,7 @@ The `problem` field of the track is one or two sentences, shown under the header
 - A cause that has no article yet can be a topic with no article. It shows as "coming soon". Plan the article before you list it.
 - When one track hands over to another (for example from disk space to a large database), make the hand-over the last step and say so in its `why`.
 - The `why` line of a step says why it is in the track, in one sentence.
+- **Do not name a PostgreSQL version** in a track or in its articles unless a feature really differs between versions. See "Versions" in `content/_prompt.md`.
 - Keep vendor material short. A product appears as one step at most, and only if it helps with the problem.
 - A list of causes is not a tree. Do not call it a tree, a branch or a hypothesis. Say "potential root causes".
 

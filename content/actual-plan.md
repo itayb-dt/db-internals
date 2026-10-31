@@ -7,9 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/runtime-config-query.html
 ---
 
-This article is about **PostgreSQL 17**. In SQL Server the same idea is the "actual execution plan", and in Oracle it is the plan with runtime statistics. In PostgreSQL you get it with `EXPLAIN ANALYZE`.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. Sample plan output is illustrative.
+This article is about PostgreSQL. In SQL Server the same idea is the "actual execution plan", and in Oracle it is the plan with runtime statistics. In PostgreSQL you get it with `EXPLAIN ANALYZE`.
 
 ## Estimated versus actual
 

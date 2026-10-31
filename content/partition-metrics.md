@@ -10,9 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/pgstatstatements.html
 ---
 
-This article is about **PostgreSQL 17**, and continues from [Table partitioning](topic:partitioning). The queries use the `events` table from that article.
-
-> **How this was checked:** the queries were run on PostgreSQL 16.2. The one for `pg_stat_statements` was not run, because that extension was not available.
+This article continues from [Table partitioning](topic:partitioning). The queries use the `events` table from that article.
 
 ## Why metrics are per partition
 

@@ -10,9 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/routine-vacuuming.html
 ---
 
-This article is about **PostgreSQL 17** declarative partitioning. MySQL, SQL Server and Oracle all offer partitioning too, with different syntax and some different limits. The idea is the same.
-
-> **How this was checked:** the facts come from the PostgreSQL 17 documentation. The SQL was run on PostgreSQL 16.2, and the measurements below come from that run. Snippets marked `-- not run` were not executed.
+This article is about PostgreSQL declarative partitioning. MySQL, SQL Server and Oracle all offer partitioning too, with different syntax and some different limits. The idea is the same.
 
 ## What partitioning is
 

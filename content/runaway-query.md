@@ -7,9 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/runtime-config-client.html
 ---
 
-This is one of the root causes listed in [Common root causes of high CPU](topic:high-cpu-causes). It is about **PostgreSQL 17**.
-
-> **How this was checked:** The names of the activity view, the functions that cancel a statement or end a session, and the statement timeout setting come from the PostgreSQL 17 documentation, listed in the sources. The causes and the advice are common operating practice. The article has no SQL.
+This is one of the root causes listed in [Common root causes of high CPU](topic:high-cpu-causes).
 
 ## What it is
 

@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.15 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.18 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -184,6 +184,10 @@ As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**
 |---|---|---|---|
 | TOP-01 | A topic view shows, in order: a track bar (if the topic is in a track), a meta line (subject, domain, level), the topic name, the description, and optional details. The number of prerequisites is not shown. | Built | Auto (opens every topic) |
 | TOP-02 | Dropped in 0.11: the topic view no longer shows the total number of prerequisites. | Dropped | n/a |
+| TOP-13 | **A topic in a problem track has two tabs** under the track header: the article, and **Metadata**. The first tab is named after the step: "The Problem" for the problem articles, "Root causes" for the overview and "Root cause" for the articles on each cause. It opens first on every topic, and shows the article title and the content immediately, with no repeated title or summary above it. | Built | Auto |
+| TOP-14 | The **Metadata** tab holds what used to sit above the article: the subject, domain and level, the topic name, its description and details, what it builds on, what it unlocks next, and what you can do when you understand it. | Built | Auto |
+| TOP-15 | A topic in a problem track that has no article yet shows its title, its description and "This article is coming soon" in the first tab. | Built | Auto |
+| TOP-16 | A topic that is not in a problem track (a general track, or none) has no tabs, and shows the metadata first and the article below it, as before. | Built | Manual |
 | TOP-03 | **Builds directly on** lists the direct prerequisites. **Unlocks next** lists the topics that depend on this one. Each entry shows the subject colour. Hovering shows the reason for the link. An empty list shows "none". | Built | Manual |
 | TOP-04 | Clicking an entry in those lists opens that topic. | Built | Manual |
 | TOP-05 | **You understand it when you can** lists the evidence statements. | Built | Manual |
@@ -240,7 +244,8 @@ As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**
 | ID | Requirement | Status | Check |
 |---|---|---|---|
 | ART-01 | An article explains one topic for backend engineers and DBAs who know SQL but not internals. It assumes no knowledge of the topic and none of the engine's source code. | Built (style guide) | Manual (review) |
-| ART-02 | An article opens with a scope line that states the engine and version, and how other engines differ in one or two sentences. | Built (style guide) | Manual |
+| ART-02 | An article opens with a scope line that states the engine, and how other engines differ in one or two sentences. It does **not** name a version. | Built (style guide) | Manual |
+| ART-04 | **Versions.** An article holds for all recent PostgreSQL versions and does not say "PostgreSQL 17". A version is named only for a real difference ("from PostgreSQL 13", "in 16 and earlier"), at the place where it applies. | Built (rule). All articles were updated in 0.16 | Manual |
 | ART-03 | The reference engine is **PostgreSQL**. Articles name differences in other engines. Product articles (for example the Dynatrace track) state their own scope. | Built | Manual |
 
 ### 6.2 Structure
@@ -273,10 +278,10 @@ As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**
 
 | ID | Requirement | Status | Check |
 |---|---|---|---|
-| ACC-01 | Every technical claim is verified against official documentation for the stated version. The pages are listed in `sources`. | Built (rule) | Manual |
+| ACC-01 | Every technical claim is verified against the official PostgreSQL documentation for a recent version. The pages are listed in `sources`. | Built (rule) | Manual |
 | ACC-02 | No invented numbers, parameter names or catalog columns. | Built (rule) | Manual |
 | ACC-03 | Every `sql` block is run against a real PostgreSQL by `scripts/verify_sql.py`. A block that cannot run starts with `-- not run: <reason>`. | Built | Auto (when run locally) |
-| ACC-04 | An article that contains SQL starts with a "How this was checked" note: what was run, on which version. | Built (style guide) | Manual |
+| ACC-04 | An article has **no** "How this was checked" note in its text (removed in 0.17). What was run, on which version, which claims come from the documentation, and what could not be checked are recorded in `Product/article-review-notes.md`. Blocks that cannot run keep their `-- not run: <reason>` comment. | Built | Manual |
 | ACC-05 | Rules of thumb are marked as rules of thumb. Uncertainty is stated. | Built (rule) | Manual |
 | ACC-06 | Product claims (for example about Dynatrace) come from public product documentation, listed in `sources`, with a note that features change. | Built (practice) | Manual |
 | ACC-07 | Every article is reviewed by a named person before it is marked reviewed. The review covers technical accuracy. | Proposed | None yet |
@@ -447,6 +452,9 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.18 | 2026-11-01 | Articles in problem tracks have two tabs, the article and Metadata (TOP-13 to TOP-16). |
+| 0.17 | 2026-11-01 | The "How this was checked" note is removed from the articles (ACC-04). The notes moved to Product/article-review-notes.md. |
+| 0.16 | 2026-11-01 | No PostgreSQL version in the text of the articles (ART-02, ART-04). Real version differences are named where they apply. |
 | 0.15 | 2026-11-01 | Two kinds of track, general and problem, with different icons and the title "Problem: ..." (TRK-27). The new flow of a problem track: the problem, an overview of the potential root causes, then each cause (TRK-24, TRK-28). The phases are now problem, causes and cause. The four problem tracks were renamed and restructured, and High CPU and Low free disk space got new articles. |
 | 0.14 | 2026-11-01 | The track header shows one track at a time (TRK-26), fixing stacked headers for topics that belong to two tracks. |
 | 0.13 | 2026-11-01 | The Learning tracks cards show the icon, the name with the subtitle under it (TRK-10). |

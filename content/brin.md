@@ -8,9 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/view-pg-stats.html
 ---
 
-This article is about the **PostgreSQL 17** BRIN index (Block Range INdex). Other engines have similar ideas under other names: zone maps or min/max indexes in column stores and warehouses (Snowflake, ClickHouse, Oracle Exadata storage indexes).
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2.
+This article is about the PostgreSQL BRIN index (Block Range INdex). Other engines have similar ideas under other names: zone maps or min/max indexes in column stores and warehouses (Snowflake, ClickHouse, Oracle Exadata storage indexes).
 
 ## The problem: a B-tree is too big for some tables
 
@@ -82,7 +80,7 @@ In the plan, look for a `Bitmap Index Scan` on the BRIN index followed by a `Bit
 - Enable `autosummarize`, or run summarization after bulk loads.
 - Restore physical order, for example by loading data in order, or by rewriting the table sorted by the column (this takes locks and time, so plan it).
 - Use a B-tree if the correlation is poor or you need point lookups.
-- PostgreSQL also ships other BRIN operator classes (such as minmax-multi and bloom) that cope better with less ordered data.
+- From PostgreSQL 14, other BRIN operator classes (such as minmax-multi and bloom) are available that cope better with less ordered data.
 
 ## Practical checklist
 

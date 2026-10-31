@@ -10,7 +10,7 @@ sources:
   - https://www.postgresql.org/docs/17/database-roles.html
 ---
 
-This is the starting point: a map of the whole server. Each part gets a few lines here and has its own article. It is about **PostgreSQL 17**, and the facts come from its documentation.
+This is the starting point: a map of the whole server. Each part gets a few lines here and has its own article. It is about PostgreSQL, and the facts come from its documentation.
 
 ## What an instance is
 

@@ -7,9 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/storage-toast.html
 ---
 
-This article continues from [Monitoring table size](topic:table-size), which showed where the space goes. It answers one question: why did the database get bigger? It starts with the healthy answer, and then covers the others. It is about **PostgreSQL 17**. It looks at the data inside the database. A server that is running out of disk for other reasons is a different problem, and is not covered here.
-
-> **How this was checked:** The facts about vacuum and replication slots come from the PostgreSQL 17 documentation, listed in the sources. The rest is common operating practice. The article has no SQL, and the thresholds are rules of thumb.
+This article continues from [Monitoring table size](topic:table-size), which showed where the space goes. It answers one question: why did the database get bigger? It starts with the healthy answer, and then covers the others. It looks at the data inside the database. A server that is running out of disk for other reasons is a different problem, and is not covered here.
 
 ## First question: is it healthy?
 

@@ -6,9 +6,7 @@ sources:
   - https://www.postgresql.org/docs/17/functions-admin.html
 ---
 
-This article continues from [WAL and checkpoints](topic:wal). It covers the server log in general: where it is written, how it is rotated, and what makes it grow. The two main uses of it have their own articles: [the error log](topic:error-log) and [the slow query log](topic:slow-query-log). It is about **PostgreSQL 17**.
-
-> **How this was checked:** The settings and defaults come from the PostgreSQL 17 documentation, listed in the sources. The article has no SQL. The advice on thresholds is common practice and not from the documentation.
+This article continues from [WAL and checkpoints](topic:wal). It covers the server log in general: where it is written, how it is rotated, and what makes it grow. The two main uses of it have their own articles: [the error log](topic:error-log) and [the slow query log](topic:slow-query-log).
 
 ## One log, two uses
 
@@ -21,7 +19,7 @@ Both fill the same files and the same disk, which is why this article treats the
 
 ## Where it is written
 
-By default the server writes to its standard error stream. A **logging collector** can capture that into files in a log directory (`log`, relative to the data directory, by default), with names based on the time. The log can also be written in other formats, such as CSV or JSON, which tools read more easily, and to the system log.
+By default the server writes to its standard error stream. A **logging collector** can capture that into files in a log directory (`log`, relative to the data directory, by default), with names based on the time. The log can also be written in other formats, such as CSV or JSON (from PostgreSQL 15), which tools read more easily, and to the system log.
 
 The collector **rotates** files: it starts a new one after 24 hours or 10 MB by default. It does **not delete old ones**. The documentation says that if you use a file name without time escapes, you should plan to use a log rotation utility to avoid eventually filling the entire disk. A rotation setting that overwrites old files, with a file name that repeats, limits the total.
 

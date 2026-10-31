@@ -6,9 +6,7 @@ sources:
   - https://www.postgresql.org/docs/17/continuous-archiving.html
 ---
 
-This article continues from [Server logs](topic:server-logs). It covers the error log: what it holds, how to read an entry, and what makes it grow. It is about **PostgreSQL 17**. The slow query log is a separate subject: see [The slow query log](topic:slow-query-log).
-
-> **How this was checked:** The settings, defaults and severity levels come from the PostgreSQL 17 documentation, listed in the sources. The article has no SQL. The examples of what to look for are common operating practice.
+This article continues from [Server logs](topic:server-logs). It covers the error log: what it holds, how to read an entry, and what makes it grow. The slow query log is a separate subject: see [The slow query log](topic:slow-query-log).
 
 ## What it is
 
@@ -18,7 +16,7 @@ Typical contents:
 
 - **Errors and warnings.** A statement that failed, a connection that was refused, a deadlock that was resolved.
 - **Startup and shutdown,** including a crash and the recovery after it.
-- **Checkpoints.** On by default, with how many buffers were written and how long it took. See [WAL and checkpoints](topic:wal).
+- **Checkpoints.** On by default (from PostgreSQL 15), with how many buffers were written and how long it took. See [WAL and checkpoints](topic:wal).
 - **Long autovacuum runs.** Autovacuum actions that ran for 10 minutes or more are logged by default.
 - **Optional events,** if you turn them on: lock waits, temporary files, connections.
 
@@ -45,7 +43,7 @@ Each entry starts with a **prefix** you can configure. The default is a time sta
 
 A statement that causes an error is logged **with its text**, because `log_min_error_statement` defaults to error. See the warning about sensitive data in [the slow query log](topic:slow-query-log), which applies here too.
 
-The log can be written as plain text (the default), CSV or JSON. JSON and CSV need the logging collector, and are the easier ones for tools to read.
+The log can be written as plain text (the default), CSV or JSON (JSON from PostgreSQL 15). JSON and CSV need the logging collector, and are the easier ones for tools to read.
 
 The animation shows entries with their severity, and then a repeating error that fills the log, and how to find it.
 

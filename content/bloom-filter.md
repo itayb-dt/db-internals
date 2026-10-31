@@ -7,9 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/indexes-types.html
 ---
 
-This is an **advanced topic** and is not part of any track. It starts with the general idea of a Bloom filter, then shows how **PostgreSQL 17** uses it in the `bloom` index.
-
-> **How this was checked:** The facts about the `bloom` index and its numbers come from the PostgreSQL 17 documentation, listed in the sources. The description of Bloom filters and of the real systems that use them is general knowledge, not from those pages. The article has no SQL of its own.
+This is an **advanced topic** and is not part of any track. It starts with the general idea of a Bloom filter, then shows how PostgreSQL uses it in the `bloom` index.
 
 ## What a Bloom filter is
 

@@ -6,9 +6,7 @@ sources:
   - https://www.postgresql.org/docs/17/monitoring-stats.html
 ---
 
-This is one of the root causes listed in [Common root causes of high CPU](topic:high-cpu-causes). It is about **PostgreSQL 17**.
-
-> **How this was checked:** The names of the statistics views come from the PostgreSQL 17 documentation, listed in the sources. The advice on capacity and headroom is common operating practice. The article has no SQL, and the numbers are rules of thumb.
+This is one of the root causes listed in [Common root causes of high CPU](topic:high-cpu-causes).
 
 ## What it is
 

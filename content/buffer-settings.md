@@ -11,9 +11,7 @@ sources:
   - https://www.postgresql.org/docs/17/pgprewarm.html
 ---
 
-This article is about **PostgreSQL 17** and continues from [The buffer pool](topic:buffer). It covers the settings that size the pool, the ones that decide how fast dirty pages go to disk, and the ones that people often mistake for buffer settings. Other engines have the same knobs under other names: SQL Server limits memory with `max server memory`, and InnoDB sizes its pool with `innodb_buffer_pool_size`.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. Defaults shown were read from that server and match the 17 documentation. Examples that change the server, or need an extension or a 17-only view, are marked `-- not run`.
+This article continues from [The buffer pool](topic:buffer). It covers the settings that size the pool, the ones that decide how fast dirty pages go to disk, and the ones that people often mistake for buffer settings. Other engines have the same knobs under other names: SQL Server limits memory with `max server memory`, and InnoDB sizes its pool with `innodb_buffer_pool_size`.
 
 ## The settings at a glance
 
@@ -108,7 +106,7 @@ SELECT buffers_clean, maxwritten_clean, buffers_alloc FROM pg_stat_bgwriter;
 **Are checkpoints too frequent?** In 17 the checkpoint counters are in their own view. Compare timed checkpoints with requested ones, which were forced by WAL size:
 
 ```sql
--- not run: PostgreSQL 17 view; in 16 and earlier these counters are in pg_stat_bgwriter
+-- not run: this view exists from PostgreSQL 17; in 16 and earlier these counters are in pg_stat_bgwriter
 SELECT num_timed, num_requested, buffers_written FROM pg_stat_checkpointer;
 ```
 

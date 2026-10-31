@@ -9,9 +9,7 @@ sources:
   - https://www.postgresql.org/docs/17/storage-vm.html
 ---
 
-This article is about **PostgreSQL 17**. Every engine has to clean up old row versions. MySQL/InnoDB and Oracle purge old versions from their undo space, and SQL Server cleans up in the background too. PostgreSQL keeps old versions in the table itself, so cleaning up is a separate job with a name: vacuum. How to watch it is in [Monitoring vacuum](topic:vacuum-monitoring).
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The output shown comes from those runs.
+This article is about PostgreSQL. Every engine has to clean up old row versions. MySQL/InnoDB and Oracle purge old versions from their undo space, and SQL Server cleans up in the background too. PostgreSQL keeps old versions in the table itself, so cleaning up is a separate job with a name: vacuum. How to watch it is in [Monitoring vacuum](topic:vacuum-monitoring).
 
 ## What vacuum does
 

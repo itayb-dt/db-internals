@@ -6,9 +6,7 @@ sources:
   - https://www.postgresql.org/docs/17/pgstatstatements.html
 ---
 
-This article covers two of the root causes listed in [Common root causes of high CPU](topic:high-cpu-causes). Both are about the workload jumping. It is about **PostgreSQL 17**.
-
-> **How this was checked:** The names of the statistics views come from the PostgreSQL 17 documentation, listed in the sources. The causes and the advice are common operating practice. The article has no SQL.
+This article covers two of the root causes listed in [Common root causes of high CPU](topic:high-cpu-causes). Both are about the workload jumping.
 
 ## More requests than usual
 

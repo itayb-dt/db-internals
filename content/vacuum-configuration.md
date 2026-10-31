@@ -6,9 +6,7 @@ sources:
   - https://www.postgresql.org/docs/17/routine-vacuuming.html
 ---
 
-This article continues from [Vacuum](topic:vacuum). It covers the settings that decide when autovacuum starts, how many workers run, how fast they go, and when a table needs settings of its own. It is about **PostgreSQL 17**.
-
-> **How this was checked:** The settings and their defaults come from the PostgreSQL 17 documentation, listed in the sources. The article has no SQL. Suggested values are rules of thumb that depend on your workload.
+This article continues from [Vacuum](topic:vacuum). It covers the settings that decide when autovacuum starts, how many workers run, how fast they go, and when a table needs settings of its own.
 
 ## Why configure it
 
@@ -32,7 +30,7 @@ The defaults are a threshold of 50 rows and a scale factor of 0.2, which is 20% 
 
 For a table of 1,000 rows, that is 250 dead rows, which is quick. For a table of **100 million rows**, it is about **20 million dead rows** before vacuum even starts. By then the table has grown by a fifth, and the vacuum that follows has a lot of work. A percentage that suits small tables is far too lax for big ones.
 
-There is a similar trigger for **inserts**, with a threshold of 1,000 rows and a scale factor of 0.2 by default. It makes vacuum run on tables that only receive new rows, which keeps their visibility information current and prepares old rows for freezing. See [Visibility map](topic:visibility-map).
+From PostgreSQL 13 there is a similar trigger for **inserts**, with a threshold of 1,000 rows and a scale factor of 0.2 by default. It makes vacuum run on tables that only receive new rows, which keeps their visibility information current and prepares old rows for freezing. See [Visibility map](topic:visibility-map).
 
 Autovacuum also refreshes the planner's [statistics](topic:statistics) with its own trigger, a threshold of 50 and a scale factor of 0.1.
 

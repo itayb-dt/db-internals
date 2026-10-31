@@ -9,9 +9,7 @@ sources:
   - https://www.postgresql.org/docs/17/storage-hot.html
 ---
 
-This article is about **PostgreSQL 17**. MVCC stands for multiversion concurrency control. Oracle, MySQL/InnoDB and SQL Server (with snapshot isolation) also keep several versions of data. The difference is where the old versions live. In InnoDB and Oracle, old versions are kept in undo space and rebuilt on demand. In PostgreSQL they stay in the table itself, which is why this article is followed by [Dead rows](topic:dead-rows).
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2. The two-session example was run with two real sessions.
+This article is about PostgreSQL. MVCC stands for multiversion concurrency control. Oracle, MySQL/InnoDB and SQL Server (with snapshot isolation) also keep several versions of data. The difference is where the old versions live. In InnoDB and Oracle, old versions are kept in undo space and rebuilt on demand. In PostgreSQL they stay in the table itself, which is why this article is followed by [Dead rows](topic:dead-rows).
 
 ## The problem MVCC solves
 

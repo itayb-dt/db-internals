@@ -12,9 +12,7 @@ sources:
   - https://www.postgresql.org/docs/17/monitoring-stats.html
 ---
 
-This article is about the **write-ahead log (WAL)** of **PostgreSQL 17**: what it is, what a checkpoint does, and why its size can grow until it fills a disk. SQL Server keeps a transaction log for each database, and InnoDB has a redo log, which is the closest match. PostgreSQL has **one WAL for the whole instance**, whatever the number of databases.
-
-> **How this was checked:** The settings, defaults and behaviours of the log, archiving and slots come from the PostgreSQL 17 documentation, listed in the sources. The basic description of the log is from the documentation's introduction, which I did not re-read for this version. The pages for the size function and for the archiver view were partly summarised, so please confirm those two against the live pages. The three queries below were **not run**, because there is no server here.
+This article is about the **write-ahead log (WAL)** of PostgreSQL: what it is, what a checkpoint does, and why its size can grow until it fills a disk. SQL Server keeps a transaction log for each database, and InnoDB has a redo log, which is the closest match. PostgreSQL has **one WAL for the whole instance**, whatever the number of databases.
 
 ## What it is
 
@@ -69,7 +67,7 @@ If archiving is on, a segment cannot be removed until it has been archived. When
 
 ### 2. A replication slot holds the log
 
-A replication slot makes the server keep the log until the slot's consumer has read it. If the consumer is gone, for example a replica that was shut down or a logical subscriber that stopped, the slot keeps the log indefinitely. The documentation warns that slots can retain so many segments that they fill the log directory. The limit on how much a slot may retain, `max_slot_wal_keep_size`, is **unlimited by default**.
+A replication slot makes the server keep the log until the slot's consumer has read it. If the consumer is gone, for example a replica that was shut down or a logical subscriber that stopped, the slot keeps the log indefinitely. The documentation warns that slots can retain so many segments that they fill the log directory. The limit on how much a slot may retain, `max_slot_wal_keep_size` (from PostgreSQL 13), is **unlimited by default**.
 
 ### 3. Heavy writing, and a large `wal_keep_size`
 

@@ -8,9 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/runtime-config-client.html
 ---
 
-This article is about the **PostgreSQL 17** GIN index (Generalized Inverted Index). Other engines have similar inverted indexes for full-text search (for example MySQL FULLTEXT, SQL Server full-text indexes), but PostgreSQL's GIN is a general building block used for arrays, `jsonb` and text search.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2, except the `pgstatginindex` call, which needs the `pgstattuple` extension (marked `-- not run`).
+This article is about the PostgreSQL GIN index (Generalized Inverted Index). Other engines have similar inverted indexes for full-text search (for example MySQL FULLTEXT, SQL Server full-text indexes), but PostgreSQL's GIN is a general building block used for arrays, `jsonb` and text search.
 
 ## The problem a B-tree cannot solve
 

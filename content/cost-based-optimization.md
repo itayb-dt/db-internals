@@ -8,9 +8,7 @@ sources:
   - https://www.postgresql.org/docs/17/planner-stats.html
 ---
 
-This article is about **PostgreSQL 17**. Most modern relational databases use the same approach: SQL Server, Oracle and MySQL all have a cost-based optimizer, with their own cost models and units. The parameter names below are PostgreSQL's.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2.
+This article is about PostgreSQL. Most modern relational databases use the same approach: SQL Server, Oracle and MySQL all have a cost-based optimizer, with their own cost models and units. The parameter names below are PostgreSQL's.
 
 ## The idea
 

@@ -7,7 +7,7 @@ sources:
   - https://www.postgresql.org/docs/17/monitoring-stats.html
 ---
 
-This article continues from [What database monitoring means](topic:db-monitoring). It is a list of what to expect from a database observability system, whatever the vendor. Examples come from **PostgreSQL 17**.
+This article continues from [What database monitoring means](topic:db-monitoring). It is a list of what to expect from a database observability system, whatever the vendor. Examples come from PostgreSQL.
 
 ## Built by database experts
 

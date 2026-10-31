@@ -19,9 +19,7 @@ sources:
   - https://www.postgresql.org/docs/17/runtime-config-autovacuum.html
 ---
 
-This article is about **PostgreSQL**, and the details were checked against the PostgreSQL 17 documentation. Other engines solve the same problem differently. MySQL/InnoDB keeps long values on separate overflow pages, SQL Server moves them to row-overflow or LOB pages, and Oracle stores LOBs in a separate LOB segment. The names and thresholds differ, but the idea is the same: a page is small, so big values live somewhere else.
-
-> **How this was checked:** The SQL in this article was run on PostgreSQL 16.2, except the lz4 setting, the `lo` extension example with `vacuumlo`, and the `pg_stat_statements` query, which need things that test server did not have. They are marked `-- not run`.
+This article is about **PostgreSQL**, and the details were checked against the PostgreSQL documentation. Other engines solve the same problem differently. MySQL/InnoDB keeps long values on separate overflow pages, SQL Server moves them to row-overflow or LOB pages, and Oracle stores LOBs in a separate LOB segment. The names and thresholds differ, but the idea is the same: a page is small, so big values live somewhere else.
 
 ## What TOAST is and when it kicks in
 

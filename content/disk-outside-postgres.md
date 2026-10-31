@@ -9,8 +9,6 @@ sources:
 
 This article continues from [The slow query log](topic:slow-query-log). So far the track looked at what PostgreSQL writes. This article is about the disk usage PostgreSQL does not know about, and about who owns what on a managed service and on a system you run.
 
-> **How this was checked:** The facts about files that PostgreSQL writes come from the PostgreSQL 17 documentation, listed in the sources. Everything about cloud services, virtual machines and Kubernetes is **general operating knowledge**, not from the documentation, and details differ between providers and tools. Check your own provider's documentation. The article has no SQL.
-
 ## Two worlds
 
 | | Managed cloud service | A system you run (VM, bare metal, Kubernetes) |

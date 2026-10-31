@@ -9,8 +9,6 @@ sources:
 
 This article continues from [What a good database observability system gives you](topic:db-observability-expectations). It shows why the database cannot be understood alone, and what the Dynatrace platform brings around it. The next topic zooms in on [the Databases app](topic:dt-databases-app).
 
-> **How this was checked:** The statements about Dynatrace come from its public documentation, listed in the sources. Product names and features change, so check the documentation for the current state.
-
 ## A database is never alone
 
 Take a real complaint: "checkout is slow". Looking only at the database, you may see a busy server and a few heavy queries. That does not tell you whether those queries are the cause, who runs them, or whether anything else is wrong. The answer is usually in the context:

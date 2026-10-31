@@ -142,6 +142,27 @@ def main(url=None, screenshot=None):
             page.click("#tabs .tab[data-tab=home]")
         elif page.locator("#tabAboutBtn").is_visible():
             problems.append("About tab is shown but there is no About page")
+        # a topic in a problem track has two tabs: the article first, then the metadata
+        prob = next((tr for tr in graph.get("tracks", []) if tr.get("kind") == "problem"), None)
+        if prob:
+            page.click("#tabTracksBtn")
+            idx = [tr["id"] for tr in graph["tracks"]].index(prob["id"])
+            page.locator("#tracks .track summary").nth(idx).click()
+            page.locator("#tracks .track").nth(idx).locator(".tstep").first.click()
+            page.wait_for_selector("#artbody .article", timeout=8000)
+            if not page.locator("#ttabs").is_visible():
+                problems.append("problem track: the tabs are not shown")
+            elif not page.locator("#artbody").is_visible() or page.locator("#metaview").is_visible():
+                problems.append("problem track: the first tab should show the article and hide the metadata")
+            else:
+                page.click("#ttabs .tab[data-t=meta]")
+                if not page.locator("#metaview").is_visible() or page.locator("#artbody").is_visible():
+                    problems.append("problem track: the Metadata tab should show the metadata and hide the article")
+                page.click("#ttabs .tab[data-t=article]")
+                if not page.locator("#artbody").is_visible():
+                    problems.append("problem track: the first tab did not bring the article back")
+            page.click("#homebtn")
+            page.locator("#tracks .track summary").nth(idx).click()  # close the card again
         # learning tracks: each expands, every step opens its topic, prev/next walk the track
         tracks = graph.get("tracks", [])
         if tracks:
@@ -217,8 +238,8 @@ def main(url=None, screenshot=None):
                     bad = page.evaluate("[...document.querySelectorAll('#artbody img')].filter(i=>!i.complete||!i.naturalWidth).length")
                     if bad:
                         problems.append(f"{t['id']}: {bad} image(s) did not render")
-            elif page.locator("#art").is_visible():
-                problems.append(f"{t['id']}: article section shown for a topic without content")
+            elif page.locator("#artbody .article").count():
+                problems.append(f"{t['id']}: article shown for a topic without content")
         # every live demo must load and run for a moment without errors
         demos = sorted(os.path.relpath(f, os.path.join(ROOT, "_site"))
                        for f in glob.glob(os.path.join(ROOT, "_site", "content", "*", "*.html")))

@@ -4,6 +4,16 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-11-01
 
+### Viewer
+- **Articles in problem tracks have two tabs.** The first tab is the article, named after the step ("The Problem", "Root causes" or "Root cause"), and opens first, so you see the title and the content straight away. The second tab, **Metadata**, holds what used to sit above the article: subject and level, description, what it builds on, what it unlocks and what you can do when you understand it. A topic that has no article yet shows its title, its description and "coming soon". Topics in general tracks, or in no track, keep the old layout.
+
+### Articles
+- **The "How this was checked" note is removed from all 45 articles that had it.** It was written for the owner and the reviewers, not for the reader. The notes moved, unchanged apart from the version wording, to `Product/article-review-notes.md`, which also lists what could not be checked. The `-- not run` comments in code blocks stay. The writing guide and the product doc say so.
+
+### Versions
+- **No "PostgreSQL 17" in the articles.** The articles were written against one version, which gave the wrong impression that other recent versions behave differently. The scope lines, the introductions and the "How this was checked" notes now say "PostgreSQL" and "the PostgreSQL documentation". A version is named only where a feature really differs: sampling and parameter logging in the slow query log (from 13), the insert trigger of autovacuum (13), B-tree deduplication (13), the replication slot limit (13), more BRIN operator classes (14), JSON logs and the default checkpoint logging (15), the `pg_stat_statements` column names (13) and its statistics start time (17). The notes that a test ran on a specific version, such as 16.2, stay, because they are facts about the test. The links in "Sources" still point to the documentation of one version.
+- The writing guide (`content/_prompt.md`) has a new "Versions" section, and the track guide, `CONTRIBUTING.md` and the product doc carry the rule.
+
 ### A new flow for problem tracks
 - **Two kinds of track.** General tracks (PostgreSQL Storage, Anatomy of PostgreSQL, Database Monitoring Overview) keep the route icon and the gold name. Problem tracks have a warning icon and an orange name, and are titled **Problem: ...**. The Learning tracks list has a heading for each kind. The four problem tracks are renamed: **Problem: Slow query**, **Problem: Large database**, **Problem: Low free disk space** and **Problem: High CPU**.
 - **The same shape every time.** The first article is about the problem: what it is, how it is detected (and whether the source is the operating system or cloud monitoring, or a PostgreSQL system view), and why it matters. The next article is a quick overview of the potential root causes. The rest of the track discusses each root cause. The step phases are now "The problem", "Potential root causes" and "Root cause in detail". The build checks the shape. `content/_track_prompt.md` describes it.

@@ -7,7 +7,7 @@ sources:
   - https://docs.dynatrace.com/docs/observe/infrastructure-observability/databases
 ---
 
-This article is the start of the monitoring track. It is about the idea, not a product. The examples use **PostgreSQL 17**, but every database has the same kinds of signals under different names.
+This article is the start of the monitoring track. It is about the idea, not a product. The examples use PostgreSQL, but every database has the same kinds of signals under different names.
 
 ## Start with the questions
 
