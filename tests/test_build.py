@@ -386,6 +386,13 @@ class ContentTests(BuildTestCase):
         ok = self.site(content={"a.md": "**Title.**\n\n- one\n- two\n\n```\ntext\n- not a list\n```\n"})
         self.assertEqual(ok.run()[0], 0)
 
+    def test_sources_go_to_the_metadata_not_the_article(self):
+        s = self.site(content={"a.md": "---\nsources: [https://example.org/doc]\n---\ntext"})
+        self.assertEqual(s.run()[0], 0)
+        self.assertNotIn("Sources", read(s.out("content", "a.html")))
+        self.assertNotIn("example.org", read(s.out("content", "a.html")))
+        self.assertIn("https://example.org/doc", read(s.out("graph.json")))
+
     def test_bad_frontmatter_and_sources(self):
         s = self.site(content={"a.md": "---\nsources: [ftp://x]\n---\ntext"})
         code, err = s.run()

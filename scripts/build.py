@@ -202,16 +202,14 @@ def article_footer(meta, where, errors):
     if not isinstance(sources, list):
         errors.append(f"{where}: 'sources' must be a list of URLs")
         sources = []
-    items = []
+    good = []
     for s in sources:
         if not isinstance(s, str) or urlsplit(s).scheme not in ("http", "https"):
             errors.append(f"{where}: source {s!r} is not an http(s) URL")
             continue
-        items.append(f'<li><a href="{html.escape(s, quote=True)}" target="_blank" '
-                     f'rel="noopener noreferrer nofollow">{html.escape(s)}</a></li>')
-    if items:
-        parts.append('<section class="article-sources"><h2>Sources</h2><ul>' + "".join(items) + "</ul></section>")
-    return "".join(parts)
+        good.append(s)
+    # the sources are not part of the article text: the viewer shows them in the metadata of the topic
+    return "".join(parts), good
 
 
 def load_topics(errors, raw_details):
@@ -417,6 +415,7 @@ def build_content(topics, problems):
     for tid, name in files.items():
         where = f"content/{name}"
         local = []
+        sources = []
         try:
             text = open(os.path.join(CONTENT_DIR, name), encoding="utf-8").read()
             meta, body = split_frontmatter(text, where, local)
@@ -428,8 +427,8 @@ def build_content(topics, problems):
                                                           "About" if tid == ABOUT_ID else "Database Internals")))
             if isinstance(meta.get("updated"), (datetime.date, datetime.datetime)):
                 meta["updated"] = meta["updated"].isoformat()[:10]
-            frag = (f'<article class="article"><h1>{title}</h1>{clean}'
-                    f'{article_footer(meta, where, local)}</article>')
+            footer, sources = article_footer(meta, where, local)
+            frag = f'<article class="article"><h1>{title}</h1>{clean}{footer}</article>'
         except Exception as e:  # one broken article must not take the rest down
             local.append(f"{where}: could not be processed ({type(e).__name__}: {e})")
         if local:
@@ -439,6 +438,7 @@ def build_content(topics, problems):
         rendered[tid] = frag
         if tid in topics:
             topics[tid]["has_content"] = True
+            topics[tid]["sources"] = sources
         asset_dir = os.path.join(CONTENT_DIR, tid)
         if os.path.isdir(asset_dir):
             for dp, _, fns in os.walk(asset_dir):

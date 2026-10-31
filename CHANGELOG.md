@@ -4,6 +4,14 @@ Notable changes to the Database Internals map. Newest first. Topic names are the
 
 ## 2026-11-01
 
+### Viewer
+- **The Sources moved to the Metadata.** They no longer sit at the bottom of the article, where few people click them. They are listed in the Metadata of each topic (in a problem track, the Metadata tab). Links to external resources can still be placed in the body of an article. The build keeps checking that every source is an http(s) link.
+
+### Animations
+- **Removed** the animation of Common root causes of high CPU. It only ticked off a list, which the article already is.
+- **New animation in High CPU: the problem**, in the impact section: the CPU of the primary reaches 100%, its health check gets no answer, the load balancer marks it down, the standby is promoted with a cold cache, its CPU reaches 100% too, and no healthy server is left. A busy database becomes an outage, and the switch makes it worse. The impact list has a matching bullet.
+- The writing guide says when to use an animation: for something complicated that happens over time, such as a chain of causes and effects, and not for a list, a table or a checklist.
+
 ### Problem articles
 - **The problem statement under the track header has a fixed format.** "**The problem:** The CPU of the database instance has been close to 100% for too long. In this track we will review the impact, the potential root causes and how to analyze them." The data holds only the first sentence for each track; the viewer adds the label and the second sentence. All four problem tracks were updated.
 - **The first article of each problem track now has the same order:** what the problem is, then the impact and why you should care, and last how to get the data that shows the problem (each signal with its source: the operating system or cloud monitoring, or a PostgreSQL system view or function). Its opening sentence says so, and says that the root causes come later, with the data needed to confirm each one. Done for High CPU, Low free disk space, Slow query and Large database. In High CPU the three cause articles now have a section "What more data to look at". The track guide describes the order.

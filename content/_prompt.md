@@ -50,7 +50,7 @@ Every article must answer, for its topic:
 - Frontmatter: `title`, `updated`, `sources` (URLs), optional `reviewed_by`. No "How this was checked" note in the text.
 - Open with a scope line: which engine, and how other engines differ in one or two sentences. **Do not name a version** ("PostgreSQL 17") in the scope line or the introduction. Name a version only for a real difference, and say it where it applies: "from PostgreSQL 13", "in 16 and earlier this view is called ...". See "Versions" below.
 - Use `##` headings, short paragraphs, fenced code blocks with a language, and at most one comparison table.
-- End with a short practical checklist. The build adds the Sources list from the frontmatter.
+- End with a short practical checklist. The `sources` from the frontmatter are shown in the Metadata of the topic, not in the text.
 - Target 900-1400 words plus small code blocks.
 
 ## Visuals
@@ -62,6 +62,7 @@ Hard ideas need a picture. Add one when the text alone makes the reader work too
 - Images: PNG in `content/<topic-id>/`, small (aim for under 200 KB), with alt text. Author diagrams as SVG in `content/<topic-id>/src/` and render them with `python3 scripts/render_images.py`.
 - Demos: one plain HTML file, `content/<topic-id>/<name>.html`, embedded with `<iframe src="<topic-id>/<name>.html" ...>`. No libraries and no network requests. Loop by itself, give each step about 2 seconds so a reader can follow it (a whole demo of 20 to 30 seconds for a process with several steps, less for a simple idea), use simple motion, and show the state in words as it changes. Draw the scene as a function of time so the loop restarts cleanly. Respect `prefers-reduced-motion` with one still frame.
 - One demo shows one idea. If it needs more than about 30 seconds, split it into several demos (for example one for a search and one for an insert) and embed each where its idea is explained. An article may embed more than one demo.
+- **Use an animation for something complicated that happens over time**, such as a chain of causes and effects. Example: the CPU reaches 100%, the health check gets no answer, the load balancer marks the server down, the standby is promoted with a cold cache, and the standby overloads too. **Do not animate a list, a table or a checklist** (for example a list of root causes being ticked off). If the content is a list, write the list.
 - Show a visual only for what the article explains. Do not decorate.
 
 ## Accuracy

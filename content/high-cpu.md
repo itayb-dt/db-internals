@@ -23,7 +23,14 @@ When the CPU stays high, bad things follow:
 - **Maintenance falls behind.** Autovacuum slows down, and dead rows and bloat grow.
 - **You may not be able to get in.** At 100% even an administrator's connection can be slow.
 - **There is no room left.** A traffic spike, a failover or a restart under that load can tip the instance over.
+- **It can trigger a failover that makes it worse.** A busy primary can miss its health checks. A load balancer or a failover manager may then decide it is down and switch to the standby, which receives the whole load with a cold cache.
 - **It costs money.** If the answer is more capacity, the bill rises, so it is worth finding out whether the work is wasted first.
+
+The animation shows how a busy database can turn into an outage.
+
+<iframe src="high-cpu/failover.html" title="Animation: the CPU of the primary reaches 100 percent, so its health check gets no answer. The load balancer marks it as down and the standby is promoted. The standby takes the whole load with a cold cache, its CPU also reaches 100 percent, its health check fails too, and no healthy server is left" width="800" height="450"></iframe>
+
+*The animation repeats about every 30 seconds.*
 
 As a rule of thumb, a CPU that stays above 80% for long periods needs attention before it reaches 100%.
 

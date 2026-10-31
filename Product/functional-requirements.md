@@ -1,6 +1,6 @@
 # Database Internals: functional requirements
 
-**Version:** 0.20 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
+**Version:** 0.22 draft for review  **Date:** 2026-10-24  **Owner:** Itay Braun
 
 This document describes what the product must do: the viewer (UI), the articles, and the learning tracks. It is the plan to review and edit. It is also the source for QA: every requirement has an ID, a status and a way to check it.
 
@@ -185,7 +185,7 @@ As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**
 | TOP-01 | A topic view shows, in order: a track bar (if the topic is in a track), a meta line (subject, domain, level), the topic name, the description, and optional details. The number of prerequisites is not shown. | Built | Auto (opens every topic) |
 | TOP-02 | Dropped in 0.11: the topic view no longer shows the total number of prerequisites. | Dropped | n/a |
 | TOP-13 | **A topic in a problem track has two tabs** under the track header: the article, and **Metadata**. The first tab is named after the step: "The Problem" for the problem articles, "Root causes" for the overview and "Root cause" for the articles on each cause. It opens first on every topic, and shows the article title and the content immediately, with no repeated title or summary above it. | Built | Auto |
-| TOP-14 | The **Metadata** tab holds what used to sit above the article: the subject, domain and level, the topic name, its description and details, what it builds on, what it unlocks next, and what you can do when you understand it. | Built | Auto |
+| TOP-14 | The **Metadata** tab holds what used to sit above the article: the subject, domain and level, the topic name, its description and details, what it builds on, what it unlocks next, what you can do when you understand it, and the **Sources** of the article. | Built | Auto |
 | TOP-15 | A topic in a problem track that has no article yet shows its title, its description and "This article is coming soon" in the first tab. | Built | Auto |
 | TOP-16 | A topic that is not in a problem track (a general track, or none) has no tabs, and shows the metadata first and the article below it, as before. | Built | Manual |
 | TOP-03 | **Builds directly on** lists the direct prerequisites. **Unlocks next** lists the topics that depend on this one. Each entry shows the subject colour. Hovering shows the reason for the link. An empty list shows "none". | Built | Manual |
@@ -210,7 +210,7 @@ As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**
 | AV-05 | Embedded demos fill the panel width at a 16:9 shape and load lazily. | Built | Manual |
 | AV-06 | Links to other topics (`topic:`) open that topic in the panel. External links open in a new tab. | Built | Auto |
 | AV-07 | Images are checked to render in the browser. | Built | Auto |
-| AV-08 | The article footer shows "Updated <date>" and optionally "Reviewed by <name>", then a **Sources** list of links. | Built | Unit test (sources) |
+| AV-08 | The article footer shows "Updated <date>" and optionally "Reviewed by <name>". The **Sources** are not in the article text: they are shown in the Metadata of the topic (TOP-14). Links to external resources may still appear in the body of the article. | Built | Unit test |
 | AV-09 | Code blocks are shown in a monospace block, with horizontal scrolling. | Built | Manual |
 | AV-10 | A "copy" button on code blocks. | Proposed | None yet |
 | AV-11 | A "table of contents" for long articles. | Proposed | None yet |
@@ -303,6 +303,7 @@ As of this version: **57 topics**, **48 articles**, **7 subjects**, **7 tracks**
 | VIS-09 | Every demo is reviewed like code, because it is copied as written. | Built (rule) | Manual |
 | VIS-10 | A diagram or a demo is visually checked in a browser before publishing. | Proposed (today the smoke test only checks that a demo loads) | None yet |
 | VIS-11 | Every article in the Indexing subject that explains a mechanism (Index, B-Tree, Hash index, GIN, BRIN) has at least one demo. Other articles get one when the idea happens over time (see D-13). | Built for Indexing, Proposed for the rest | Auto (loads), Manual (content) |
+| VIS-13 | An animation explains something **complicated that happens over time**, such as a chain of causes and effects (a busy primary misses its health check, the load balancer switches to the standby, and the standby overloads). It does not animate a list, a table or a checklist. | Built (rule, in the style guide) | Manual |
 | VIS-12 | **Pace.** A demo gives each step about 2 seconds, so a reader can follow it. A whole demo is 20 to 30 seconds for a process with several steps, and shorter for a simple idea. A demo shows one idea. If it needs more time, it is split into several demos, each embedded where its idea is explained. An article can embed more than one demo. | Built for the GIN demos (19 s and 17 s). The other index demos are about 10 s with steps of about 1 s (see D-15). | Manual |
 
 ### 6.6 Safety of article content
@@ -452,6 +453,8 @@ To make QA repeatable, each requirement ID can become a test case. Requirements 
 | 0.3 | 2026-10-25 | Added the high-level rule for articles (ART-26 to ART-29) and decision D-14. |
 | 0.4 | 2026-10-26 | Demo pace rule (VIS-12) and decision D-15. GIN demo split into search and insert. |
 | 0.5 | 2026-10-26 | New track "My query is slow" with three new topics (section 3 and 7.3 updated). |
+| 0.22 | 2026-11-01 | The Sources moved from the bottom of the article to the Metadata (AV-08, TOP-14). |
+| 0.21 | 2026-11-01 | The animation that ticked off the root causes of high CPU was removed (VIS-13). A new one shows how high CPU leads to a failover that makes it worse. |
 | 0.20 | 2026-11-01 | The problem statement of a track is one sentence, shown as "The problem: ..." with a fixed second sentence (TRK-23). |
 | 0.19 | 2026-11-01 | The first article of a problem track says what the problem is, then the impact, and last how to get the data. Cause articles say what more data confirms the cause (TRK-28). |
 | 0.18 | 2026-11-01 | Articles in problem tracks have two tabs, the article and Metadata (TOP-13 to TOP-16). |

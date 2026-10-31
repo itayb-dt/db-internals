@@ -26,14 +26,6 @@ Two quick questions narrow the list. Is the CPU used by **one process or many**?
 
 **Not a cause: locks.** Sessions that wait for a lock use no CPU. If most sessions wait on locks, the problem is blocking, not the CPU.
 
-## Checking them
-
-The animation checks the causes one at a time. Each has a question that confirms or rejects it, and the search stops at the first one that is confirmed.
-
-<iframe src="high-cpu-causes/demo.html" title="Animation: a list of causes of high CPU checked one at a time. Not enough resources, a runaway query, more requests and overlapping jobs are each rejected by a question. Costly statements is confirmed because a few statements dominate the total time" width="800" height="450"></iframe>
-
-*The animation repeats about every 30 seconds.*
-
 ## Checklist
 
 - One process or many? Running sessions or waiting ones?

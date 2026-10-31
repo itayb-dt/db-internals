@@ -95,6 +95,7 @@ h4{margin:0 0 6px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;co
 #art{margin-top:6px;border-top:1px solid rgba(255,255,255,.1);padding-top:12px}
 #art.bare{margin-top:0;border-top:0;padding-top:0}
 #ttabs{margin:0 0 18px}
+.srcs li{padding:2px 0;font-size:12.5px}.srcs a{color:#9db2ff}
 .soon-box{color:#aeb4d6;line-height:1.5}.soon-box h1{font-size:22px;margin:0 0 10px;color:#fff}.soon-box .state{color:#8890b5;margin-top:14px}
 #art .state{color:#8890b5}#art .state a{color:#9db2ff;cursor:pointer;text-decoration:underline}
 .article{color:#c9cde8;line-height:1.6;font-size:14px;overflow-wrap:anywhere}
@@ -142,7 +143,7 @@ li.ev{color:#aeb4d6;padding-left:12px;text-indent:-12px}li.ev:before{content:"\2
 <div id="trackbar"></div><div id="trackintro"></div>
 <div class="tabs" id="ttabs" style="display:none"><button class="tab on" data-t="article" id="ttArt">The Problem</button><button class="tab" data-t="meta">Metadata</button></div>
 <div id="metaview"><div class="meta" id="pm"></div><h3 id="pt"></h3><p id="pd"></p><div class="details" id="pdt" style="display:none"></div>
-<h4>Builds directly on</h4><ul id="pb"></ul><h4>Unlocks next</h4><ul id="pu"></ul><h4>You understand it when you can</h4><ul id="pe"></ul></div>
+<h4>Builds directly on</h4><ul id="pb"></ul><h4>Unlocks next</h4><ul id="pu"></ul><h4>You understand it when you can</h4><ul id="pe"></ul><div id="psrc"></div></div>
 <div id="art" style="display:none"><h4 id="arth">Read the full article</h4><div id="artbody"></div></div></div></div>
 <div class="box hint"><b>Drag</b> to spin &middot; <b>Scroll</b> to zoom &middot; <b>Click</b> a dot</div>
 <div class="err" id="err"></div>
@@ -263,7 +264,11 @@ function selectTopic(n){sel=n;if(!n){anc=new Set();artTok++;showView(false);auto
  const nodeLi=(m,reason)=>{const li=document.createElement('li');li.className='link';li.title=reason||'';
   li.innerHTML='<span class="dot" style="background:'+SUBJ[m.subject]+';margin-right:8px"></span>'+m.name;li.onclick=()=>select(m);return li};
  fill('pb',pre[n.id],'',l=>nodeLi(l.s,l.reason));fill('pu',nxt[n.id],'',l=>nodeLi(l.t,l.reason));
- fill('pe',n.evidence||[],'',t=>{const li=document.createElement('li');li.className='ev';li.textContent=t;return li})}
+ fill('pe',n.evidence||[],'',t=>{const li=document.createElement('li');li.className='ev';li.textContent=t;return li});
+ sourcesBox(n)}
+function sourcesBox(n){const box=P('psrc');box.innerHTML='';const list=n.sources||[];if(!list.length)return;
+ const h=document.createElement('h4');h.textContent='Sources';const ul=document.createElement('ul');ul.className='srcs';
+ list.forEach(u=>{const li=document.createElement('li'),a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener noreferrer nofollow';a.textContent=u.replace(/^https?:\/\/(www\.)?/,'');li.appendChild(a);ul.appendChild(li)});box.append(h,ul)}
 P('homebtn').onclick=()=>select(null);
 function showView(topic){P('homeview').style.display=topic?'none':'block';P('topicview').style.display=topic?'block':'none';P('bar').style.display=topic?'block':'none';P('panel').scrollTop=0}
 // topics of one subject, basic to advanced; topics with an article are marked with a ring

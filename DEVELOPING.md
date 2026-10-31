@@ -96,7 +96,7 @@ Create `content/<topic-id>.md`. If the file name matches a topic `id`, the topic
 ---
 title: "TOAST: how PostgreSQL stores large values"   # optional, defaults to the topic name
 updated: 2026-10-17                                   # optional
-sources:                                              # optional, http(s) URLs, listed at the end
+sources:                                              # optional, http(s) URLs, shown in the Metadata of the topic
   - https://www.postgresql.org/docs/17/storage-toast.html
 reviewed_by: Jane Doe                                 # optional
 ---

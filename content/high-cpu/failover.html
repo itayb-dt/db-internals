@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Failover demo</title>
+<style>
+html,body{margin:0;height:100%;background:#0f1324;overflow:hidden}
+svg{width:100%;height:100%;display:block}
+text{font-family:-apple-system,system-ui,Segoe UI,Helvetica,Arial,sans-serif}
+</style></head><body>
+<svg id="s" viewBox="0 0 800 450" preserveAspectRatio="xMidYMid meet" role="img" aria-label="When the CPU of the primary reaches 100 percent the health check gets no answer in time, so the load balancer marks the primary as down and the standby is promoted. The standby takes the whole load with a cold cache and its CPU also reaches 100 percent. Its health check fails too and no healthy server is left.">
+ <title>Failover demo</title>
+</svg>
+<script>
+(function(){
+var NS='http://www.w3.org/2000/svg',LOOP=30,svg=document.getElementById('s');
+function clamp(x){return Math.max(0,Math.min(1,x))}
+function mk(tag,a,s){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(s!=null)e.textContent=s;svg.appendChild(e);return e}
+function box(x,y,w,h,o){o=o||{};var e=mk('rect',{x:x,y:y,width:w,height:h,rx:o.rx==null?6:o.rx,fill:o.fill||'#1b2140',stroke:o.stroke||'#2a3158','stroke-width':o.sw||1.5});e._f=o.fill||'#1b2140';e._s=o.stroke||'#2a3158';return e}
+function txt(x,y,s,o){o=o||{};var e=mk('text',{x:x,y:y,'text-anchor':o.a||'middle','font-size':o.size||13,'font-weight':o.b?700:400,fill:o.fill||'#e8eaf6'},s);e._c=o.fill||'#e8eaf6';return e}
+function line(x1,y1,x2,y2,o){o=o||{};var e=mk('path',{d:'M'+x1+' '+y1+'L'+x2+' '+y2,stroke:o.stroke||'#2a3158','stroke-width':o.sw||2,fill:'none'});e._s=o.stroke||'#2a3158';return e}
+function on(e,f,fill,stroke,w){e.setAttribute('fill',f?fill:e._f);e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):1.5)}
+function lon(e,f,stroke,w){e.setAttribute('stroke',f?stroke:e._s);e.setAttribute('stroke-width',f?(w||3):2)}
+function tc(e,f,c){e.setAttribute('fill',f?c:e._c)}
+function dot(e,pts,t0,t1,t){if(t<t0||t>t1){e.setAttribute('opacity',0);return}var u=clamp((t-t0)/(t1-t0))*(pts.length-1),i=Math.min(Math.floor(u),pts.length-2),f=u-i;e.setAttribute('cx',pts[i][0]+(pts[i+1][0]-pts[i][0])*f);e.setAttribute('cy',pts[i][1]+(pts[i+1][1]-pts[i][1])*f);e.setAttribute('opacity',1)}
+var GREEN='#7ee0a1',YEL='#ffd166',VIO='#c78bff',CY='#4dd0e1',MUTE='#8890b5';
+box(20,14,760,30,{rx:8,fill:'#161b33',stroke:'#2a3158'});
+var crumb=txt(36,34,'',{a:'start',b:1,size:14});
+var cap=txt(400,430,'',{b:1,size:16});
+var bar=mk('rect',{x:0,y:446,width:0,height:4,fill:VIO});
+var STILL=28;
+
+function vis(e,v){e.setAttribute('opacity',v?1:0)}
+function op(e,v){e.setAttribute('opacity',v)}
+function prog(t,a,b){return clamp((t-a)/(b-a))}
+function ease(x){x=clamp(x);return x*x*(3-2*x)}
+function wid(e,w){e.setAttribute('width',Math.max(0,w))}
+function put(e,x,y){e.setAttribute('x',x);e.setAttribute('y',y)}
+function grp(list,v){list.forEach(function(e){vis(e,v)})}
+function fmt(n){return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,',')}
+var cap2=txt(400,424,'',{size:14,fill:'#cfd3f0'});cap.setAttribute('y',398);
+function say(a,b){cap.textContent=a||'';cap2.textContent=b||''}
+
+crumb.textContent='When the CPU is high, a failover can make it worse';
+var CL=box(20,140,120,80,{stroke:'#5b7cff'}),CLt=txt(80,176,'Applications',{b:1,size:14}),CLs=txt(80,200,'',{size:12,b:1,fill:YEL});
+var LB=box(200,140,150,80,{stroke:VIO}),LBt=txt(275,170,'Load balancer',{b:1,size:14}),LBs=txt(275,194,'asks: are you alive?',{size:10,fill:MUTE});
+line(140,180,200,180,{stroke:'#3a4270'});var L1=line(350,170,430,120,{stroke:'#3a4270',sw:3}),L2=line(350,190,430,300,{stroke:'#3a4270',sw:3}),L3=line(525,180,525,250,{stroke:'#3a4270'});
+txt(535,218,'replication',{a:'start',size:10,fill:MUTE});
+function srv(x,y,name,col){var b=box(x,y,190,120,{stroke:col}),n=txt(x+95,y+22,name,{b:1,size:14}),g=box(x+20,y+50,150,16,{rx:4}),f=box(x+20,y+50,10,16,{rx:4,fill:GREEN,stroke:GREEN}),c=txt(x+95,y+88,'CPU',{size:12,b:1}),s=txt(x+95,y+108,'',{size:12,b:1});return {b:b,n:n,g:g,f:f,c:c,s:s,x:x,col:col}}
+var P=srv(430,60,'Primary',GREEN),S=srv(430,250,'Standby',CY);
+var d1=mk('circle',{r:7,fill:YEL,cx:-20,cy:-20}),d2=mk('circle',{r:7,fill:YEL,cx:-20,cy:-20}),hc=mk('circle',{r:7,fill:'#ffffff',cx:-20,cy:-20}),hx=txt(0,0,'',{size:18,b:1,fill:'#ff6b6b'});
+var miss=txt(275,246,'',{b:1,size:13,fill:'#ff6b6b'}),lat=txt(80,242,'',{b:1,size:12,fill:MUTE});
+function cpu(t,who){
+ if(who==='p'){if(t<3)return 45;if(t<6.5)return 45+55*ease(prog(t,3,6.5));if(t<17)return 100;return 100-60*ease(prog(t,17,20))}
+ if(t<17)return 8;if(t<21)return 8+92*ease(prog(t,17,21));return 100}
+function paint(v,u,pc){var w=150*pc/100;wid(v.f,w);var c=pc>=90?'#ff6b6b':pc>=70?YEL:GREEN;v.f.setAttribute('fill',c);v.f.setAttribute('stroke',c);v.c.textContent='CPU '+Math.round(pc)+'%'}
+function render(t){
+ var pc=cpu(t,'p'),sc=cpu(t,'s');paint(P,0,pc);paint(S,0,sc);
+ var pDown=t>=13,sPromoted=t>=15,sDown=t>=25;
+ P.s.textContent=pDown?'marked down':'';P.s.setAttribute('fill','#ff6b6b');
+ S.n.textContent=sPromoted?'Standby, now the primary':'Standby';S.s.textContent=sDown?'marked down':(sPromoted?'promoted':'');S.s.setAttribute('fill',sDown?'#ff6b6b':GREEN);
+ on(P.b,pDown,'#2a1b28','#ff6b6b',3);on(S.b,sDown,'#2a1b28','#ff6b6b',3);if(!pDown)P.b.setAttribute('stroke',GREEN);if(!sDown)S.b.setAttribute('stroke',sPromoted?GREEN:CY);
+ var tgt=sPromoted?[430,300]:[430,120],route=[[140,180],[200,180],[350,180],tgt];
+ // requests: flow while the target answers, pile up when it does not
+ var answering=(t<6.5)||(t>=15&&t<21)||false,flow=answering?((t*0.8)%1):0.0;
+ if(answering){dot(d1,route,0,1,flow);dot(d2,route,0,1,(flow+0.5)%1);op(d1,1);op(d2,1)}
+ else if(t>=6.5&&t<15||t>=21&&t<25){var q=t<15?[[352,176],[420,126]]:[[352,184],[420,300]];d1.setAttribute('cx',q[1][0]-10);d1.setAttribute('cy',q[1][1]);op(d1,1);d2.setAttribute('cx',q[1][0]-28);d2.setAttribute('cy',q[1][1]+(t<15?8:-8));op(d2,1)}
+ else{op(d1,0);op(d2,0)}
+ lat.textContent=t<6.5?'response time: 20 ms':t<15?'responses: very slow':t<21?'new primary: cold cache':t<25?'responses: very slow':'no answer';
+ // health check
+ var hcs=[[8.2,9.4],[9.8,11],[11.4,12.6]],cur=null;hcs.forEach(function(h,i){if(t>=h[0]&&t<h[1])cur=[h,i]});
+ var mi=0;hcs.forEach(function(h){if(t>=h[1]&&t<13)mi++});if(t>=13&&t<15)mi=3;
+ if(cur){dot(hc,[[350,160],[430,115]],cur[0][0],cur[0][1]-0.2,t);op(hc,1)}else{
+  var h2=[[22,23],[23.3,24.3],[24.6,25.6]],c2=null;h2.forEach(function(h){if(t>=h[0]&&t<h[1]-0.1)c2=h});
+  if(c2){dot(hc,[[350,190],[430,305]],c2[0],c2[1]-0.2,t);op(hc,1)}else op(hc,0)}
+ miss.textContent=(t>=8.2&&t<15)?('health check: no answer ('+Math.min(3,Math.max(1,mi))+' of 3)'):(t>=22&&t<26.5?'health check: no answer':'');
+ CLs.textContent=t>=26?'errors':t>=15&&t<21?'a few errors':'';
+ grp([hx],false);
+ if(t<3)say('Normal: the load balancer sends requests to the primary.','Every few seconds it also sends a health check: are you alive?');
+ else if(t<8)say('The CPU of the primary climbs to 100%.','Every request waits for CPU time, and so does the health check.');
+ else if(t<13)say('The health check gets no answer in time.','Three missed checks in a row, and the load balancer decides the primary is down.');
+ else if(t<17)say('The primary is marked down, and the standby is promoted.','Nothing was broken. The primary was only busy.');
+ else if(t<22)say('The standby now takes the whole load, with a cold cache.','Its CPU climbs to 100% too.');
+ else if(t<26)say('Its health check fails as well. The load balancer marks it down.','There is no healthy server left.');
+ else say('A busy database became an outage. The switch made it worse.','Fix the CPU first, and make health checks and failover tolerate a busy server.');
+}
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function draw(t){render(t);bar.setAttribute('width',800*t/LOOP)}
+if(reduce){draw(STILL);return}
+var t0=performance.now();
+(function frame(now){draw(Math.max(0,(now-t0)/1000)%LOOP);requestAnimationFrame(frame)})(t0);
+})();
+</script></body></html>
